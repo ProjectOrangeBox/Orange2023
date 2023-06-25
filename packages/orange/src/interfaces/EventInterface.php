@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+namespace dmyers\orange\interfaces;
+
+interface EventInterface
+{
+    const PRIORITY_LOWEST = 10;
+    const PRIORITY_LOW = 20;
+    const PRIORITY_NORMAL = 50;
+    const PRIORITY_HIGH = 80;
+    const PRIORITY_HIGHEST = 90;
+
+    public function register($trigger, $callable, int $priority = self::PRIORITY_NORMAL): int;
+    public function registerMultiple(array $multiple, int $priority = self::PRIORITY_NORMAL): array;
+    public function trigger(string $trigger, &...$arguments): self;
+    public function has(string $trigger): bool;
+    public function triggers(): array;
+    public function unregister(int $eventId): bool;
+    public function unregisterAll(string $trigger = null): bool;
+}
