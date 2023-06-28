@@ -46,10 +46,10 @@ class Router implements RouterInterface
         // main loop
         foreach ($this->routes as $route) {
             if (isset($route['method'])) {
-                $matchedMethod = (is_array($route['method'])) ? strtoupper(implode('|', $route['method'])) : strtoupper($route['method']);
+                $matchedMethod = (is_array($route['method'])) ? array_map('strtoupper', $route['method']) : [0 => strtoupper($route['method'])];
 
                 // check if the current request method matches and the expression matches
-                if ((strpos($matchedMethod, $requestMethod) !== false || $route['method'] == '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
+                if ((in_array($requestMethod, $matchedMethod) || $route['method'] == '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
                     // remove the first arg
                     $url = array_shift($argv);
 
