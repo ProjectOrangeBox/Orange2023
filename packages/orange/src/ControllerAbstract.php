@@ -11,7 +11,7 @@ use dmyers\orange\interfaces\OutputInterface;
 /**
  * default controller to extend
  */
-abstract class Controller
+abstract class ControllerAbstract
 {
     protected OutputInterface $output;
     protected InputInterface $input;

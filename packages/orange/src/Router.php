@@ -15,10 +15,7 @@ class Router implements RouterInterface
     private static RouterInterface $instance;
     protected string $siteUrl;
     protected bool $isHttps;
-    // all routes
     protected array $routes = [];
-    protected array $urls = [];
-    // route args after a match
     protected array $matched = [];
 
     private function __construct(array $config)

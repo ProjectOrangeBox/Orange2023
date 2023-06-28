@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace app\controllers;
 
 use dmyers\orange\Container;
-use dmyers\orange\Controller;
+use dmyers\orange\ControllerAbstract;
 use dmyers\orange\interfaces\DataInterface;
 use dmyers\orange\interfaces\InputInterface;
 use dmyers\orange\interfaces\ConfigInterface;
 use dmyers\orange\interfaces\OutputInterface;
 use dmyers\orange\interfaces\ViewerInterface;
 
-abstract class BaseController extends Controller
+abstract class BaseController extends ControllerAbstract
 {
     protected OutputInterface $output;
     protected InputInterface $input;

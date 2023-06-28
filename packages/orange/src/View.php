@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
-use dmyers\orange\Viewer;
+use dmyers\orange\ViewerAbstract;
 use dmyers\orange\interfaces\DataInterface;
 use dmyers\orange\interfaces\ViewerInterface;
 
-class View extends Viewer implements ViewerInterface
+class View extends ViewerAbstract implements ViewerInterface
 {
     private static ViewerInterface $instance;
 

@@ -10,7 +10,7 @@ use dmyers\orange\exceptions\FileNotWritable;
 use dmyers\orange\exceptions\FolderNotFound;
 use dmyers\orange\interfaces\ViewerInterface;
 
-abstract class Viewer implements ViewerInterface
+abstract class ViewerAbstract implements ViewerInterface
 {
     protected DataInterface $data;
     protected array $config = [];

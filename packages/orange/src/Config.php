@@ -7,7 +7,6 @@ namespace dmyers\orange;
 use ArrayObject;
 use dmyers\orange\interfaces\ConfigInterface;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
-use dmyers\orange\exceptions\InvalidValue;
 
 class Config extends ArrayObject implements ConfigInterface
 {

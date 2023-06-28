@@ -6,7 +6,7 @@ namespace dmyers\orange;
 
 use PDO;
 
-abstract class Model
+abstract class ModelAbstract
 {
     protected PDO $pdo;
     protected string $lastSql = '';
