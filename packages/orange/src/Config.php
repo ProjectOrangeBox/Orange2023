@@ -118,7 +118,7 @@ class Config extends ArrayObject implements ConfigInterface
         return $config;
     }
 
-    protected static function normalizeName(string $name): string
+    protected function normalizeName(string $name): string
     {
         return mb_convert_case($name, MB_CASE_LOWER, mb_detect_encoding($name));
     }
