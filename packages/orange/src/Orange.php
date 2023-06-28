@@ -255,3 +255,32 @@ if (!function_exists('fetchEnv')) {
         return ($isset) ? $searchArray[$key] : $default;
     }
 }
+
+/**
+ * great for local cache files
+ */
+if (!function_exists('file_put_contents_atomic')) {
+    function file_put_contents_atomic(string $filePath, string $content, int $flags = 0, $context = null): int|false
+    {
+        $tempFilePath = $filePath . \hrtime(true);
+        $strlen = strlen($content);
+
+        if (file_put_contents($tempFilePath, $content, $flags, $context) !== $strlen) {
+            return false;
+        }
+
+        // atomic function
+        if (rename($tempFilePath, $filePath, $context) === false) {
+            return false;
+        }
+
+        /* flush from the cache */
+        if (function_exists('opcache_invalidate')) {
+            opcache_invalidate($filePath, true);
+        } elseif (function_exists('apc_delete_file')) {
+            apc_delete_file($filePath);
+        }
+
+        return $strlen;
+    }
+}

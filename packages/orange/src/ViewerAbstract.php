@@ -36,7 +36,7 @@ abstract class ViewerAbstract implements ViewerInterface
         $tempFile = $this->tempFolder . '/' . md5($string) . $this->extension;
 
         if (!\file_exists($tempFile) || $this->debug === true) {
-            if ($this->file_put_contents_atomic($tempFile, $string) === false) {
+            if (file_put_contents_atomic($tempFile, $string) === false) {
                 throw new FileNotWritable();
             }
         }
@@ -111,23 +111,6 @@ abstract class ViewerAbstract implements ViewerInterface
 
         // capture cache and return
         return ob_get_clean();
-    }
-
-    protected function file_put_contents_atomic(string $filePath, string $content, int $flags = 0, $context = null): int|false
-    {
-        $tempFilePath = $filePath . \hrtime(true);
-        $strlen = strlen($content);
-
-        if (file_put_contents($tempFilePath, $content, $flags, $context) !== $strlen) {
-            return false;
-        }
-
-        // atomic function
-        if (rename($tempFilePath, $filePath, $context) === false) {
-            return false;
-        }
-
-        return $strlen;
     }
 
     protected function findView(string $view): string
