@@ -170,4 +170,17 @@ class Output implements OutputInterface
             exit(0);
         }
     }
+
+    public function __debugInfo(): array
+    {
+        return [
+            'config'=>$this->config,
+            'code'=>$this->code,
+            'contentType'=>$this->contentType,
+            'charSet'=>$this->charSet,
+            'headers'=>$this->headers,
+            'output'=>$this->output,
+        ];
+    }
+
 }

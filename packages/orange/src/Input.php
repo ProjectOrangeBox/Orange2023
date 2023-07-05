@@ -157,4 +157,16 @@ class Input implements InputInterface
 
         return $value;
     }
+
+    public function __debugInfo(): array
+    {
+        return [
+            'input'=>$this->input,
+            'requestType'=>$this->requestType,
+            'requestMethod'=>$this->requestMethod,
+            'isHttps'=>$this->isHttps,
+            'validKeys'=>$this->validKeys,
+        ];
+    }
+
 }

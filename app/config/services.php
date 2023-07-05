@@ -25,9 +25,11 @@ use dmyers\orange\interfaces\DispatcherInterface;
 
 return [
 	'error' => function (ContainerInterface $container): ErrorInterface {
+        // get out our config so we can append something onto it
 		$config = $container->config->error;
 
-		$config['request type2'] = $container->input->requestType();
+        // get from input the request type
+		$config['request type'] = $container->input->requestType();
 
 		return Error::getInstance($config, $container->phpview, $container->output, $container->log);
 	},
@@ -44,7 +46,10 @@ return [
 		// get from the container the saved config
 		$config = $container->{'$config'};
 
+        // default config folder passed during setup and stored in $config service
 		$configFolders[] = $config['config folder'];
+
+        // add the environmental folders (loaded last over the others)
 		$configFolders[] = $config['config folder'] . '/' . $config['environment'];
 
 		return Config::getInstance($configFolders);
@@ -53,8 +58,10 @@ return [
 		return Output::getInstance($container->config->output);
 	},
 	'router' => function (ContainerInterface $container): RouterInterface {
+        // get out our config so we can append something onto it
 		$config = $container->config->routes;
 
+        // get from input http or https -used when making urls
 		$config['isHttps']  = $container->input->isHttpsRequest();
 
 		return Router::getInstance($config);
@@ -62,7 +69,7 @@ return [
 	'dispatcher' => function (ContainerInterface $container): DispatcherInterface {
 		return Dispatcher::getInstance($container->input, $container->output, $container->config);
 	},
-	'@phpview' => 'view', // alias
+	'@phpview' => 'view', // alias of view
 	'view' => function (ContainerInterface $container): ViewerInterface {
 		return View::getInstance($container->config->view, $container->data);
 	},
@@ -71,6 +78,7 @@ return [
 	},
 
 	'pdo' => function (ContainerInterface $container) {
+        // stored in the .env file specific to each server (not commited to GIT)
 		return new PDO('mysql:host=' . fetchEnv('db.host') . ';dbname=' . fetchEnv('db.database'), fetchEnv('db.username'), fetchEnv('db.password'), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 	},
 

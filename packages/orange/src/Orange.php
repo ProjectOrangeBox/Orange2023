@@ -83,6 +83,11 @@ if (!function_exists('bootstrap')) {
         }
 
         switch (ENVIRONMENT) {
+            case 'phpunit':
+                ini_set('display_errors', '1');
+                ini_set('display_startup_errors', '1');
+                error_reporting(E_ALL ^ E_NOTICE);
+                break;
             case 'development':
                 ini_set('display_errors', '1');
                 ini_set('display_startup_errors', '1');
@@ -93,7 +98,7 @@ if (!function_exists('bootstrap')) {
                 ini_set('display_startup_errors', '1');
                 error_reporting(E_ALL ^ E_NOTICE);
                 break;
-            default:
+            default: //production
                 ini_set('display_errors', '0');
                 ini_set('display_startup_errors', '0');
         }
@@ -138,62 +143,6 @@ if (!function_exists('bootstrap')) {
     }
 }
 
-if (!function_exists('exceptionHandler')) {
-    function exceptionHandler(Throwable $exception): void
-    {
-        _lowleveldeath(json_encode([
-            'message' => $exception->getMessage(),
-            'code' => $exception->getCode(),
-            'line' => $exception->getLine(),
-            'file' => $exception->getFile(),
-            'class' => get_class($exception),
-        ], JSON_PRETTY_PRINT));
-    }
-
-    set_exception_handler('exceptionHandler');
-}
-
-if (!function_exists('errorHandler')) {
-    function errorHandler($severity, $message, $filepath, $line)
-    {
-        if (!(error_reporting() & $severity)) {
-            // This error code is not included in error_reporting, so let it fall
-            // through to the standard PHP error handler
-            return false;
-        }
-
-        _lowleveldeath(json_encode([
-            'severity' => $severity,
-            'message' => $message,
-            'filepath' => $filepath,
-            'line' => $line,
-        ], JSON_PRETTY_PRINT));
-
-        return true;
-    }
-
-    set_error_handler('errorHandler');
-}
-
-if (!function_exists('_lowleveldeath')) {
-    function _lowleveldeath(string $text, int $errorCode = 500): void
-    {
-        $container = Container::getInstance();
-
-        // if the service doesn't exist an exception is thrown
-        try {
-            $container->error->reset()->showError($text, $errorCode);
-        } catch (\Throwable $e) {
-            // error service not setup
-            header($_SERVER['SERVER_PROTOCOL'] . ' ' . $errorCode . ' Internal Server Error', true, $errorCode);
-            $text = (defined('ENVIRONMENT') && ENVIRONMENT == 'development') ? $text : $errorCode;
-            echo '<pre>Error: ' . PHP_EOL . $text . '</pre>';
-        }
-
-        exit(1);
-    }
-}
-
 // override as needed
 if (!function_exists('logMsg')) {
     function logMsg(mixed $level, mixed $msg = null): void
@@ -218,7 +167,7 @@ if (!function_exists('mergeEnv')) {
 
         $env = parse_ini_file($absEnvFilePath, true, INI_SCANNER_TYPED);
 
-        if ($env === false) {
+        if (!is_array($env)) {
             die('ini file error "' . $absEnvFilePath . '" did not return an array.');
         }
 
@@ -282,5 +231,64 @@ if (!function_exists('file_put_contents_atomic')) {
         }
 
         return $strlen;
+    }
+}
+
+if (!function_exists('orangeExceptionHandler')) {
+    function orangeExceptionHandler(Throwable $exception): void
+    {
+        _lowleveldeath(json_encode([
+            'message' => $exception->getMessage(),
+            'code' => $exception->getCode(),
+            'line' => $exception->getLine(),
+            'file' => $exception->getFile(),
+            'class' => get_class($exception),
+        ], JSON_PRETTY_PRINT), 500);
+    }
+
+    set_exception_handler('orangeExceptionHandler');
+}
+
+if (!function_exists('orangeErrorHandler')) {
+    function orangeErrorHandler($severity, $message, $filepath, $line)
+    {
+        if (!(error_reporting() & $severity)) {
+            // This error code is not included in error_reporting, so let it fall
+            // through to the standard PHP error handler
+            return false;
+        }
+
+        _lowleveldeath(json_encode([
+            'severity' => $severity,
+            'message' => $message,
+            'filepath' => $filepath,
+            'line' => $line,
+        ], JSON_PRETTY_PRINT), 500);
+
+        return true;
+    }
+
+    set_error_handler('orangeErrorHandler');
+}
+
+if (!function_exists('_lowleveldeath')) {
+    function _lowleveldeath(string $text, int $errorCode = 500): void
+    {
+        $container = Container::getServiceIfExists('error');
+
+        if ($container) {
+            $container->error->reset()->showError($text, $errorCode);
+        } else {
+            // error service not setup
+            if (isset($_SERVER['SERVER_PROTOCOL'])) {
+                header($_SERVER['SERVER_PROTOCOL'] . ' ' . $errorCode . ' Internal Server Error', true, $errorCode);
+            }
+            
+            $text = (defined('ENVIRONMENT') && ENVIRONMENT == 'production') ? $text : $errorCode;
+            
+            echo '<pre>Error: ' . PHP_EOL . $text . PHP_EOL . '</pre>';
+        }
+
+        exit(1);
     }
 }

@@ -2,111 +2,145 @@
 
 declare(strict_types=1);
 
-namespace unitTests;
-
 use PHPUnit\Framework\TestCase;
 
-final class InputTest extends TestCase
+final class OutputTest extends TestCase
 {
-    public static function setUpBeforeClass(): void
-	{
-        fwrite(STDOUT, __METHOD__ . "\n");
-    }
-
     protected function setUp(): void
     {
         fwrite(STDOUT, __METHOD__ . "\n");
     }
-
-    public function testRequestUri(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testRequestMethod(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testRequestType(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testIsAjaxRequest(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testIsCliRequest(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testIsHttpsRequest(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testRaw(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testPost(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testGet(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testRequest(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testServer(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testCopy(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-    public function testReplace(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        $this->assertTrue(true);
-    }
-
-    protected function assertPreConditions(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-    }
-
-    protected function assertPostConditions(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-    }
-
+    
     protected function tearDown(): void
     {
         fwrite(STDOUT, __METHOD__ . "\n");
     }
 
-    public static function tearDownAfterClass(): void
+    // Tests
+    public function testFlushOutput(): void
     {
         fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
     }
 
-    protected function onNotSuccessfulTest(\Throwable $t): void
+    public function testSetOutput(): void
     {
         fwrite(STDOUT, __METHOD__ . "\n");
-        throw $t;
+        
+        $this->assertTrue(true);
     }
+
+    public function testAppendOutput(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testGetOutput(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testContentType(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testGetContentType(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testHeader(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testGetHeaders(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testSendHeaders(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testFlushHeaders(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testCharSet(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testGetCharSet(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testResponseCode(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testGetResponseCode(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testSendResponseCode(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testSend(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testRedirect(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
+    public function testFlushAll(): void
+    {
+        fwrite(STDOUT, __METHOD__ . "\n");
+        
+        $this->assertTrue(true);
+    }
+
 }

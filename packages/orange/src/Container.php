@@ -185,7 +185,7 @@ class Container implements ContainerInterface
     {
         $debug = [];
 
-        foreach (self::$registeredServices as $key => $record) {
+        foreach (\array_keys(self::$registeredServices) as $key) {
             if (self::$registeredServices[$key]['type'] == self::CLOSURE) {
                 $type = 'Closure';
             } elseif (self::$registeredServices[$key]['type'] == self::ALIAS) {

@@ -217,4 +217,5 @@ class Event implements EventInterface
     {
         return mb_convert_case($trigger, MB_CASE_LOWER, mb_detect_encoding($trigger));
     }
+
 }

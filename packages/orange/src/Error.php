@@ -173,16 +173,6 @@ class Error implements ErrorInterface
         exit(1);
     }
 
-    public function debug(): array
-    {
-        return [
-            'requestType' => $this->requestType,
-            'errors' => $this->errors,
-            'config' => $this->config,
-            'viewer' => $this->viewer,
-        ];
-    }
-
     /* protected */
 
     protected function determineStatusCode(int|string $view, int $code): int
@@ -197,4 +187,17 @@ class Error implements ErrorInterface
 
         return $code;
     }
+
+    public function __debugInfo(): array
+    {
+        return [
+            'config'=>$this->config,
+            'errors'=>$this->errors,
+            'duplicates'=>$this->duplicates,
+            'requestType'=>$this->requestType,
+            'requestConfig'=>$this->requestConfig,
+            'viewer' => $this->viewer,
+        ];
+    }
+
 }

@@ -144,4 +144,16 @@ class Log implements LogInterface
             }
         }
     }
+
+    public function __debugInfo(): array
+    {
+        return [
+            'config'=>$this->config,
+            'enabled'=>$this->enabled,
+            'threshold'=>$this->threshold,
+            'psrLevels'=>$this->psrLevels,
+            'psrLevelsInt'=>$this->psrLevelsInt,
+        ];
+    }
+
 }

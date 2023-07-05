@@ -28,4 +28,5 @@ interface OutputInterface
     public function send(): void;
     public function redirect(string $url, int $responseCode = 200, bool $exit = true): void;
     public function flushAll(): self;
+    public function __debugInfo(): array;
 }

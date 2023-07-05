@@ -12,4 +12,5 @@ interface ViewerInterface
     public function addPaths(array $paths): self;
     public function addPlugin(string $name, mixed $args): self;
     public function addPlugins(array $plugins): self;
+    public function __debugInfo(): array;
 }

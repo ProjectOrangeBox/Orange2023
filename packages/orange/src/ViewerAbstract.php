@@ -168,4 +168,21 @@ abstract class ViewerAbstract implements ViewerInterface
             $this->addPlugins($this->config['plugins']);
         }
     }
+
+    public function __debugInfo(): array
+    {
+        return [
+            'config'=>$this->config,
+            'viewPaths'=>$this->viewPaths,
+            'extension'=>$this->extension,
+            'foundView'=>$this->foundView,
+            'tempFolder'=>$this->tempFolder,
+            'debug'=>$this->debug,
+            'plugins'=>$this->plugins,
+            'delimiters'=>$this->delimiters,
+            'l_delim'=>$this->l_delim,
+            'r_delim'=>$this->r_delim,
+        ];
+    }
+
 }

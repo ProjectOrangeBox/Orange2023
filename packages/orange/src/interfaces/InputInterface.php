@@ -21,4 +21,5 @@ interface InputInterface
     public function file(string $name = null, $default = null): mixed;
     public function copy(): array;
     public function replace(array $input): self;
+    public function __debugInfo(): array;
 }

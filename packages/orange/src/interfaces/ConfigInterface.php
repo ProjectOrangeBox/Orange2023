@@ -17,4 +17,5 @@ interface ConfigInterface
     public function set(string $filename, mixed $value): void;
     public function unset(string $filename): void;
     public function isset(string $filename): bool;
+    public function __debugInfo();
 }
