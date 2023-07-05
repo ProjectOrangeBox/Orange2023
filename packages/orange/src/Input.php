@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
-use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\interfaces\InputInterface;
 
 class Input implements InputInterface

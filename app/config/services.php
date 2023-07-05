@@ -43,16 +43,7 @@ return [
 		return Input::getInstance($container->config->input);
 	},
 	'config' => function (ContainerInterface $container): ConfigInterface {
-		// get from the container the saved config
-		$config = $container->{'$config'};
-
-        // default config folder passed during setup and stored in $config service
-		$configFolders[] = $config['config folder'];
-
-        // add the environmental folders (loaded last over the others)
-		$configFolders[] = $config['config folder'] . '/' . $config['environment'];
-
-		return Config::getInstance($configFolders);
+		return Config::getInstance($container->{'$config'});
 	},
 	'output' => function (ContainerInterface $container): OutputInterface {
 		return Output::getInstance($container->config->output);

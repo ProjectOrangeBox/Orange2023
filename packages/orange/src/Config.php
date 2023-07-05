@@ -13,15 +13,26 @@ class Config extends ArrayObject implements ConfigInterface
     private static ConfigInterface $instance;
     protected array $storage = [];
     protected array $searchPaths = [];
+    protected string $unset = '__#UNSET#__';
 
-    private function __construct(array $searchPaths)
+    private function __construct(array $config)
     {
         include_once __DIR__ . '/ConfigHelper.php';
 
-        $this->searchPaths = $searchPaths;
+        if (isset($config['skip defaults']) && $config['skip defaults'] != true) {
+            // orange default configurations folder
+            $this->searchPaths[] = __DIR__ . '/config';
+        }
 
-        // orange default configurations folder
-        $this->addPath(__DIR__ . '/config', true);
+        if (isset($config['config folder'])) {
+            // default folder
+            $this->searchPaths[] = $config['config folder'];
+        }
+
+        if (isset($config['environment'])) {
+            // add the environmental folders (loaded last over the others)
+            $this->searchPaths[] = $config['config folder'] . '/' . $config['environment'];
+        }
     }
 
     public static function getInstance(array $searchPaths): self
@@ -44,50 +55,38 @@ class Config extends ArrayObject implements ConfigInterface
         return $this;
     }
 
+    /* magic methods */
+
     public function __get(string $filename): mixed
     {
-        $key = $this->normalizeName($filename);
+        $value = [];
 
-        if (!isset($this->storage[$key])) {
-            $this->storage[$key] = $this->include($filename);
+        $name = $this->normalizeName($filename);
+
+        if (isset($this->storage[$name]) && $this->storage[$name] != $this->unset) {
+            $value = $this->storage[$name];
+        } elseif (!isset($this->storage[$name])) {
+            $value = $this->storage[$name] = $this->include($filename);
         }
 
-        return $this->storage[$filename];
+        return $value;
     }
 
     public function __set(string $filename, mixed $value): void
     {
-        $this->set($filename, $value);
+        $this->storage[$this->normalizeName($filename)] = $value;
     }
 
-    public function __unset(string $filename): void
-    {
-        unset($this->storage[$this->normalizeName($filename)]);
-    }
-
-    public function __isset(string $filename): bool
-    {
-        return isset($this[$this->normalizeName($filename)]);
-    }
+    /* regular methods */
 
     public function get(string $filename): mixed
     {
         return $this->__get($filename);
     }
 
-    public function isset(string $filename): bool
-    {
-        return $this->__isset($filename);
-    }
-
-    public function unset(string $filename): void
-    {
-        $this->__unset($filename);
-    }
-
     public function set(string $filename, mixed $value): void
     {
-        $this->storage[$filename] = $value;
+        $this->__set($filename, $value);
     }
 
     /**
@@ -126,8 +125,8 @@ class Config extends ArrayObject implements ConfigInterface
     public function __debugInfo(): array
     {
         return [
-            'storage'=>$this->storage,
-            'searchPaths'=>$this->searchPaths
+            'storage' => $this->storage,
+            'searchPaths' => $this->searchPaths
         ];
     }
 }

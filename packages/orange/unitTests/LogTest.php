@@ -6,8 +6,12 @@ use PHPUnit\Framework\TestCase;
 
 final class LogTest extends TestCase
 {
+    private $instance;
+    
     protected function setUp(): void
     {
+        $this->instance = null; #change
+        
         fwrite(STDOUT, __METHOD__ . "\n");
     }
     

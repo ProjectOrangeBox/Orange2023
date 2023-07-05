@@ -4,25 +4,11 @@ declare(strict_types=1);
 
 namespace dmyers\orange\stubs;
 
+use dmyers\orange\Output as realOutput;
 use dmyers\orange\interfaces\OutputInterface;
 
-class Output implements OutputInterface
+class Output extends realOutput implements OutputInterface
 {
-    protected static OutputInterface $instance;
-
-    private function __construct(array $config)
-    {
-    }
-
-    public static function getInstance(array $config): self
-    {
-        if (!isset(self::$instance)) {
-            self::$instance = new self($config);
-        }
-
-        return self::$instance;
-    }
-
     public function flushOutput(): self
     {
         return $this;

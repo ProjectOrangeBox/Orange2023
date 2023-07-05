@@ -6,8 +6,12 @@ use PHPUnit\Framework\TestCase;
 
 final class ContainerTest extends TestCase
 {
+    private $instance;
+    
     protected function setUp(): void
     {
+        $this->instance = null; #change
+        
         fwrite(STDOUT, __METHOD__ . "\n");
     }
     
@@ -130,13 +134,6 @@ final class ContainerTest extends TestCase
     }
 
     public function testRemove(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        
-        $this->assertTrue(true);
-    }
-
-    public function test__debugInfo(): void
     {
         fwrite(STDOUT, __METHOD__ . "\n");
         

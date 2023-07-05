@@ -5,6 +5,10 @@ define('__ROOT__', realpath(__DIR__ . '/../packages/orange'));
 
 $interfacePath = realpath(__ROOT__ . '/src/interfaces');
 
+$skipMethods = [
+    '__debugInfo',
+];
+
 foreach (glob($interfacePath . '/*.php') as $file) {
     require_once $file;
 
@@ -18,9 +22,11 @@ foreach (glob($interfacePath . '/*.php') as $file) {
     $methods = '';
 
     foreach ($class->getMethods() as $methodRecord) {
-        echo $methodRecord->name . PHP_EOL;
-
-        $methods .= view('unitTestSingleTemplate', ['method' => ucfirst($methodRecord->name)]) . PHP_EOL;
+        if (!in_array($methodRecord->name,$skipMethods)) {
+            echo $methodRecord->name . PHP_EOL;
+            
+            $methods .= view('unitTestSingleTemplate', ['method' => ucfirst($methodRecord->name)]) . PHP_EOL;
+        }
     }
 
     $completePHP = '<?php' . PHP_EOL . PHP_EOL . trim(view('unitTestTemplate', ['methodsText' => $methods, 'className' => $className])) . PHP_EOL;

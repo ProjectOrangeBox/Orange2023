@@ -246,7 +246,9 @@ if (!function_exists('orangeExceptionHandler')) {
         ], JSON_PRETTY_PRINT), 500);
     }
 
-    set_exception_handler('orangeExceptionHandler');
+    if (isset($_ENV['ENV']) && $_ENV['ENV'] != 'phpunit') {
+        set_exception_handler('orangeExceptionHandler');
+    }
 }
 
 if (!function_exists('orangeErrorHandler')) {
@@ -268,7 +270,9 @@ if (!function_exists('orangeErrorHandler')) {
         return true;
     }
 
-    set_error_handler('orangeErrorHandler');
+    if (isset($_ENV['ENV']) && $_ENV['ENV'] != 'phpunit') {
+        set_error_handler('orangeErrorHandler');
+    }
 }
 
 if (!function_exists('_lowleveldeath')) {

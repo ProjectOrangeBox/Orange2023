@@ -13,13 +13,6 @@
             "packages/orange/src/Orange.php"
         ]
     },
-    "autoload-dev": {
-        "psr-4": {
-            "dmyers\\orange\\": "packages/orange/src/",
-            "app\\": "app/"
-        },
-        "files": []
-    },
     "require-dev": {
         "phpunit/phpunit": "^9"
     }

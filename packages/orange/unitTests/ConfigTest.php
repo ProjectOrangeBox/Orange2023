@@ -2,82 +2,71 @@
 
 declare(strict_types=1);
 
+use dmyers\orange\Config;
 use PHPUnit\Framework\TestCase;
 
 final class ConfigTest extends TestCase
 {
+    private $instance;
+
     protected function setUp(): void
     {
-        fwrite(STDOUT, __METHOD__ . "\n");
+        $this->instance = Config::getInstance([]);
     }
-    
+
     protected function tearDown(): void
     {
-        fwrite(STDOUT, __METHOD__ . "\n");
     }
 
     // Tests
     public function testAddPath(): void
     {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        
-        $this->assertTrue(true);
-    }
+        $this->instance->addPath('/foo/bar');
 
-    public function test__get(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        
-        $this->assertTrue(true);
-    }
+        $vars = $this->instance->__debugInfo()['searchPaths'];
 
-    public function test__set(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        
-        $this->assertTrue(true);
-    }
+        $this->assertEquals($vars[0], '/foo/bar');
 
-    public function test__unset(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        
-        $this->assertTrue(true);
-    }
+        $this->instance->addPath('/bar/foo', true);
 
-    public function test__isset(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        
-        $this->assertTrue(true);
+        $vars = $this->instance->__debugInfo()['searchPaths'];
+
+        $this->assertEquals($vars[0], '/bar/foo');
+        $this->assertEquals($vars[1], '/foo/bar');
     }
 
     public function testGet(): void
     {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        
-        $this->assertTrue(true);
+        $this->instance->addPath(__DIR__ . '/support', true);
+
+        $config = $this->instance->get('configexample1');
+
+        $this->assertEquals($config['name'], 'Johnny Appleseed');
+        $this->assertEquals($config['age'], 21);
+        $this->assertEquals($config['example'], 1);
+
+        $this->instance->addPath(__DIR__ . '/support/env');
+
+        $config = $this->instance->get('configexample2');
+
+        $this->assertEquals($config['name'], 'Jenny Appleseed');
+        $this->assertEquals($config['age'], 21);
+        $this->assertEquals($config['example'], 2   );
     }
 
     public function testSet(): void
     {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        
-        $this->assertTrue(true);
-    }
+        $config = $this->instance->get('configexample1');
 
-    public function testUnset(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        
-        $this->assertTrue(true);
-    }
+        $config['food'] = 'Pizza';
 
-    public function testIsset(): void
-    {
-        fwrite(STDOUT, __METHOD__ . "\n");
-        
-        $this->assertTrue(true);
+        $this->instance->set('configexample1', $config);
+
+        $config = $this->instance->get('configexample1');
+
+        $this->assertEquals($config['name'], 'Johnny Appleseed');
+        $this->assertEquals($config['age'], 21);
+        $this->assertEquals($config['food'], 'Pizza');
     }
 
 }
