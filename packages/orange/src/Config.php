@@ -13,9 +13,8 @@ class Config extends ArrayObject implements ConfigInterface
     private static ConfigInterface $instance;
     protected array $storage = [];
     protected array $searchPaths = [];
-    protected string $unset = '__#UNSET#__';
 
-    private function __construct(array $config)
+    public function __construct(array $config)
     {
         include_once __DIR__ . '/ConfigHelper.php';
 
@@ -57,35 +56,43 @@ class Config extends ArrayObject implements ConfigInterface
 
     /* magic methods */
 
-    public function __get(string $filename): mixed
+    public function __get(string $filename): array
     {
-        $value = [];
-
         $name = $this->normalizeName($filename);
 
-        if (isset($this->storage[$name]) && $this->storage[$name] != $this->unset) {
-            $value = $this->storage[$name];
-        } elseif (!isset($this->storage[$name])) {
-            $value = $this->storage[$name] = $this->include($filename);
+        if (!isset($this->storage[$name])) {
+            $this->storage[$name] = $this->include($filename);
         }
 
-        return $value;
+        return $this->storage[$name];
     }
 
-    public function __set(string $filename, mixed $value): void
+    public function __set(string $filename, array $value): void
     {
         $this->storage[$this->normalizeName($filename)] = $value;
     }
 
-    /* regular methods */
-
-    public function get(string $filename): mixed
+    public function get(string $filename, mixed $key = NOVALUE): mixed
     {
-        return $this->__get($filename);
+        $value = $this->__get($filename);
+        
+        if ($key !== NOVALUE) {
+            $value = isset($value[$key]) ? $value[$key] : null;
+        }
+        
+        return $value;
     }
 
-    public function set(string $filename, mixed $value): void
+    public function set(string $filename, mixed $key, mixed $value = NOVALUE): void
     {
+        if ($value !== NOVALUE) {
+            $config = $this->__get($filename);
+
+            $config[$key] = $value;
+
+            $value = $config;
+        }
+
         $this->__set($filename, $value);
     }
 

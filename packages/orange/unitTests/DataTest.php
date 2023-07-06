@@ -11,7 +11,7 @@ final class DataTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->instance = Data::getInstance();
+        $this->instance = new Data();
     }
 
     protected function tearDown(): void

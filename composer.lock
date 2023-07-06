@@ -4,8 +4,1427 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "efb07bb86285b1d2b3d1a59f0fafb0a1",
-    "packages": [],
+    "content-hash": "9d2831e1ffadf424991405ced278488c",
+    "packages": [
+        {
+            "name": "aplus/cache",
+            "version": "v3.0.1",
+            "source": {
+                "type": "git",
+                "url": "git@gitlab.com:aplus-framework/libraries/cache.git",
+                "reference": "3d270aefa66949df032b29141022c2104d2a9d44"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/aplus-framework%2Flibraries%2Fcache/repository/archive.zip?sha=3d270aefa66949df032b29141022c2104d2a9d44",
+                "reference": "3d270aefa66949df032b29141022c2104d2a9d44",
+                "shasum": ""
+            },
+            "require": {
+                "aplus/debug": "^3.0",
+                "aplus/log": "^3.0",
+                "ext-igbinary": "*",
+                "ext-json": "*",
+                "ext-memcached": "*",
+                "ext-msgpack": "*",
+                "ext-redis": "*",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "aplus/coding-standard": "^1.14",
+                "ergebnis/composer-normalize": "^2.25",
+                "ext-xdebug": "*",
+                "jetbrains/phpstorm-attributes": "^1.0",
+                "phpmd/phpmd": "^2.13",
+                "phpstan/phpstan": "^1.9",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Framework\\Cache\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Natan Felles",
+                    "email": "natanfelles@gmail.com",
+                    "homepage": "https://natanfelles.github.io"
+                }
+            ],
+            "description": "Aplus Framework Cache Library",
+            "homepage": "https://aplus-framework.com/packages/cache",
+            "keywords": [
+                "cache",
+                "files",
+                "igbinary",
+                "json",
+                "json-array",
+                "memcached",
+                "msgpack",
+                "redis"
+            ],
+            "support": {
+                "docs": "https://docs.aplus-framework.com/guides/libraries/cache/",
+                "email": "support@aplus-framework.com",
+                "forum": "https://aplus-framework.com/forum",
+                "issues": "https://gitlab.com/aplus-framework/libraries/cache/issues",
+                "source": "https://gitlab.com/aplus-framework/libraries/cache"
+            },
+            "funding": [
+                {
+                    "url": "https://aplus-framework.com/sponsor",
+                    "type": "Aplus Sponsor"
+                }
+            ],
+            "time": "2022-11-03T21:14:13+00:00"
+        },
+        {
+            "name": "aplus/cli",
+            "version": "v2.4.0",
+            "source": {
+                "type": "git",
+                "url": "git@gitlab.com:aplus-framework/libraries/cli.git",
+                "reference": "d864ed9adc0e1ab0eae7252edaf8ba8f990873f3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/aplus-framework%2Flibraries%2Fcli/repository/archive.zip?sha=d864ed9adc0e1ab0eae7252edaf8ba8f990873f3",
+                "reference": "d864ed9adc0e1ab0eae7252edaf8ba8f990873f3",
+                "shasum": ""
+            },
+            "require": {
+                "aplus/language": "^3.0",
+                "ext-posix": "*",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "aplus/coding-standard": "^1.14",
+                "ergebnis/composer-normalize": "^2.25",
+                "ext-xdebug": "*",
+                "jetbrains/phpstorm-attributes": "^1.0",
+                "phpmd/phpmd": "^2.13",
+                "phpstan/phpstan": "^1.7",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Framework\\CLI\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Natan Felles",
+                    "email": "natanfelles@gmail.com",
+                    "homepage": "https://natanfelles.github.io"
+                }
+            ],
+            "description": "Aplus Framework CLI Library",
+            "homepage": "https://aplus-framework.com/packages/cli",
+            "keywords": [
+                "cli",
+                "command",
+                "commands",
+                "console",
+                "cron",
+                "terminal"
+            ],
+            "support": {
+                "docs": "https://docs.aplus-framework.com/guides/libraries/cli/",
+                "email": "support@aplus-framework.com",
+                "forum": "https://aplus-framework.com/forum",
+                "issues": "https://gitlab.com/aplus-framework/libraries/cli/issues",
+                "source": "https://gitlab.com/aplus-framework/libraries/cli"
+            },
+            "funding": [
+                {
+                    "url": "https://aplus-framework.com/sponsor",
+                    "type": "Aplus Sponsor"
+                }
+            ],
+            "time": "2023-06-04T21:07:39+00:00"
+        },
+        {
+            "name": "aplus/database",
+            "version": "v3.3.0",
+            "source": {
+                "type": "git",
+                "url": "git@gitlab.com:aplus-framework/libraries/database.git",
+                "reference": "a6dd03951876d522e778b897fd58d6f3433ecde4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/aplus-framework%2Flibraries%2Fdatabase/repository/archive.zip?sha=a6dd03951876d522e778b897fd58d6f3433ecde4",
+                "reference": "a6dd03951876d522e778b897fd58d6f3433ecde4",
+                "shasum": ""
+            },
+            "require": {
+                "aplus/debug": "^3.0",
+                "aplus/log": "^3.0",
+                "ext-mysqli": "*",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "aplus/coding-standard": "^1.14",
+                "ergebnis/composer-normalize": "^2.25",
+                "ext-xdebug": "*",
+                "jetbrains/phpstorm-attributes": "^1.0",
+                "phpmd/phpmd": "^2.13",
+                "phpstan/phpstan": "^1.9",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Framework\\Database\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Natan Felles",
+                    "email": "natanfelles@gmail.com",
+                    "homepage": "https://natanfelles.github.io"
+                }
+            ],
+            "description": "Aplus Framework Database Library",
+            "homepage": "https://aplus-framework.com/packages/database",
+            "keywords": [
+                "data-definition",
+                "data-manipulation",
+                "database",
+                "mariadb",
+                "mysql",
+                "mysqli"
+            ],
+            "support": {
+                "docs": "https://docs.aplus-framework.com/guides/libraries/database/",
+                "email": "support@aplus-framework.com",
+                "forum": "https://aplus-framework.com/forum",
+                "issues": "https://gitlab.com/aplus-framework/libraries/database/issues",
+                "source": "https://gitlab.com/aplus-framework/libraries/database"
+            },
+            "funding": [
+                {
+                    "url": "https://aplus-framework.com/sponsor",
+                    "type": "Aplus Sponsor"
+                }
+            ],
+            "time": "2023-02-21T22:46:12+00:00"
+        },
+        {
+            "name": "aplus/debug",
+            "version": "v3.4.0",
+            "source": {
+                "type": "git",
+                "url": "git@gitlab.com:aplus-framework/libraries/debug.git",
+                "reference": "8571ed595df02c7264808d707c91af28dd6077cc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/aplus-framework%2Flibraries%2Fdebug/repository/archive.zip?sha=8571ed595df02c7264808d707c91af28dd6077cc",
+                "reference": "8571ed595df02c7264808d707c91af28dd6077cc",
+                "shasum": ""
+            },
+            "require": {
+                "aplus/cli": "^2.1",
+                "aplus/helpers": "^3.0",
+                "aplus/language": "^3.0",
+                "aplus/log": "^3.0",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "aplus/coding-standard": "^1.14",
+                "ergebnis/composer-normalize": "^2.25",
+                "ext-xdebug": "*",
+                "jetbrains/phpstorm-attributes": "^1.0",
+                "phpmd/phpmd": "^2.13",
+                "phpstan/phpstan": "^1.5",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Framework\\Debug\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Natan Felles",
+                    "email": "natanfelles@gmail.com",
+                    "homepage": "https://natanfelles.github.io"
+                }
+            ],
+            "description": "Aplus Framework Debug Library",
+            "homepage": "https://aplus-framework.com/packages/debug",
+            "keywords": [
+                "debug",
+                "error",
+                "error-handling",
+                "error-reporting",
+                "exception",
+                "exception-handling",
+                "handler",
+                "log",
+                "timer",
+                "view"
+            ],
+            "support": {
+                "docs": "https://docs.aplus-framework.com/guides/libraries/debug/",
+                "email": "support@aplus-framework.com",
+                "forum": "https://aplus-framework.com/forum",
+                "issues": "https://gitlab.com/aplus-framework/libraries/debug/issues",
+                "source": "https://gitlab.com/aplus-framework/libraries/debug"
+            },
+            "funding": [
+                {
+                    "url": "https://aplus-framework.com/sponsor",
+                    "type": "Aplus Sponsor"
+                }
+            ],
+            "time": "2023-05-14T20:32:26+00:00"
+        },
+        {
+            "name": "aplus/helpers",
+            "version": "v3.0.1",
+            "source": {
+                "type": "git",
+                "url": "git@gitlab.com:aplus-framework/libraries/helpers.git",
+                "reference": "b3ea84c5a93ea0be802da89a13f6ecfd2e37caf3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/aplus-framework%2Flibraries%2Fhelpers/repository/archive.zip?sha=b3ea84c5a93ea0be802da89a13f6ecfd2e37caf3",
+                "reference": "b3ea84c5a93ea0be802da89a13f6ecfd2e37caf3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "aplus/coding-standard": "^1.14",
+                "ergebnis/composer-normalize": "^2.25",
+                "ext-xdebug": "*",
+                "jetbrains/phpstorm-attributes": "^1.0",
+                "phpmd/phpmd": "^2.13",
+                "phpstan/phpstan": "^1.5",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Framework\\Helpers\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Natan Felles",
+                    "email": "natanfelles@gmail.com",
+                    "homepage": "https://natanfelles.github.io"
+                }
+            ],
+            "description": "Aplus Framework Helpers Library",
+            "homepage": "https://aplus-framework.com/packages/helpers",
+            "keywords": [
+                "array-simple",
+                "files",
+                "helpers",
+                "isolation"
+            ],
+            "support": {
+                "docs": "https://docs.aplus-framework.com/guides/libraries/helpers/",
+                "email": "support@aplus-framework.com",
+                "forum": "https://aplus-framework.com/forum",
+                "issues": "https://gitlab.com/aplus-framework/libraries/helpers/issues",
+                "source": "https://gitlab.com/aplus-framework/libraries/helpers"
+            },
+            "funding": [
+                {
+                    "url": "https://aplus-framework.com/sponsor",
+                    "type": "Aplus Sponsor"
+                }
+            ],
+            "time": "2022-09-12T23:36:33+00:00"
+        },
+        {
+            "name": "aplus/language",
+            "version": "v3.0.2",
+            "source": {
+                "type": "git",
+                "url": "git@gitlab.com:aplus-framework/libraries/language.git",
+                "reference": "a6e18902be45330c05dd112b606caa3b37dbc10e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/aplus-framework%2Flibraries%2Flanguage/repository/archive.zip?sha=a6e18902be45330c05dd112b606caa3b37dbc10e",
+                "reference": "a6e18902be45330c05dd112b606caa3b37dbc10e",
+                "shasum": ""
+            },
+            "require": {
+                "aplus/debug": "^3.1",
+                "aplus/helpers": "^3.0",
+                "ext-intl": "*",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "aplus/coding-standard": "^1.14",
+                "ergebnis/composer-normalize": "^2.25",
+                "ext-xdebug": "*",
+                "jetbrains/phpstorm-attributes": "^1.0",
+                "phpmd/phpmd": "^2.13",
+                "phpstan/phpstan": "^1.9",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Framework\\Language\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Natan Felles",
+                    "email": "natanfelles@gmail.com",
+                    "homepage": "https://natanfelles.github.io"
+                }
+            ],
+            "description": "Aplus Framework Language Library",
+            "homepage": "https://aplus-framework.com/packages/language",
+            "keywords": [
+                "i18n",
+                "internationalization",
+                "intl",
+                "l10n",
+                "lang",
+                "language",
+                "locale",
+                "localization"
+            ],
+            "support": {
+                "docs": "https://docs.aplus-framework.com/guides/libraries/language/",
+                "email": "support@aplus-framework.com",
+                "forum": "https://aplus-framework.com/forum",
+                "issues": "https://gitlab.com/aplus-framework/libraries/language/issues",
+                "source": "https://gitlab.com/aplus-framework/libraries/language"
+            },
+            "funding": [
+                {
+                    "url": "https://aplus-framework.com/sponsor",
+                    "type": "Aplus Sponsor"
+                }
+            ],
+            "time": "2022-11-04T20:37:35+00:00"
+        },
+        {
+            "name": "aplus/log",
+            "version": "v3.0.1",
+            "source": {
+                "type": "git",
+                "url": "git@gitlab.com:aplus-framework/libraries/log.git",
+                "reference": "6459258d824f532f4e793925d86e834484fa28a6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/aplus-framework%2Flibraries%2Flog/repository/archive.zip?sha=6459258d824f532f4e793925d86e834484fa28a6",
+                "reference": "6459258d824f532f4e793925d86e834484fa28a6",
+                "shasum": ""
+            },
+            "require": {
+                "aplus/debug": "^3.0",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "aplus/coding-standard": "^1.14",
+                "ergebnis/composer-normalize": "^2.25",
+                "ext-xdebug": "*",
+                "jetbrains/phpstorm-attributes": "^1.0",
+                "phpmd/phpmd": "^2.13",
+                "phpstan/phpstan": "^1.5",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Framework\\Log\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Natan Felles",
+                    "email": "natanfelles@gmail.com",
+                    "homepage": "https://natanfelles.github.io"
+                }
+            ],
+            "description": "Aplus Framework Log Library",
+            "homepage": "https://aplus-framework.com/packages/log",
+            "keywords": [
+                "log",
+                "logger"
+            ],
+            "support": {
+                "docs": "https://docs.aplus-framework.com/guides/libraries/log/",
+                "email": "support@aplus-framework.com",
+                "forum": "https://aplus-framework.com/forum",
+                "issues": "https://gitlab.com/aplus-framework/libraries/log/issues",
+                "source": "https://gitlab.com/aplus-framework/libraries/log"
+            },
+            "funding": [
+                {
+                    "url": "https://aplus-framework.com/sponsor",
+                    "type": "Aplus Sponsor"
+                }
+            ],
+            "time": "2022-09-12T23:36:34+00:00"
+        },
+        {
+            "name": "aplus/session",
+            "version": "v3.2.3",
+            "source": {
+                "type": "git",
+                "url": "git@gitlab.com:aplus-framework/libraries/session.git",
+                "reference": "fb637698c2093f7ea6fa16108c496578a60f1949"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://gitlab.com/api/v4/projects/aplus-framework%2Flibraries%2Fsession/repository/archive.zip?sha=fb637698c2093f7ea6fa16108c496578a60f1949",
+                "reference": "fb637698c2093f7ea6fa16108c496578a60f1949",
+                "shasum": ""
+            },
+            "require": {
+                "aplus/database": "^3.0",
+                "aplus/debug": "^3.1",
+                "aplus/log": "^3.0",
+                "ext-memcached": "*",
+                "ext-redis": "*",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "aplus/coding-standard": "^1.14",
+                "ergebnis/composer-normalize": "^2.25",
+                "ext-xdebug": "*",
+                "jetbrains/phpstorm-attributes": "^1.0",
+                "phpmd/phpmd": "^2.13",
+                "phpstan/phpstan": "^1.5",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Framework\\Session\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Natan Felles",
+                    "email": "natanfelles@gmail.com",
+                    "homepage": "https://natanfelles.github.io"
+                }
+            ],
+            "description": "Aplus Framework Session Library",
+            "homepage": "https://aplus-framework.com/packages/session",
+            "keywords": [
+                "cookie",
+                "database",
+                "files",
+                "memcached",
+                "redis",
+                "session"
+            ],
+            "support": {
+                "docs": "https://docs.aplus-framework.com/guides/libraries/session/",
+                "email": "support@aplus-framework.com",
+                "forum": "https://aplus-framework.com/forum",
+                "issues": "https://gitlab.com/aplus-framework/libraries/session/issues",
+                "source": "https://gitlab.com/aplus-framework/libraries/session"
+            },
+            "funding": [
+                {
+                    "url": "https://aplus-framework.com/sponsor",
+                    "type": "Aplus Sponsor"
+                }
+            ],
+            "time": "2023-03-20T20:44:43+00:00"
+        },
+        {
+            "name": "larapack/dd",
+            "version": "1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/larapack/dd.git",
+                "reference": "561b5111a13d0094b59b5c81b1572489485fb948"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/larapack/dd/zipball/561b5111a13d0094b59b5c81b1572489485fb948",
+                "reference": "561b5111a13d0094b59b5c81b1572489485fb948",
+                "shasum": ""
+            },
+            "require": {
+                "symfony/var-dumper": "*"
+            },
+            "type": "package",
+            "autoload": {
+                "files": [
+                    "src/helper.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mark Topper",
+                    "email": "hi@webman.io"
+                }
+            ],
+            "description": "`dd` is a helper method in Laravel. This package will add the `dd` to your application.",
+            "support": {
+                "issues": "https://github.com/larapack/dd/issues",
+                "source": "https://github.com/larapack/dd/tree/master"
+            },
+            "time": "2016-12-15T09:34:34+00:00"
+        },
+        {
+            "name": "michelf/php-markdown",
+            "version": "2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/michelf/php-markdown.git",
+                "reference": "eb176f173fbac58a045aff78e55f833264b34e71"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/michelf/php-markdown/zipball/eb176f173fbac58a045aff78e55f833264b34e71",
+                "reference": "eb176f173fbac58a045aff78e55f833264b34e71",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "phpstan/phpstan": ">=1.0",
+                "phpstan/phpstan-phpunit": ">=1.0",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Michelf\\": "Michelf/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Michel Fortin",
+                    "email": "michel.fortin@michelf.ca",
+                    "homepage": "https://michelf.ca/",
+                    "role": "Developer"
+                },
+                {
+                    "name": "John Gruber",
+                    "homepage": "https://daringfireball.net/"
+                }
+            ],
+            "description": "PHP Markdown",
+            "homepage": "https://michelf.ca/projects/php-markdown/",
+            "keywords": [
+                "markdown"
+            ],
+            "support": {
+                "issues": "https://github.com/michelf/php-markdown/issues",
+                "source": "https://github.com/michelf/php-markdown/tree/2.0.0"
+            },
+            "time": "2022-09-26T12:21:08+00:00"
+        },
+        {
+            "name": "monolog/monolog",
+            "version": "3.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Seldaek/monolog.git",
+                "reference": "e2392369686d420ca32df3803de28b5d6f76867d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/e2392369686d420ca32df3803de28b5d6f76867d",
+                "reference": "e2392369686d420ca32df3803de28b5d6f76867d",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "psr/log": "^2.0 || ^3.0"
+            },
+            "provide": {
+                "psr/log-implementation": "3.0.0"
+            },
+            "require-dev": {
+                "aws/aws-sdk-php": "^3.0",
+                "doctrine/couchdb": "~1.0@dev",
+                "elasticsearch/elasticsearch": "^7 || ^8",
+                "ext-json": "*",
+                "graylog2/gelf-php": "^1.4.2 || ^2.0",
+                "guzzlehttp/guzzle": "^7.4.5",
+                "guzzlehttp/psr7": "^2.2",
+                "mongodb/mongodb": "^1.8",
+                "php-amqplib/php-amqplib": "~2.4 || ^3",
+                "phpstan/phpstan": "^1.9",
+                "phpstan/phpstan-deprecation-rules": "^1.0",
+                "phpstan/phpstan-strict-rules": "^1.4",
+                "phpunit/phpunit": "^10.1",
+                "predis/predis": "^1.1 || ^2",
+                "ruflin/elastica": "^7",
+                "symfony/mailer": "^5.4 || ^6",
+                "symfony/mime": "^5.4 || ^6"
+            },
+            "suggest": {
+                "aws/aws-sdk-php": "Allow sending log messages to AWS services like DynamoDB",
+                "doctrine/couchdb": "Allow sending log messages to a CouchDB server",
+                "elasticsearch/elasticsearch": "Allow sending log messages to an Elasticsearch server via official client",
+                "ext-amqp": "Allow sending log messages to an AMQP server (1.0+ required)",
+                "ext-curl": "Required to send log messages using the IFTTTHandler, the LogglyHandler, the SendGridHandler, the SlackWebhookHandler or the TelegramBotHandler",
+                "ext-mbstring": "Allow to work properly with unicode symbols",
+                "ext-mongodb": "Allow sending log messages to a MongoDB server (via driver)",
+                "ext-openssl": "Required to send log messages using SSL",
+                "ext-sockets": "Allow sending log messages to a Syslog server (via UDP driver)",
+                "graylog2/gelf-php": "Allow sending log messages to a GrayLog2 server",
+                "mongodb/mongodb": "Allow sending log messages to a MongoDB server (via library)",
+                "php-amqplib/php-amqplib": "Allow sending log messages to an AMQP server using php-amqplib",
+                "rollbar/rollbar": "Allow sending log messages to Rollbar",
+                "ruflin/elastica": "Allow sending log messages to an Elastic Search server"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Monolog\\": "src/Monolog"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jordi Boggiano",
+                    "email": "j.boggiano@seld.be",
+                    "homepage": "https://seld.be"
+                }
+            ],
+            "description": "Sends your logs to files, sockets, inboxes, databases and various web services",
+            "homepage": "https://github.com/Seldaek/monolog",
+            "keywords": [
+                "log",
+                "logging",
+                "psr-3"
+            ],
+            "support": {
+                "issues": "https://github.com/Seldaek/monolog/issues",
+                "source": "https://github.com/Seldaek/monolog/tree/3.4.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/Seldaek",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/monolog/monolog",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2023-06-21T08:46:11+00:00"
+        },
+        {
+            "name": "nesbot/carbon",
+            "version": "2.68.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/briannesbitt/Carbon.git",
+                "reference": "4f991ed2a403c85efbc4f23eb4030063fdbe01da"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/briannesbitt/Carbon/zipball/4f991ed2a403c85efbc4f23eb4030063fdbe01da",
+                "reference": "4f991ed2a403c85efbc4f23eb4030063fdbe01da",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": "^7.1.8 || ^8.0",
+                "symfony/polyfill-mbstring": "^1.0",
+                "symfony/polyfill-php80": "^1.16",
+                "symfony/translation": "^3.4 || ^4.0 || ^5.0 || ^6.0"
+            },
+            "require-dev": {
+                "doctrine/dbal": "^2.0 || ^3.1.4",
+                "doctrine/orm": "^2.7",
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "kylekatarnls/multi-tester": "^2.0",
+                "ondrejmirtes/better-reflection": "*",
+                "phpmd/phpmd": "^2.9",
+                "phpstan/extension-installer": "^1.0",
+                "phpstan/phpstan": "^0.12.99 || ^1.7.14",
+                "phpunit/php-file-iterator": "^2.0.5 || ^3.0.6",
+                "phpunit/phpunit": "^7.5.20 || ^8.5.26 || ^9.5.20",
+                "squizlabs/php_codesniffer": "^3.4"
+            },
+            "bin": [
+                "bin/carbon"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-3.x": "3.x-dev",
+                    "dev-master": "2.x-dev"
+                },
+                "laravel": {
+                    "providers": [
+                        "Carbon\\Laravel\\ServiceProvider"
+                    ]
+                },
+                "phpstan": {
+                    "includes": [
+                        "extension.neon"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Carbon\\": "src/Carbon/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Brian Nesbitt",
+                    "email": "brian@nesbot.com",
+                    "homepage": "https://markido.com"
+                },
+                {
+                    "name": "kylekatarnls",
+                    "homepage": "https://github.com/kylekatarnls"
+                }
+            ],
+            "description": "An API extension for DateTime that supports 281 different languages.",
+            "homepage": "https://carbon.nesbot.com",
+            "keywords": [
+                "date",
+                "datetime",
+                "time"
+            ],
+            "support": {
+                "docs": "https://carbon.nesbot.com/docs",
+                "issues": "https://github.com/briannesbitt/Carbon/issues",
+                "source": "https://github.com/briannesbitt/Carbon"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/kylekatarnls",
+                    "type": "github"
+                },
+                {
+                    "url": "https://opencollective.com/Carbon#sponsor",
+                    "type": "opencollective"
+                },
+                {
+                    "url": "https://tidelift.com/subscription/pkg/packagist-nesbot-carbon?utm_source=packagist-nesbot-carbon&utm_medium=referral&utm_campaign=readme",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2023-06-20T18:29:04+00:00"
+        },
+        {
+            "name": "psr/log",
+            "version": "3.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/log.git",
+                "reference": "fe5ea303b0887d5caefd3d431c3e61ad47037001"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/fe5ea303b0887d5caefd3d431c3e61ad47037001",
+                "reference": "fe5ea303b0887d5caefd3d431c3e61ad47037001",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Log\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for logging libraries",
+            "homepage": "https://github.com/php-fig/log",
+            "keywords": [
+                "log",
+                "psr",
+                "psr-3"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/log/tree/3.0.0"
+            },
+            "time": "2021-07-14T16:46:02+00:00"
+        },
+        {
+            "name": "symfony/polyfill-mbstring",
+            "version": "v1.27.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-mbstring.git",
+                "reference": "8ad114f6b39e2c98a8b0e3bd907732c207c2b534"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/8ad114f6b39e2c98a8b0e3bd907732c207c2b534",
+                "reference": "8ad114f6b39e2c98a8b0e3bd907732c207c2b534",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "provide": {
+                "ext-mbstring": "*"
+            },
+            "suggest": {
+                "ext-mbstring": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "1.27-dev"
+                },
+                "thanks": {
+                    "name": "symfony/polyfill",
+                    "url": "https://github.com/symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Mbstring\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for the Mbstring extension",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "mbstring",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.27.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2022-11-03T14:55:06+00:00"
+        },
+        {
+            "name": "symfony/polyfill-php80",
+            "version": "v1.27.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-php80.git",
+                "reference": "7a6ff3f1959bb01aefccb463a0f2cd3d3d2fd936"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/7a6ff3f1959bb01aefccb463a0f2cd3d3d2fd936",
+                "reference": "7a6ff3f1959bb01aefccb463a0f2cd3d3d2fd936",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "1.27-dev"
+                },
+                "thanks": {
+                    "name": "symfony/polyfill",
+                    "url": "https://github.com/symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Php80\\": ""
+                },
+                "classmap": [
+                    "Resources/stubs"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ion Bazan",
+                    "email": "ion.bazan@gmail.com"
+                },
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill backporting some PHP 8.0+ features to lower PHP versions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-php80/tree/v1.27.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2022-11-03T14:55:06+00:00"
+        },
+        {
+            "name": "symfony/translation",
+            "version": "v6.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/translation.git",
+                "reference": "f72b2cba8f79dd9d536f534f76874b58ad37876f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/translation/zipball/f72b2cba8f79dd9d536f534f76874b58ad37876f",
+                "reference": "f72b2cba8f79dd9d536f534f76874b58ad37876f",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "symfony/polyfill-mbstring": "~1.0",
+                "symfony/translation-contracts": "^2.5|^3.0"
+            },
+            "conflict": {
+                "symfony/config": "<5.4",
+                "symfony/console": "<5.4",
+                "symfony/dependency-injection": "<5.4",
+                "symfony/http-client-contracts": "<2.5",
+                "symfony/http-kernel": "<5.4",
+                "symfony/service-contracts": "<2.5",
+                "symfony/twig-bundle": "<5.4",
+                "symfony/yaml": "<5.4"
+            },
+            "provide": {
+                "symfony/translation-implementation": "2.3|3.0"
+            },
+            "require-dev": {
+                "nikic/php-parser": "^4.13",
+                "psr/log": "^1|^2|^3",
+                "symfony/config": "^5.4|^6.0",
+                "symfony/console": "^5.4|^6.0",
+                "symfony/dependency-injection": "^5.4|^6.0",
+                "symfony/finder": "^5.4|^6.0",
+                "symfony/http-client-contracts": "^2.5|^3.0",
+                "symfony/http-kernel": "^5.4|^6.0",
+                "symfony/intl": "^5.4|^6.0",
+                "symfony/polyfill-intl-icu": "^1.21",
+                "symfony/routing": "^5.4|^6.0",
+                "symfony/service-contracts": "^2.5|^3",
+                "symfony/yaml": "^5.4|^6.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "Resources/functions.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Component\\Translation\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Provides tools to internationalize your application",
+            "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/translation/tree/v6.3.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2023-05-19T12:46:45+00:00"
+        },
+        {
+            "name": "symfony/translation-contracts",
+            "version": "v3.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/translation-contracts.git",
+                "reference": "02c24deb352fb0d79db5486c0c79905a85e37e86"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/translation-contracts/zipball/02c24deb352fb0d79db5486c0c79905a85e37e86",
+                "reference": "02c24deb352fb0d79db5486c0c79905a85e37e86",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "3.4-dev"
+                },
+                "thanks": {
+                    "name": "symfony/contracts",
+                    "url": "https://github.com/symfony/contracts"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Contracts\\Translation\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Test/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Generic abstractions related to translation",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "abstractions",
+                "contracts",
+                "decoupling",
+                "interfaces",
+                "interoperability",
+                "standards"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/translation-contracts/tree/v3.3.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2023-05-30T17:17:10+00:00"
+        },
+        {
+            "name": "symfony/var-dumper",
+            "version": "v6.3.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/var-dumper.git",
+                "reference": "c81268d6960ddb47af17391a27d222bd58cf0515"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/c81268d6960ddb47af17391a27d222bd58cf0515",
+                "reference": "c81268d6960ddb47af17391a27d222bd58cf0515",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "symfony/polyfill-mbstring": "~1.0"
+            },
+            "conflict": {
+                "symfony/console": "<5.4"
+            },
+            "require-dev": {
+                "ext-iconv": "*",
+                "symfony/console": "^5.4|^6.0",
+                "symfony/process": "^5.4|^6.0",
+                "symfony/uid": "^5.4|^6.0",
+                "twig/twig": "^2.13|^3.0.4"
+            },
+            "bin": [
+                "Resources/bin/var-dump-server"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "Resources/functions/dump.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Component\\VarDumper\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Provides mechanisms for walking through any arbitrary PHP variable",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "debug",
+                "dump"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/var-dumper/tree/v6.3.1"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2023-06-21T12:08:28+00:00"
+        },
+        {
+            "name": "zordius/lightncandy",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/zordius/lightncandy.git",
+                "reference": "2beab0f1add20a9ddaa58e5d229e52c1d1b9c3b0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/zordius/lightncandy/zipball/2beab0f1add20a9ddaa58e5d229e52c1d1b9c3b0",
+                "reference": "2beab0f1add20a9ddaa58e5d229e52c1d1b9c3b0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "php-coveralls/php-coveralls": "^2.1",
+                "phpunit/phpunit": ">=7"
+            },
+            "default-branch": true,
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.2.6-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "LightnCandy\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Zordius Chen",
+                    "email": "zordius@gmail.com"
+                }
+            ],
+            "description": "An extremely fast PHP implementation of handlebars ( http://handlebarsjs.com/ ) and mustache ( http://mustache.github.io/ ).",
+            "homepage": "https://github.com/zordius/lightncandy",
+            "keywords": [
+                "handlebars",
+                "logicless",
+                "mustache",
+                "php",
+                "template"
+            ],
+            "support": {
+                "issues": "https://github.com/zordius/lightncandy/issues",
+                "source": "https://github.com/zordius/lightncandy/tree/master"
+            },
+            "time": "2022-03-22T00:22:29+00:00"
+        }
+    ],
     "packages-dev": [
         {
             "name": "doctrine/instantiator",
@@ -1741,7 +3160,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "zordius/lightncandy": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

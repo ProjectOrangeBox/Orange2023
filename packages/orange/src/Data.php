@@ -11,7 +11,7 @@ class Data extends ArrayObject implements DataInterface
 {
     private static DataInterface $instance;
 
-    private function __construct()
+    public function __construct()
     {
     }
 

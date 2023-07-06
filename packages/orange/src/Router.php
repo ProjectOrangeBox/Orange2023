@@ -18,7 +18,7 @@ class Router implements RouterInterface
     protected array $routes = [];
     protected array $matched = [];
 
-    private function __construct(array $config)
+    public function __construct(array $config)
     {
         if ($config['site'] == null) {
             throw new ConfigNotFound('Route config "site" in routes.php can not be empty.');

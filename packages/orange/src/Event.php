@@ -12,7 +12,7 @@ class Event implements EventInterface
     private static EventInterface $instance;
     protected array $events = [];
 
-    private function __construct(array $config)
+    public function __construct(array $config)
     {
         foreach ($config as $trigger => $events) {
             foreach ($events as $options) {

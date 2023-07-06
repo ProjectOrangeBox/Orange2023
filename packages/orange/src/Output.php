@@ -17,7 +17,7 @@ class Output implements OutputInterface
     protected string $output = '';
     protected array $config = [];
 
-    private function __construct(array $config)
+    public function __construct(array $config)
     {
         $this->config = $config;
         $this->contentType = $config['contentType'];

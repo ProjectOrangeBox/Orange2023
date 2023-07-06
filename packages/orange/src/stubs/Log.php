@@ -10,7 +10,7 @@ class Log implements LogInterface
 {
     protected static LogInterface $instance;
 
-    private function __construct(array $config)
+    public function __construct(array $config)
     {
     }
 

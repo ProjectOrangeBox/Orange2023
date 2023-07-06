@@ -14,14 +14,14 @@ final class DispatcherTest extends TestCase
 
     protected function setUp(): void
     {
-        $config = Config::getInstance([
+        $config = new Config([
             'environment' => $_ENV['ENVIRONMENT'],
             'debug' => $_ENV['DEBUG'],
         ]);
 
-        $input = Input::getInstance([]);
+        $input = new Input([]);
 
-        $output = Output::getInstance([
+        $output = new Output([
             'contentType' => 'text/html',
             'charSet' => 'utf-8',
             'show header error' => false,
@@ -37,10 +37,6 @@ final class DispatcherTest extends TestCase
     // Tests
     public function testCall(): void
     {
-
-
-
-
         $this->assertTrue(true);
     }
 }

@@ -11,7 +11,7 @@ final class ConfigTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->instance = Config::getInstance([]);
+        $this->instance = new Config([]);
     }
 
     protected function tearDown(): void
@@ -35,11 +35,11 @@ final class ConfigTest extends TestCase
         $this->assertEquals($vars[1], '/foo/bar');
     }
 
-    public function testGet(): void
+    public function testMagicGet(): void
     {
         $this->instance->addPath(__DIR__ . '/support', true);
 
-        $config = $this->instance->get('configexample1');
+        $config = $this->instance->__get('configexample1');
 
         $this->assertEquals($config['name'], 'Johnny Appleseed');
         $this->assertEquals($config['age'], 21);
@@ -47,26 +47,50 @@ final class ConfigTest extends TestCase
 
         $this->instance->addPath(__DIR__ . '/support/env');
 
-        $config = $this->instance->get('configexample2');
+        $config = $this->instance->__get('configexample2');
 
         $this->assertEquals($config['name'], 'Jenny Appleseed');
         $this->assertEquals($config['age'], 21);
         $this->assertEquals($config['example'], 2   );
     }
 
-    public function testSet(): void
+    public function testMagicSet(): void
     {
-        $config = $this->instance->get('configexample1');
+        $config = $this->instance->__get('configexample1');
 
         $config['food'] = 'Pizza';
 
-        $this->instance->set('configexample1', $config);
+        $this->instance->__set('configexample1', $config);
 
-        $config = $this->instance->get('configexample1');
+        $config = $this->instance->__get('configexample1');
 
         $this->assertEquals($config['name'], 'Johnny Appleseed');
         $this->assertEquals($config['age'], 21);
         $this->assertEquals($config['food'], 'Pizza');
+    }
+
+    public function testGet(): void
+    {
+        $this->instance->addPath(__DIR__ . '/support', true);
+
+        $name = $this->instance->get('configexample1','name');
+
+        $this->assertEquals($name, 'Johnny Appleseed');
+
+        $this->instance->addPath(__DIR__ . '/support/env');
+
+        $name = $this->instance->get('configexample2','name');
+
+        $this->assertEquals($name, 'Jenny Appleseed');
+    }
+
+    public function testSet(): void
+    {
+        $this->instance->set('configexample1', 'color', 'red');
+
+        $config = $this->instance->get('configexample1');
+
+        $this->assertEquals($config['color'], 'red');
     }
 
 }

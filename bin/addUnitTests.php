@@ -33,8 +33,6 @@ foreach (glob($interfacePath . '/*.php') as $file) {
 
     $completeFile = __ROOT__ . '/unitTests/' . $className . 'Test.php';
 
-    unlink($completeFile);
-
     if (file_exists($completeFile)) {
         echo '*** ' . $completeFile . ' already exists' . PHP_EOL;
     } else {

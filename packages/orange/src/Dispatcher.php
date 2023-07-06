@@ -19,7 +19,7 @@ class Dispatcher implements DispatcherInterface
     protected OutputInterface $output;
     protected ConfigInterface $config;
 
-    private function __construct(InputInterface $input, OutputInterface $output, ConfigInterface $config)
+    public function __construct(InputInterface $input, OutputInterface $output, ConfigInterface $config)
     {
         $this->input = $input;
         $this->output = $output;

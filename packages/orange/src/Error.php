@@ -24,7 +24,7 @@ class Error implements ErrorInterface
     protected string $requestType = '';
     protected array $requestConfig = [];
 
-    private function __construct(array $config, ViewerInterface $viewer, OutputInterface $output, ?LogInterface $log = null)
+    public function __construct(array $config, ViewerInterface $viewer, OutputInterface $output, ?LogInterface $log = null)
     {
         $this->config = $config;
         $this->viewer = $viewer;

@@ -13,7 +13,7 @@ class Container implements ContainerInterface
     private static ContainerInterface $instance;
     private static array $registeredServices = [];
 
-    private function __construct()
+    public function __construct()
     {
     }
 

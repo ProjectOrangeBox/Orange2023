@@ -10,7 +10,7 @@ class Event implements EventInterface
 {
     protected static EventInterface $instance;
 
-    private function __construct(array $config)
+    public function __construct(array $config)
     {
     }
 

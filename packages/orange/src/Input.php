@@ -15,7 +15,7 @@ class Input implements InputInterface
     protected bool $isHttps = false;
     protected array $validKeys = ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'];
 
-    private function __construct(array $config)
+    public function __construct(array $config)
     {
         $this->replace($config);
     }
@@ -31,12 +31,12 @@ class Input implements InputInterface
 
     public function requestUri(): string
     {
-        return $this->input['server']['request_uri'];
+        return isset($this->input['server']['request_uri']) ? $this->input['server']['request_uri'] : '';
     }
 
     public function uriSegement(int $int): string
     {
-        $segs = explode('/', $this->requestUri());
+        $segs = explode('/', ltrim($this->requestUri(),'/'));
 
         return $segs[$int - 1] ?? '';
     }
@@ -138,7 +138,7 @@ class Input implements InputInterface
         } else {
             $this->isHttps = false;
         }
-        
+
         return $this;
     }
 
@@ -160,12 +160,11 @@ class Input implements InputInterface
     public function __debugInfo(): array
     {
         return [
-            'input'=>$this->input,
-            'requestType'=>$this->requestType,
-            'requestMethod'=>$this->requestMethod,
-            'isHttps'=>$this->isHttps,
-            'validKeys'=>$this->validKeys,
+            'input' => $this->input,
+            'requestType' => $this->requestType,
+            'requestMethod' => $this->requestMethod,
+            'isHttps' => $this->isHttps,
+            'validKeys' => $this->validKeys,
         ];
     }
-
 }
