@@ -56,6 +56,8 @@ final class ConfigTest extends TestCase
 
     public function testMagicSet(): void
     {
+        $this->instance->addPath(__DIR__ . '/support', true);
+
         $config = $this->instance->__get('configexample1');
 
         $config['food'] = 'Pizza';

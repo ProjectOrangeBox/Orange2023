@@ -95,7 +95,7 @@ class Container implements ContainerInterface
             $this->addAlias(substr($serviceName, 1), $arg);
         } else {
             if ($arg instanceof Closure) {
-                $this->addFactory($serviceName, $arg);
+                $this->addClosure($serviceName, $arg);
             } else {
                 $this->addValue($serviceName, $arg);
             }
@@ -112,7 +112,7 @@ class Container implements ContainerInterface
         return $this;
     }
 
-    public function addFactory(string $serviceName, Closure $closure): self
+    public function addClosure(string $serviceName, Closure $closure): self
     {
         self::$registeredServices[self::normalizeName($serviceName)] = [
             'reference' => $closure,

@@ -29,7 +29,7 @@ final class DataTest extends TestCase
     // Tests
     public function testMerge(): void
     {
-        $this->instance->merge(['age'=>21,'food'=>'pizza']);
+        $this->instance->merge(['name'=>'Johnny Appleseed','age'=>21,'food'=>'pizza']);
 
         $this->assertEquals((array)$this->instance,['name'=>'Johnny Appleseed','age'=>21,'food'=>'pizza']);
         $this->assertEquals(3, count($this->instance));

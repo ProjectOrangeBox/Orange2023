@@ -23,7 +23,7 @@ interface ContainerInterface
     public function set(string $serviceName, $arg): void;
 
     public function addAlias(string $alias, string $serviceName): self;
-    public function addFactory(string $serviceName, Closure $closure): self;
+    public function addClosure(string $serviceName, Closure $closure): self;
     public function addValue(string $serviceName, mixed $value): self;
 
     public function getServices(): array;

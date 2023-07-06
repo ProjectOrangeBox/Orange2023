@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'site' => null,
+    'isHttps' => true,
     'routes' => [
         // home page
         ['method' => '*', 'url' => '/', 'callback' => [\app\controllers\MainController::class, 'index'], 'name' => 'home'],

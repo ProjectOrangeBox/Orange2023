@@ -42,7 +42,7 @@ class Router implements RouterInterface
     {
         $url = false;
         $requestMethod = strtoupper($requestMethod);
-
+        
         // main loop
         foreach ($this->routes as $route) {
             if (isset($route['method'])) {
