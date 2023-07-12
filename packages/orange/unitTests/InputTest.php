@@ -40,10 +40,6 @@ final class InputTest extends TestCase
         ]);
     }
 
-    protected function tearDown(): void
-    {
-    }
-
     // Tests
     public function testRequestUri(): void
     {

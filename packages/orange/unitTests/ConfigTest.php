@@ -14,10 +14,6 @@ final class ConfigTest extends TestCase
         $this->instance = new Config([]);
     }
 
-    protected function tearDown(): void
-    {
-    }
-
     // Tests
     public function testAddPath(): void
     {

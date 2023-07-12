@@ -25,10 +25,6 @@ final class DispatcherTest extends TestCase
         $this->instance = Dispatcher::getInstance($output, $container);
     }
 
-    protected function tearDown(): void
-    {
-    }
-
     // Tests
     public function testCall(): void
     {

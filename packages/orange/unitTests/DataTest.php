@@ -14,10 +14,6 @@ final class DataTest extends TestCase
         $this->instance = new Data();
     }
 
-    protected function tearDown(): void
-    {
-    }
-
     public function testData(): void
     {
         $this->instance['name'] = 'Johnny Appleseed';

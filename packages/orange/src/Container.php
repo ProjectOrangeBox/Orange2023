@@ -26,15 +26,6 @@ class Container implements ContainerInterface
         return self::$instance;
     }
 
-    public static function setServices(array $serviceArray): self
-    {
-        foreach ($serviceArray as $serviceName => $option) {
-            self::getInstance()->set($serviceName, $option);
-        }
-
-        return self::getInstance();
-    }
-
     public static function getService(string $name): mixed
     {
         return self::getInstance()->get($name);
@@ -42,9 +33,18 @@ class Container implements ContainerInterface
 
     public static function getServiceIfExists(string $name): mixed
     {
-        $c = self::getInstance();
+        return (self::getInstance()->has($name)) ? self::getInstance()->get($name) : null;
+    }
 
-        return ($c->isset($name)) ? $c->get($name) : null;
+    public function setServices(array $serviceArray): self
+    {
+        $container = $this->getInstance();
+        
+        foreach ($serviceArray as $serviceName => $option) {
+            $container->set($serviceName, $option);
+        }
+
+        return $container;
     }
 
     /**

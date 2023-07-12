@@ -12,9 +12,10 @@ interface ContainerInterface
     const ALIAS = 2;
     const VALUE = 3;
 
-    public static function setServices(array $serviceArray): self;
     public static function getService(string $name): mixed;
     public static function getServiceIfExists(string $name): mixed;
+
+    public function setServices(array $serviceArray): self;
 
     public function __get(string $serviceName): mixed;
     public function get(string $serviceName): mixed;

@@ -132,8 +132,10 @@ if (!function_exists('bootstrap')) {
             throw new InvalidValue('Services config file "' . $config['services'] . '" did not return an array.');
         }
 
+        $container = Container::getInstance();
+
         // setup the container
-        $container = Container::setServices($services);
+        $container->setServices($services);
 
         // save bootstrapping config
         $container->set('$config', $config);
@@ -147,8 +149,7 @@ if (!function_exists('bootstrap')) {
 if (!function_exists('logMsg')) {
     function logMsg(mixed $level, mixed $msg = null): void
     {
-        if (Container::getServiceIfExists('log')) {
-            $logger = Container::getService('log');
+        if ($logger = Container::getServiceIfExists('log')) {
             $method = $logger->convert2($level);
             $logger->$method($msg);
         }
