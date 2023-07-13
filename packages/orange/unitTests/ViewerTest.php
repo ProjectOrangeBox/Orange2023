@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use dmyers\orange\Data;
+use dmyers\orange\View;
 use PHPUnit\Framework\TestCase;
 
 final class ViewerTest extends TestCase
@@ -10,56 +12,59 @@ final class ViewerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->instance = null; #change
+        $this->instance = new View([],new Data());
 
-        
-    }
-
-    protected function tearDown(): void
-    {
-        
+        $this->instance->addPath(__DIR__.'/support/views');        
     }
 
     // Tests
     public function testRender(): void
     {
-        
-
-        $this->assertTrue(true);
+       $this->assertEquals('<h1>Hello World</h1>',$this->instance->render('test',['hello'=>'Hello World']));
     }
 
     public function testRenderString(): void
     {
-        
-
-        $this->assertTrue(true);
+        $this->assertEquals('<h1>Hello World</h1>',$this->instance->renderString('<h1><?=$hello ?></h1>',['hello'=>'Hello World']));
     }
 
     public function testAddPath(): void
     {
-        
+        // path added above let's test for it.
+        $debug = $this->instance->__debugInfo();
 
-        $this->assertTrue(true);
+        $this->assertTrue(in_array(__DIR__.'/support/views',$debug['viewPaths']));
     }
 
     public function testAddPaths(): void
     {
-        
+        $this->instance->addPaths(['/foo','/bar']);
 
-        $this->assertTrue(true);
+        $debug = $this->instance->__debugInfo();
+
+        $this->assertTrue(in_array('/foo',$debug['viewPaths']));
+        $this->assertTrue(in_array('/bar',$debug['viewPaths']));
     }
 
     public function testAddPlugin(): void
     {
-        
+        $this->instance->addPlugin('strtolower',['function','strtolower']);
 
-        $this->assertTrue(true);
+        $debug = $this->instance->__debugInfo();
+
+        $this->assertTrue(isset($debug['plugins']['strtolower']));
     }
 
     public function testAddPlugins(): void
     {
+        $this->instance->addPlugins([
+            'strtoupper'=>['function'=>'strtoupper'],
+            'trimmer'=>['funciton'=>'trim'],
+        ]);
         
+        $debug = $this->instance->__debugInfo();
 
-        $this->assertTrue(true);
+        $this->assertTrue(isset($debug['plugins']['strtoupper']));
+        $this->assertTrue(isset($debug['plugins']['trimmer']));
     }
 }

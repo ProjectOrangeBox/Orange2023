@@ -104,11 +104,16 @@ class Event implements EventInterface
         $removed = false;
 
         foreach ($this->events as $trigger => $events) {
-            foreach ($events as $eventId => $event) {
-                if ($eventId == $eventId) {
-                    unset($this->events[$trigger][$eventId]);
+            foreach (array_keys($events) as $eventIdKey) {
+                if ($eventIdKey == $eventId) {
+                    unset($this->events[$trigger][$eventIdKey]);
 
                     $removed = true;
+
+                    // if it's completely empty remove it
+                    if (empty($this->events[$trigger])) {
+                        unset($this->events[$trigger]);
+                    }
 
                     break 2;
                 }

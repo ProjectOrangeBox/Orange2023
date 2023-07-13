@@ -46,11 +46,8 @@ abstract class ViewerAbstract implements ViewerInterface
 
     public function addPath(string $path, bool $first = false): self
     {
+        // path is added without checking if it's there for various reasons
         $path = rtrim($path, '/');
-
-        if (!\realpath($path)) {
-            throw new FolderNotFound($path);
-        }
 
         if ($first) {
             array_unshift($this->viewPaths, rtrim($path, '/'));

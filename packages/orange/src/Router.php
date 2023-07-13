@@ -25,8 +25,22 @@ class Router implements RouterInterface
         }
 
         $this->siteUrl = $config['site'];
-        $this->routes = $config['routes'];
         $this->isHttps = $config['isHttps'];
+
+        $this->routes = $config['routes'];
+
+        $this->matched = [
+            'request method' => null,
+            'request uri' => null,
+            'matched uri' => null,
+            'matched method' => null,
+            'url' => null,
+            'argv' => null,
+            'argc' => 0,
+            'args' => 0,
+            'name' => null,
+            'callback' => null,
+        ];
     }
 
     public static function getInstance(array $config): self
@@ -42,7 +56,7 @@ class Router implements RouterInterface
     {
         $url = false;
         $requestMethod = strtoupper($requestMethod);
-        
+
         // main loop
         foreach ($this->routes as $route) {
             if (isset($route['method'])) {
@@ -64,16 +78,16 @@ class Router implements RouterInterface
         }
 
         $this->matched = [
-            'requestMethod' => $requestMethod,
-            'requestURI' => $requestUri,
-            'matchedURI' => $route['url'],
-            'matchedMethod' => $matchedMethod,
-            'controller' => $route['callback'][self::CONTROLLER],
-            'method' => $route['callback'][self::METHOD],
+            'request method' => $requestMethod,
+            'request uri' => $requestUri,
+            'matched uri' => $route['url'],
+            'matched method' => $matchedMethod,
             'url' => $url,
             'argv' => $argv,
             'argc' => count($argv),
             'args' => (bool)count($argv),
+            'name' => $route['name'] ?? null,
+            'callback' => $route['callback'] ?? null,
         ];
 
         return $this;
@@ -81,11 +95,11 @@ class Router implements RouterInterface
 
     public function getMatched(string $key = null): mixed /* mixed string|array */
     {
-        if ($key != null && !isset($this->matched[$key])) {
+        if ($key != null && !\array_key_exists(strtolower($key), $this->matched)) {
             throw new InvalidValue('Unknown routing value "' . $key . '"');
         }
 
-        return ($key) ? $this->matched[$key] : $this->matched;
+        return ($key) ? $this->matched[strtolower($key)] : $this->matched;
     }
 
     public function getUrl(string $searchName, array $arguments = [], bool $appendSiteUrl = true): string
@@ -108,6 +122,8 @@ class Router implements RouterInterface
                         }
 
                         if ($matchesCount > 0) {
+                            $matchedUrl = $record['url'];
+
                             foreach ($matches as $index => $match) {
                                 $value = (string)$arguments[$index];
 
@@ -115,7 +131,7 @@ class Router implements RouterInterface
                                     throw new InvalidValue('Parameter mismatch. Expecting ' . $match[1] . ' got ' . $value . ' route named "' . $searchName . '".');
                                 }
 
-                                $matchedUrl = str_replace($match[0], $value, $record['url']);
+                                $matchedUrl = preg_replace('/' . preg_quote($match[0], '/') . '/', $value, $matchedUrl, 1);
                             }
                         } else {
                             $matchedUrl = $record['url'];
@@ -133,11 +149,13 @@ class Router implements RouterInterface
             throw new RouterNameNotFound('url route named "' . $searchName . '" not found');
         }
 
-        return $this->siteUrl() . $matchedUrl;
+        return ($appendSiteUrl) ? $this->siteUrl() . $matchedUrl : $matchedUrl;
     }
 
     public function siteUrl(bool|string $appendHttp = true): string
     {
+        $prefix = '';
+
         if ($appendHttp === true) {
             $prefix = ($appendHttp) ? 'http' . ($this->isHttps ? 's' : '') . '://' : '';
         } elseif (is_string($appendHttp)) {
@@ -155,12 +173,10 @@ class Router implements RouterInterface
     public function __debugInfo(): array
     {
         return [
-            'siteUrl'=>$this->siteUrl,
-            'isHttps'=>$this->isHttps,
-            'routes'=>$this->routes,
-            'matched'=>$this->matched,
+            'siteUrl' => $this->siteUrl,
+            'isHttps' => $this->isHttps,
+            'routes' => $this->routes,
+            'matched' => $this->matched,
         ];
     }
-
-
 }

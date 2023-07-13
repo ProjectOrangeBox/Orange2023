@@ -16,6 +16,8 @@ class Output implements OutputInterface
     protected array $headers = [];
     protected string $output = '';
     protected array $config = [];
+    protected array $sentHeaders = [];
+    protected int $sentCode = 0;
 
     public function __construct(array $config)
     {
@@ -95,6 +97,8 @@ class Output implements OutputInterface
 
     public function flushHeaders(): self
     {
+        $this->testIfHeadersSent('flushed');
+
         $this->headers = [];
 
         return $this;
@@ -107,17 +111,23 @@ class Output implements OutputInterface
 
     public function sendHeaders(): self
     {
-        if (headers_sent() && isset($this->config['show header error']) && $this->config['show header error'] === true) {
-            throw new ExceptionsOutput('Content has already been sent therefore headers cannot be sent at this time.');
-        }
+        $this->testIfHeadersSent('sent');
 
-        if (!headers_sent()) {
+        if (empty($this->sentHeaders)) {
             foreach ($this->getHeaders() as $header) {
                 header($header);
+                $this->sentHeaders[] = $header;
             }
         }
 
         return $this;
+    }
+
+    protected function testIfHeadersSent(string $context): void
+    {
+        if (!empty($this->sentHeaders) && isset($this->config['show header error']) && $this->config['show header error'] === true) {
+            throw new ExceptionsOutput('Content has already been sent therefore headers cannot be ' . $context . ' at this time.');
+        }
     }
 
     public function charSet(string $charSet): self
@@ -136,6 +146,10 @@ class Output implements OutputInterface
 
     public function responseCode(int $code): self
     {
+        if ($this->sentCode != 0) {
+            throw new ExceptionsOutput('Response Code Already Sent.');
+        }
+
         $this->code = $code;
 
         return $this;
@@ -148,7 +162,13 @@ class Output implements OutputInterface
 
     public function sendResponseCode(): self
     {
+        if ($this->sentCode != 0) {
+            throw new ExceptionsOutput('Response Code Already Sent.');
+        }
+
         http_response_code($this->code);
+        
+        $this->sentCode = $this->code;
 
         return $this;
     }
@@ -162,9 +182,9 @@ class Output implements OutputInterface
         }
     }
 
-    public function redirect(string $url, int $responseCode = 200, bool $exit = true): void
+    public function redirect(string $url, int $responseCode = 302, bool $exit = true): void
     {
-        $this->header('Location: ' . $url)->responseCode($responseCode);
+        $this->flushAll()->header('Location: ' . $url)->responseCode($responseCode)->send();
 
         if ($exit) {
             exit(0);
@@ -174,13 +194,14 @@ class Output implements OutputInterface
     public function __debugInfo(): array
     {
         return [
-            'config'=>$this->config,
-            'code'=>$this->code,
-            'contentType'=>$this->contentType,
-            'charSet'=>$this->charSet,
-            'headers'=>$this->headers,
-            'output'=>$this->output,
+            'config' => $this->config,
+            'code' => $this->code,
+            'contentType' => $this->contentType,
+            'charSet' => $this->charSet,
+            'headers' => $this->headers,
+            'sent headers' => $this->sentHeaders,
+            'sent code' => $this->sentCode,
+            'output' => $this->output,
         ];
     }
-
 }

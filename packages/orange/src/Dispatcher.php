@@ -36,10 +36,10 @@ class Dispatcher implements DispatcherInterface
     {
         $route = $route->getMatched();
 
-        $controllerClass = $route['controller'];
+        $controllerClass = $route['callback'][0];
 
         if (class_exists($controllerClass)) {
-            $method = $route['method'];
+            $method = $route['callback'][1];
 
             if (method_exists($controllerClass, $method)) {
                 // we found something
