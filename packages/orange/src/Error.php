@@ -29,7 +29,10 @@ class Error implements ErrorInterface
         $this->config = $config;
         $this->viewer = $viewer;
         $this->output = $output;
-        $this->log = $log;
+
+        if ($log) {
+            $this->log = $log;
+        }
 
         // request type set
         $this->reset();
@@ -165,11 +168,17 @@ class Error implements ErrorInterface
         $mimeType = $override['mime type'] ?? $this->requestConfig['mime type'];
         $subFolder = $override['subfolder'] ?? $this->requestConfig['subfolder'];
 
+        if (!empty($subFolder)) {
+            $finalView = $view;
+        } else {
+            $finalView = trim($subFolder, '/') . '/' . $view;
+        }
+
         if ($this->log) {
             $this->log->error(\json_encode($data));
         }
 
-        $this->output->flushAll()->responseCode($code)->charSet($charSet)->contentType($mimeType)->setOutput($this->viewer->render($subFolder . '/' . $view, $data))->send(true);
+        $this->output->flushAll()->responseCode($code)->charSet($charSet)->contentType($mimeType)->setOutput($this->viewer->render($finalView, $data))->send(true);
         exit(1);
     }
 
@@ -191,13 +200,12 @@ class Error implements ErrorInterface
     public function __debugInfo(): array
     {
         return [
-            'config'=>$this->config,
-            'errors'=>$this->errors,
-            'duplicates'=>$this->duplicates,
-            'requestType'=>$this->requestType,
-            'requestConfig'=>$this->requestConfig,
+            'config' => $this->config,
+            'errors' => $this->errors,
+            'duplicates' => $this->duplicates,
+            'requestType' => $this->requestType,
+            'requestConfig' => $this->requestConfig,
             'viewer' => $this->viewer,
         ];
     }
-
 }
