@@ -6,6 +6,9 @@
             <directory>../unitTests/</directory>
         </testsuite>
     </testsuites>
+    <report>
+        <html outputDirectory="coverage/"/>
+    </report>
     <php>
         <env name="ENV" value="phpunit" force="true"/>
         <env name="ENVIRONMENT" value="phpunit" force="true"/>

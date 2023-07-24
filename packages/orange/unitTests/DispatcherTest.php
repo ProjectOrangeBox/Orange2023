@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-use dmyers\orange\Router;
 use dmyers\orange\Container;
 use dmyers\orange\Dispatcher;
-use dmyers\orange\stubs\Output;
 use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\ControllerClassNotFound;
+use dmyers\orange\exceptions\MethodNotFound;
 
 final class DispatcherTest extends TestCase
 {
@@ -15,30 +14,43 @@ final class DispatcherTest extends TestCase
 
     protected function setUp(): void
     {
-        $output = new Output([
-            'contentType' => 'text/html',
-            'charSet' => 'utf-8',
-            'show header error' => false,
-        ]);
-        $container = Container::getInstance();
+        $this->instance = Dispatcher::getInstance(new Container());
 
-        $this->instance = Dispatcher::getInstance($output, $container);
+        include_once __DIR__ . '/support/controllerClass.php';
+        include_once __DIR__ . '/support/bogusRouter.php';
     }
 
     // Tests
     public function testCall(): void
     {
-        $router = new Router([
-            'site' => 'www.example.com',
-            'isHttps' => true,
-            'routes' => [
-                ['method' => 'get', 'url' => '/bar/foo', 'callback' => [\bogus\MainController::class, 'index'], 'name' => 'home'],
-            ],
+        $router = new BogusRouter([
+            'argv' => [],
+            'callback' => ['controllerClass', 'index'],
         ]);
 
-        $router->match('/bar/foo', 'GET');
+        $this->assertEquals('<h1>foobar</h1>',$this->instance->call($router));
+    }
 
+    public function testControllerClassNotFoundException(): void
+    {
         $this->expectException(ControllerClassNotFound::class);
+
+        $router = new BogusRouter([
+            'argv' => [],
+            'callback' => ['foobar', 'index'],
+        ]);
+
+        $this->instance->call($router);
+    }
+
+    public function testMethodNotFoundException(): void
+    {
+        $this->expectException(MethodNotFound::class);
+
+        $router = new BogusRouter([
+            'argv' => [],
+            'callback' => ['controllerClass', 'foobar'],
+        ]);
 
         $this->instance->call($router);
     }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 use dmyers\orange\Data;
 use dmyers\orange\View;
 use PHPUnit\Framework\TestCase;
+use dmyers\orange\exceptions\ViewNotFound;
+use dmyers\orange\exceptions\FileNotWritable;
 
 final class ViewerTest extends TestCase
 {
@@ -12,20 +14,20 @@ final class ViewerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->instance = new View([],new Data());
+        $this->instance = new View([], new Data());
 
-        $this->instance->addPath(__DIR__.'/support/views');        
+        $this->instance->addPath(__DIR__ . '/support/views');
     }
 
     // Tests
     public function testRender(): void
     {
-       $this->assertEquals('<h1>Hello World</h1>',$this->instance->render('test',['hello'=>'Hello World']));
+        $this->assertEquals('<h1>Hello World</h1>', $this->instance->render('test', ['hello' => 'Hello World']));
     }
 
     public function testRenderString(): void
     {
-        $this->assertEquals('<h1>Hello World</h1>',$this->instance->renderString('<h1><?=$hello ?></h1>',['hello'=>'Hello World']));
+        $this->assertEquals('<h1>Hello World</h1>', $this->instance->renderString('<h1><?=$hello ?></h1>', ['hello' => 'Hello World']));
     }
 
     public function testAddPath(): void
@@ -33,22 +35,22 @@ final class ViewerTest extends TestCase
         // path added above let's test for it.
         $debug = $this->instance->__debugInfo();
 
-        $this->assertTrue(in_array(__DIR__.'/support/views',$debug['viewPaths']));
+        $this->assertTrue(in_array(__DIR__ . '/support/views', $debug['viewPaths']));
     }
 
     public function testAddPaths(): void
     {
-        $this->instance->addPaths(['/foo','/bar']);
+        $this->instance->addPaths(['/foo', '/bar']);
 
         $debug = $this->instance->__debugInfo();
 
-        $this->assertTrue(in_array('/foo',$debug['viewPaths']));
-        $this->assertTrue(in_array('/bar',$debug['viewPaths']));
+        $this->assertTrue(in_array('/foo', $debug['viewPaths']));
+        $this->assertTrue(in_array('/bar', $debug['viewPaths']));
     }
 
     public function testAddPlugin(): void
     {
-        $this->instance->addPlugin('strtolower',['function','strtolower']);
+        $this->instance->addPlugin('strtolower', ['function', 'strtolower']);
 
         $debug = $this->instance->__debugInfo();
 
@@ -58,13 +60,37 @@ final class ViewerTest extends TestCase
     public function testAddPlugins(): void
     {
         $this->instance->addPlugins([
-            'strtoupper'=>['function'=>'strtoupper'],
-            'trimmer'=>['funciton'=>'trim'],
+            'strtoupper' => ['function' => 'strtoupper'],
+            'trimmer' => ['funciton' => 'trim'],
         ]);
-        
+
         $debug = $this->instance->__debugInfo();
 
         $this->assertTrue(isset($debug['plugins']['strtoupper']));
         $this->assertTrue(isset($debug['plugins']['trimmer']));
+    }
+
+    public function testRenderViewNotFoundException()
+    {
+        $this->expectException(ViewNotFound::class);
+
+        $this->instance->render('dummy');
+    }
+
+    public function testRenderStringFileNotWritableException()
+    {
+        $config = [
+            'view paths' => [],
+            'view aliases' => [],
+            'temp folder' => '/bogusFolder',
+            'debug' => false,
+            'extension' => '.php',
+        ];
+        
+        $this->instance = new View($config, new Data());
+
+        $this->expectException(FileNotWritable::class);
+
+        $this->instance->renderString('<h1><?=$hello ?></h1>');
     }
 }

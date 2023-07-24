@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 use dmyers\orange\Log;
 use PHPUnit\Framework\TestCase;
+use dmyers\orange\exceptions\InvalidValue;
+use dmyers\orange\exceptions\FileNotWritable;
+use dmyers\orange\exceptions\invalidConfigurationValue;
 
 final class LogTest extends TestCase
 {
@@ -79,4 +82,39 @@ final class LogTest extends TestCase
 
         $this->assertStringNotContainsString('This is an notice 222', file_get_contents($this->config['filepath']));
     }
+
+    public function testConvert2(): void
+    {
+        $this->assertEquals('none',$this->instance->convert2(0));
+        $this->assertEquals('emergency',$this->instance->convert2(1));
+
+        $this->assertEquals(0,$this->instance->convert2('none'));
+        $this->assertEquals(1,$this->instance->convert2('emergency'));
+    }
+
+    public function testConvert2Exception(): void
+    {
+        $this->expectException(InvalidValue::class);
+
+        $this->instance->convert2('foobar');
+    }
+
+    public function testMonoLoggerException(): void
+    {
+        $this->expectException(invalidConfigurationValue::class);
+        
+        $this->config['monolog'] = new stdClass();
+
+        $foo = new Log($this->config);
+    }
+
+    public function testNotWritableException(): void
+    {
+        $this->expectException(FileNotWritable::class);
+        
+        $this->config['filepath'] = '/foo/bar/log.txt';
+
+        new Log($this->config);
+    }
+
 }

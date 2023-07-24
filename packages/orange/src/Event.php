@@ -187,23 +187,19 @@ class Event implements EventInterface
             // }
             //
             $eventId = $this->_registerClosureEvent($trigger, $callable, $priority);
-        } elseif (is_string($callable)) {
+        } elseif (is_array($callable) && count($callable) == 2) {
             //
             // register a class & method
             //
-            // [\app\libraries\Middleware::class.'::before']
-            //
+            // [\app\libraries\Middleware::class,'before']
+
             $eventId = $this->_registerClosureEvent($trigger, function (&...$arguments) use ($callable) {
-                if (count(explode('::', $callable)) != 2) {
-                    throw new InvalidValue($callable);
-                }
+                list($className, $methodName) = $callable;
 
-                list($className, $classMethod) = explode('::', $callable, 2);
-
-                return (new $className())->$classMethod(...$arguments);
+                return (new $className())->$methodName(...$arguments);
             }, $priority);
         } else {
-            throw new InvalidValue();
+            throw new InvalidValue(json_encode($callable));
         }
 
         return $eventId;
@@ -222,5 +218,4 @@ class Event implements EventInterface
     {
         return mb_convert_case($trigger, MB_CASE_LOWER, mb_detect_encoding($trigger));
     }
-
 }

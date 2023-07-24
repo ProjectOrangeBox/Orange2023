@@ -18,6 +18,7 @@ abstract class ModelAbstract
     protected string $limit = '';
     protected string $orderby = '';
     protected $responds = null;
+    protected $fetchType = PDO::FETCH_ASSOC;
 
     // if used/different set in child
     protected string $primaryColumn = 'id';
@@ -175,7 +176,7 @@ abstract class ModelAbstract
      */
     public function fetchMany(): mixed
     {
-        return $this->responds->fetchAll(PDO::FETCH_ASSOC);
+        return $this->responds->fetchAll($this->fetchType);
     }
 
     /**
@@ -183,7 +184,14 @@ abstract class ModelAbstract
      */
     public function fetchOne(): mixed
     {
-        return $this->responds->fetch(PDO::FETCH_ASSOC);
+        return $this->responds->fetch($this->fetchType);
+    }
+
+    public function fetchType(string $fetchType): self
+    {
+        $this->fetchType = $fetchType;
+
+        return $this;
     }
 
     protected function prepareBind(?array $params): array

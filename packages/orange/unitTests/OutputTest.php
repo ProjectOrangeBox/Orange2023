@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use dmyers\orange\Output;
 use PHPUnit\Framework\TestCase;
+use dmyers\orange\exceptions\Output as ExceptionsOutput;
 
 final class OutputTest extends TestCase
 {
@@ -14,40 +15,41 @@ final class OutputTest extends TestCase
         $this->instance = new Output([
             'contentType' => 'text/html',
             'charSet' => 'utf-8',
-            'show header error' => false,
+            'show already sent error' => false,
+            'simulate' => true,
         ]);
     }
 
     // Tests
-    public function testFlushOutput(): void
+    public function testFlush(): void
     {
-        $this->instance->setOutput('this is the output');
+        $this->instance->set('this is the output');
 
-        $this->assertEquals('this is the output', $this->instance->getOutput());
+        $this->assertEquals('this is the output', $this->instance->get());
 
-        $this->instance->flushOutput();
+        $this->instance->flush();
 
-        $this->assertEquals('', $this->instance->getOutput());
+        $this->assertEquals('', $this->instance->get());
     }
 
     public function testSetOutput(): void
     {
-        $this->instance->setOutput('this is the output');
+        $this->instance->set('this is the output');
 
-        $this->assertEquals('this is the output', $this->instance->getOutput());
+        $this->assertEquals('this is the output', $this->instance->get());
     }
 
     public function testAppendOutput(): void
     {
-        $this->instance->setOutput('this is the output');
-        $this->instance->appendOutput(' this too!');
+        $this->instance->set('this is the output');
+        $this->instance->append(' this too!');
 
-        $this->assertEquals('this is the output this too!', $this->instance->getOutput());
+        $this->assertEquals('this is the output this too!', $this->instance->get());
     }
 
     public function testGetOutput(): void
     {
-        $this->assertEquals('', $this->instance->getOutput());
+        $this->assertEquals('', $this->instance->get());
     }
 
     public function testContentType(): void
@@ -135,19 +137,15 @@ final class OutputTest extends TestCase
      */
     public function testSend(): void
     {
-        $this->instance->setOutput('this is the output');
-
-        ob_start();
+        $this->instance->set('this is the output');
 
         $this->instance->send();
-
-        $output = ob_get_clean();
 
         $debug = $this->instance->__debugInfo();
 
         $this->assertEquals(200, $debug['sent code']);
         $this->assertContains('Content-Type: text/html; charset=utf-8', $debug['sent headers']);
-        $this->assertEquals('this is the output', $output);
+        $this->assertEquals('this is the output', $this->instance->get());
     }
 
     /**
@@ -156,7 +154,7 @@ final class OutputTest extends TestCase
     public function testRedirect(): void
     {
         ob_start();
-        $this->instance->redirect('http://www.example.com',123,false);
+        $this->instance->redirect('http://www.example.com', 123, false);
         $output = ob_get_clean();
 
         $debug = $this->instance->__debugInfo();
@@ -169,7 +167,7 @@ final class OutputTest extends TestCase
     public function testFlushAll(): void
     {
         $this->instance->header('HTTP/1.1 404 Not Found');
-        $this->instance->setOutput('hello world');
+        $this->instance->set('hello world');
 
         $this->instance->flushAll();
 
@@ -177,5 +175,54 @@ final class OutputTest extends TestCase
 
         $this->assertEmpty($debug['headers']);
         $this->assertEquals('', $debug['output']);
+    }
+
+    public function testHeaderSentFlushException(): void
+    {
+        $this->instance = new Output([
+            'contentType' => 'text/html',
+            'charSet' => 'utf-8',
+            'show already sent error' => true,
+            'simulate' => true,
+        ]);
+        
+        $this->instance->sendHeaders();
+
+        $this->expectException(ExceptionsOutput::class);
+
+        $this->instance->flushHeaders();
+    }
+
+    public function testHeaderSentException(): void
+    {
+        $this->instance = new Output([
+            'contentType' => 'text/html',
+            'charSet' => 'utf-8',
+            'show already sent error' => true,
+            'simulate' => true,
+        ]);
+        
+        $this->instance->sendHeaders();
+
+        $this->expectException(ExceptionsOutput::class);
+
+        $this->instance->sendHeaders();
+    }
+
+
+    public function testResponseCodeException(): void
+    {
+        $this->instance = new Output([
+            'contentType' => 'text/html',
+            'charSet' => 'utf-8',
+            'show already sent error' => true,
+            'simulate' => true,
+        ]);
+
+        $this->instance->sendResponseCode();
+        
+        $this->expectException(ExceptionsOutput::class);
+
+        $this->instance->responseCode(404);
     }
 }

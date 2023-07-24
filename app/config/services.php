@@ -58,7 +58,7 @@ return [
         return Router::getInstance($config);
     },
     'dispatcher' => function (ContainerInterface $container): DispatcherInterface {
-        return Dispatcher::getInstance($container->output, $container);
+        return Dispatcher::getInstance($container);
     },
     '@phpview' => 'view', // alias of view
     'view' => function (ContainerInterface $container): ViewerInterface {
@@ -73,10 +73,10 @@ return [
         return new PDO('mysql:host=' . fetchEnv('db.host') . ';dbname=' . fetchEnv('db.database'), fetchEnv('db.username'), fetchEnv('db.password'), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     },
 
-    // you can use anything for a server name
+    // you can use anything for a service name
     // model.foo or $value
-    // scalar values
+    '$test' => 'This is a test',
+    // you can "get" those in 1 of 2 ways
     // $container->{'$test'}
     // $container->get('$test');
-    '$test' => 'This is a test',
 ];

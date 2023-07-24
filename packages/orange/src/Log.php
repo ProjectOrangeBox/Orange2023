@@ -6,8 +6,9 @@ namespace dmyers\orange;
 
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\interfaces\LogInterface;
-use dmyers\orange\exceptions\FolderNotWritable;
+use dmyers\orange\exceptions\FileNotWritable;
 use dmyers\orange\exceptions\invalidConfigurationValue;
+use Throwable;
 
 class Log implements LogInterface
 {
@@ -46,15 +47,8 @@ class Log implements LogInterface
         } else {
             $this->handler = $this;
 
-            $dir = dirname($this->config['filepath']);
-
-            if (!is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
-
-            if (!is_writable($dir)) {
-                throw new FolderNotWritable($dir);
-            }
+            // throws exception
+            $this->isFileWritable($this->config['filepath']);
 
             $this->changeThreshold($config['threshold']);
         }
@@ -108,7 +102,7 @@ class Log implements LogInterface
 
         if (is_string($input)) {
             if (isset($this->psrLevels[strtoupper($input)])) {
-                $method = strtolower($input);
+                $method = $this->psrLevels[strtoupper($input)];
             }
         } elseif (is_int($input)) {
             if (isset($this->psrLevelsInt[$input])) {
@@ -116,7 +110,7 @@ class Log implements LogInterface
             }
         }
 
-        if (empty($method)) {
+        if ($method == '') {
             throw new InvalidValue('Unknown message log level "' . $input . '".');
         }
 
@@ -154,6 +148,26 @@ class Log implements LogInterface
             'psrLevels'=>$this->psrLevels,
             'psrLevelsInt'=>$this->psrLevelsInt,
         ];
+    }
+
+    protected function isFileWritable(string $file): bool
+    {
+        // check we can write in the directory
+        $dir = dirname($file);
+
+        if (!is_dir($dir)) {
+            try {
+                mkdir($dir, 0755, true);
+            } catch (Throwable $e) {
+                throw new FileNotWritable($dir);
+            }
+        }
+
+        if (!is_writable($dir)) {
+            throw new FileNotWritable($dir);
+        }
+
+        return true;
     }
 
 }

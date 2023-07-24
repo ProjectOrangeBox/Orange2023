@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 use dmyers\orange\Router;
 use PHPUnit\Framework\TestCase;
+use dmyers\orange\exceptions\InvalidValue;
+use dmyers\orange\exceptions\RouteNotFound;
+use dmyers\orange\exceptions\ConfigNotFound;
+use dmyers\orange\interfaces\RouterInterface;
+use dmyers\orange\exceptions\RouterNameNotFound;
 
 final class RouterTest extends TestCase
 {
@@ -98,5 +103,63 @@ final class RouterTest extends TestCase
         $this->assertEquals('http://www.example.com', $this->instance->siteUrl(true));
         $this->assertEquals('www.example.com', $this->instance->siteUrl(false));
         $this->assertEquals('ftps://www.example.com', $this->instance->siteUrl('ftps://'));
+    }
+
+    public function testGetMatchedInvalidValueException(): void
+    {
+        $this->instance->match('/product/abc/123', 'get');
+
+        $this->expectException(InvalidValue::class);
+
+        $this->instance->getMatched('foobar'); // there is no value foobar
+    }
+
+    public function testGetUrlInvalidValueException(): void
+    {
+        $this->expectException(InvalidValue::class);
+
+        $this->assertEquals('/product/xyz/890', $this->instance->getUrl('product', [890], false));
+    }
+
+    public function testGetUrlParameterInvalidValueException(): void
+    {
+        $this->expectException(InvalidValue::class);
+
+        $this->assertEquals('/product/xyz/890', $this->instance->getUrl('product', ['abc','xyz'], false));
+    }
+
+    public function testMatchRouteNotFoundException1(): void
+    {
+        $this->expectException(RouteNotFound::class);
+
+        $this->instance->match('/bla/bla/bla','GET');
+    }
+
+    public function testMatchRouteNotFoundException2(): void
+    {
+        $this->expectException(RouteNotFound::class);
+
+        $this->instance->match('/poster','GET');
+    }
+
+    public function testGetUrlRouterNameNotFound(): void
+    {
+        $this->expectException(RouterNameNotFound::class);
+
+        $this->instance->getUrl('notreal');
+    }
+
+    public function testConfigNotFoundException(): void
+    {
+        $routes = [
+            'site' => null, // REQUIRED!
+            'isHttps' => false,
+            'routes' => [
+            ],
+        ];
+
+        $this->expectException(ConfigNotFound::class);
+
+        new Router($routes);
     }
 }

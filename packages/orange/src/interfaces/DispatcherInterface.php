@@ -6,5 +6,5 @@ namespace dmyers\orange\interfaces;
 
 interface DispatcherInterface
 {
-    public function call(RouterInterface $route): OutputInterface;
+    public function call(RouterInterface $route): string;
 }

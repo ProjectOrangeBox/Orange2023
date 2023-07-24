@@ -6,21 +6,22 @@ use dmyers\orange\Container;
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\exceptions\ConfigFileNotFound;
 use dmyers\orange\interfaces\ContainerInterface;
-use dmyers\orange\exceptions\InvalidConfigurationValue;
 
 define('NOVALUE', '__#NOVALUE#__');
 
+require __DIR__.'/helpers.php';
+
+/**
+ * bootstrap http application
+ */
 if (!function_exists('http')) {
     /**
      * required:
      *
      * 'config folder' the absolute path to where the configuration files are stored
      * 'environment' the current environment (different for each system and usually set using fetchEnv('ENVIRONMENT')
+     * 'debug' the current debug level true or false fetchEnv('DEBUG', false)
      * 'services' the absolute path to the services config file. usually /app/config/services.php
-     *
-     * optional:
-     *
-     * 'bootstrap file' the absolute path to a very early loaded bootstrap file
      *
      */
     function http(array $config): ContainerInterface
@@ -38,7 +39,7 @@ if (!function_exists('http')) {
         $container->events->trigger('before.controller', $container->router, $container->input);
 
         // dispatch route
-        $container->dispatcher->call($container->router);
+        $container->output->append($container->dispatcher->call($container->router));
 
         // call event
         $container->events->trigger('before.output', $container->router, $container->input, $container->output);
@@ -54,6 +55,9 @@ if (!function_exists('http')) {
     }
 }
 
+/**
+ * bootstrap CLI application
+ */
 if (!function_exists('cli')) {
     function cli(array $config): ContainerInterface
     {
@@ -62,6 +66,9 @@ if (!function_exists('cli')) {
     }
 }
 
+/**
+ * shared bootstrap function
+ */
 if (!function_exists('bootstrap')) {
     function bootstrap(array $config): ContainerInterface
     {
@@ -71,8 +78,8 @@ if (!function_exists('bootstrap')) {
             date_default_timezone_set('UTC');
         }
 
-        define('DEBUG', $config['debug'] ?? false);
-        define('ENVIRONMENT', $config['environment'] ?? 'production');
+        define('DEBUG', $config['debug'] ?? fetchEnv('DEBUG', false));
+        define('ENVIRONMENT', $config['environment'] ?? fetchEnv('ENVIRONMENT','production'));
 
         if (file_exists($config['config folder'] . '/constants.php')) {
             require_once($config['config folder'] . '/constants.php');
@@ -110,15 +117,6 @@ if (!function_exists('bootstrap')) {
             define('MB_ENABLED', false);
         }
 
-        // Load custom bootstrap file if it's set
-        if (isset($config['bootstrap file'])) {
-            if (file_exists($config['bootstrap file'])) {
-                require_once $config['bootstrap file'];
-            } else {
-                throw new ConfigFileNotFound('Could not locate your bootstrap file "' . $config['bootstrap file'] . '".');
-            }
-        }
-
         // make sure we have services
         if (!isset($config['services']) || !file_exists($config['services'])) {
             throw new ConfigFileNotFound('Could not locate the services configuration file.');
@@ -142,158 +140,5 @@ if (!function_exists('bootstrap')) {
 
         // return the container we just made
         return $container;
-    }
-}
-
-// override as needed
-if (!function_exists('logMsg')) {
-    function logMsg(mixed $level, mixed $msg = null): void
-    {
-        if ($logger = Container::getServiceIfExists('log')) {
-            $method = $logger->convert2($level);
-            $logger->$method($msg);
-        }
-    }
-}
-
-/**
- * Merge our .env
- */
-if (!function_exists('mergeEnv')) {
-    function mergeEnv(string $absEnvFilePath): void
-    {
-        if (!file_exists($absEnvFilePath)) {
-            die('.env file missing at "' . $absEnvFilePath . '".');
-        }
-
-        $env = parse_ini_file($absEnvFilePath, true, INI_SCANNER_TYPED);
-
-        if (!is_array($env)) {
-            die('ini file error "' . $absEnvFilePath . '" did not return an array.');
-        }
-
-        $_ENV = array_replace_recursive($_ENV, $env);
-    }
-}
-
-/**
- * fetchEnv with required default
- * This is safer than just $_ENV[]
- */
-if (!function_exists('fetchEnv')) {
-    function fetchEnv(string $key, $default = '__#NOVALUE#__') /* mixed */
-    {
-        $searchArray = $_ENV;
-
-        if (strpos($key, '.') !== false) {
-            list($arg1, $arg2) = explode('.', $key, 2);
-
-            if (!isset($_ENV[$arg1])) {
-                throw new InvalidConfigurationValue('No env value found for "' . $arg1 . '".');
-            }
-
-            $searchArray = $_ENV[$arg1];
-            $key = $arg2;
-        }
-
-        $isset = isset($searchArray[$key]);
-
-        if (!$isset && $default == '__#NOVALUE#__') {
-            throw new InvalidConfigurationValue('No env value found for "' . $key . '" and no default value set.');
-        }
-
-        return ($isset) ? $searchArray[$key] : $default;
-    }
-}
-
-/**
- * great for local cache files
- */
-if (!function_exists('file_put_contents_atomic')) {
-    function file_put_contents_atomic(string $filePath, string $content, int $flags = 0, $context = null): int|false
-    {
-        $tempFilePath = $filePath . \hrtime(true);
-        $strlen = strlen($content);
-
-        if (file_put_contents($tempFilePath, $content, $flags, $context) !== $strlen) {
-            return false;
-        }
-
-        // atomic function
-        if (rename($tempFilePath, $filePath, $context) === false) {
-            return false;
-        }
-
-        /* flush from the cache */
-        if (function_exists('opcache_invalidate')) {
-            opcache_invalidate($filePath, true);
-        } elseif (function_exists('apc_delete_file')) {
-            apc_delete_file($filePath);
-        }
-
-        return $strlen;
-    }
-}
-
-if (!function_exists('orangeExceptionHandler')) {
-    function orangeExceptionHandler(Throwable $exception): void
-    {
-        _lowleveldeath(json_encode([
-            'message' => $exception->getMessage(),
-            'code' => $exception->getCode(),
-            'line' => $exception->getLine(),
-            'file' => $exception->getFile(),
-            'class' => get_class($exception),
-        ], JSON_PRETTY_PRINT), 500);
-    }
-
-    if (isset($_ENV['ENV']) && $_ENV['ENV'] != 'phpunit') {
-        set_exception_handler('orangeExceptionHandler');
-    }
-}
-
-if (!function_exists('orangeErrorHandler')) {
-    function orangeErrorHandler($severity, $message, $filepath, $line)
-    {
-        if (!(error_reporting() & $severity)) {
-            // This error code is not included in error_reporting, so let it fall
-            // through to the standard PHP error handler
-            return false;
-        }
-
-        _lowleveldeath(json_encode([
-            'severity' => $severity,
-            'message' => $message,
-            'filepath' => $filepath,
-            'line' => $line,
-        ], JSON_PRETTY_PRINT), 500);
-
-        return true;
-    }
-
-    if (isset($_ENV['ENV']) && $_ENV['ENV'] != 'phpunit') {
-        set_error_handler('orangeErrorHandler');
-    }
-}
-
-if (!function_exists('_lowleveldeath')) {
-    function _lowleveldeath(string $text, int $errorCode = 500): void
-    {
-        $container = Container::getServiceIfExists('error');
-
-        if ($container) {
-            $container->error->reset()->showError($text, $errorCode);
-        } else {
-            // error service not setup
-            if (isset($_SERVER['SERVER_PROTOCOL'])) {
-                header($_SERVER['SERVER_PROTOCOL'] . ' ' . $errorCode . ' Internal Server Error', true, $errorCode);
-            }
-            
-            $text = (defined('ENVIRONMENT') && ENVIRONMENT == 'production') ? $text : $errorCode;
-            
-            echo '<pre>Error: ' . PHP_EOL . $text . PHP_EOL . '</pre>';
-        }
-
-        exit(1);
     }
 }

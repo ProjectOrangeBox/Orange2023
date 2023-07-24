@@ -18,12 +18,16 @@ class Output implements OutputInterface
     protected array $config = [];
     protected array $sentHeaders = [];
     protected int $sentCode = 0;
+    protected bool $simulate = false;
+    protected bool $showAlreadySentError = false;
 
     public function __construct(array $config)
     {
         $this->config = $config;
         $this->contentType = $config['contentType'];
         $this->charSet = $config['charSet'];
+        $this->simulate = $config['simulate'];
+        $this->showAlreadySentError = $config['show already sent error'];
 
         $this->header('Content-Type: ' . $this->contentType . '; charset=' . $this->charSet, 'Content-Type');
     }
@@ -37,28 +41,28 @@ class Output implements OutputInterface
         return self::$instance;
     }
 
-    public function flushOutput(): self
+    public function flush(): self
     {
         $this->output = '';
 
         return $this;
     }
 
-    public function setOutput(?string $html): self
+    public function set(string $html): self
     {
-        $this->output = ($html === null) ? '' : $html;
+        $this->output = $html;
 
         return $this;
     }
 
-    public function appendOutput(string $html): self
+    public function append(string $html): self
     {
         $this->output .= $html;
 
         return $this;
     }
 
-    public function getOutput(): string
+    public function get(): string
     {
         return $this->output;
     }
@@ -106,7 +110,7 @@ class Output implements OutputInterface
 
     public function flushAll(): self
     {
-        return $this->flushOutput()->flushHeaders();
+        return $this->flush()->flushHeaders();
     }
 
     public function sendHeaders(): self
@@ -115,7 +119,9 @@ class Output implements OutputInterface
 
         if (empty($this->sentHeaders)) {
             foreach ($this->getHeaders() as $header) {
-                header($header);
+                if (!$this->simulate) {
+                    header($header);
+                }
                 $this->sentHeaders[] = $header;
             }
         }
@@ -125,7 +131,7 @@ class Output implements OutputInterface
 
     protected function testIfHeadersSent(string $context): void
     {
-        if (!empty($this->sentHeaders) && isset($this->config['show header error']) && $this->config['show header error'] === true) {
+        if (!empty($this->sentHeaders) && $this->showAlreadySentError) {
             throw new ExceptionsOutput('Content has already been sent therefore headers cannot be ' . $context . ' at this time.');
         }
     }
@@ -146,7 +152,7 @@ class Output implements OutputInterface
 
     public function responseCode(int $code): self
     {
-        if ($this->sentCode != 0) {
+        if ($this->sentCode != 0 && $this->showAlreadySentError) {
             throw new ExceptionsOutput('Response Code Already Sent.');
         }
 
@@ -166,8 +172,10 @@ class Output implements OutputInterface
             throw new ExceptionsOutput('Response Code Already Sent.');
         }
 
-        http_response_code($this->code);
-        
+        if (!$this->simulate) {
+            http_response_code($this->code);
+        }
+
         $this->sentCode = $this->code;
 
         return $this;
@@ -175,20 +183,23 @@ class Output implements OutputInterface
 
     public function send(bool $exit = false): void
     {
-        echo $this->sendResponseCode()->sendHeaders()->getOutput();
+        // http_response_code - called
+        // header - called
+        $this->sendResponseCode()->sendHeaders();
 
-        if ($exit) {
-            exit(0);
+        if (!$this->simulate) {
+            // this should be the only echo
+            echo $this->get();
+
+            if ($exit) {
+                exit(0);
+            }
         }
     }
 
     public function redirect(string $url, int $responseCode = 302, bool $exit = true): void
     {
-        $this->flushAll()->header('Location: ' . $url)->responseCode($responseCode)->send();
-
-        if ($exit) {
-            exit(0);
-        }
+        $this->flushAll()->header('Location: ' . $url)->responseCode($responseCode)->send($exit);
     }
 
     public function __debugInfo(): array

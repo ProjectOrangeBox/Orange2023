@@ -51,4 +51,8 @@ class Log implements LogInterface
     public function __call($name, $arguments)
     {
     }
+
+    public function __debugInfo(): array
+    {
+    }
 }

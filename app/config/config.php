@@ -7,5 +7,4 @@ return [
     'environment' => fetchEnv('ENVIRONMENT', 'production'),
     'debug' => fetchEnv('DEBUG', false),
     'services' => __ROOT__ . '/app/config/services.php',
-    'bootstrap file' => __ROOT__ . '/app/Bootstrap.php',
 ];

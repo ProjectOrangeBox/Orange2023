@@ -5,18 +5,21 @@ declare(strict_types=1);
 use dmyers\orange\Data;
 use dmyers\orange\View;
 use dmyers\orange\Error;
-use dmyers\orange\stubs\Output;
+use dmyers\orange\Output;
 use PHPUnit\Framework\TestCase;
+use dmyers\orange\exceptions\InvalidValue;
+use dmyers\orange\exceptions\MethodNotFound;
 
 final class ErrorTest extends TestCase
 {
     private $instance;
+    private $output;
 
     protected function setUp(): void
     {
         $errorConfig = [
             'view paths' => [
-                __DIR__.'/support/views',
+                __DIR__ . '/support/views',
             ],
             'types' => [
                 'cli' => [
@@ -39,6 +42,7 @@ final class ErrorTest extends TestCase
             'request type' => 'html',
             'default error view' => 'error',
             'default status code' => 500,
+            'default key' => 'default',
         ];
 
         $viewConfig = [
@@ -52,67 +56,136 @@ final class ErrorTest extends TestCase
         $outputConfig = [
             'contentType' => 'text/html',
             'charSet' => 'utf-8',
-            'show header error' => false,
+            'show already sent error' => false,
+            'simulate' => true,
         ];
 
-        $this->instance = new Error($errorConfig, new View($viewConfig, new Data([])), new Output($outputConfig));
+        $this->output = new Output($outputConfig);
 
-        print_r($this->instance->__debugInfo());
+        $this->instance = new Error($errorConfig, new View($viewConfig, new Data([])), $this->output);
     }
 
     // Tests
     public function testRequestType(): void
     {
-        $this->assertTrue(true);
+        $this->instance->requestType('cli');
+
+        $debug = $this->instance->__debugInfo();
+
+        $this->assertEquals('cli', $debug['requestType']);
+    }
+
+    public function testRequestTypeException(): void
+    {
+        $this->expectException(InvalidValue::class);
+
+        $this->instance->requestType('monkeys');
     }
 
     public function testAdd(): void
     {
-        $this->assertTrue(true);
+        $this->instance->add('This is a bad error.');
+        $this->instance->add('This is a another bad error.');
+
+        $this->assertEquals([0 => 'This is a bad error.', 1 => 'This is a another bad error.'], $this->instance->errors('default'));
+        $this->assertEquals(['default' => [0 => 'This is a bad error.', 1 => 'This is a another bad error.']], $this->instance->errors());
     }
 
     public function testCollectErrors(): void
     {
-        $this->assertTrue(true);
+        include_once __DIR__ . '/support/collectErrorsFromMe.php';
+
+        $object = new collectErrorsFromMe();
+
+        $this->instance->collectErrors($object, 'people');
+
+        $this->assertEquals([0 => 'error 1', 1 => 'error 2'], $this->instance->errors('people'));
+        $this->assertEquals(['people' => [0 => 'error 1', 1 => 'error 2']], $this->instance->errors());
+    }
+
+    public function testCollectErrorsException(): void
+    {
+        include_once __DIR__ . '/support/bogusRouter.php';
+
+        $object = new BogusRouter([]);
+
+        $this->expectException(MethodNotFound::class);
+
+        $this->instance->collectErrors($object);
     }
 
     public function testClear(): void
     {
-        $this->assertTrue(true);
+        $this->instance->add('This is a bad error.');
+        $this->instance->add('This is a another bad error.');
+
+        $this->instance->clear();
+
+        $this->assertEquals([], $this->instance->errors());
     }
 
     public function testReset(): void
     {
-        $this->assertTrue(true);
+        $this->instance->add('This is a bad error.');
+        $this->instance->add('This is a another bad error.');
+
+        $this->instance->clear();
+
+        $debug = $this->instance->__debugInfo();
+
+        $this->assertEquals([], $this->instance->errors());
+        $this->assertEquals('html', $debug['requestType']);
     }
 
     public function testHas(): void
     {
-        $this->assertTrue(true);
-    }
+        $this->instance->add('This is a bad error.');
+        $this->instance->add('This is a another bad error.');
 
-    public function testErrors(): void
-    {
-        $this->assertTrue(true);
+        $this->assertTrue($this->instance->has());
+        $this->assertTrue($this->instance->has('default'));
+        $this->assertFalse($this->instance->has('foobar'));
     }
 
     public function testSend(): void
     {
-        $this->assertTrue(true);
+        $this->instance->add('This is a bad error.');
+        $this->instance->add('This is a another bad error.');
+
+        $this->instance->send(500);
+
+        $this->assertEquals('<p>This is a bad error.</p><p>This is a another bad error.</p>', $this->output->get());
     }
 
-    public function testSendOnError(): void
+    public function testSendOnError1(): void
     {
-        $this->assertTrue(true);
+        $this->instance->add('This is a bad error.');
+        $this->instance->add('This is a another bad error.');
+
+        $this->instance->sendOnError(500);
+
+        $this->assertEquals('<p>This is a bad error.</p><p>This is a another bad error.</p>', $this->output->get());
+    }
+
+
+    public function testSendOnError2(): void
+    {
+        $this->instance->sendOnError(500);
+
+        $this->assertEquals('', $this->output->get());
     }
 
     public function testShowError(): void
     {
-        $this->assertTrue(true);
+        $this->instance->showError('Oh Darn!');
+
+        $this->assertEquals('<h1>An Error Was Encountered<h1><p>Oh Darn!</p>', $this->output->get());
     }
 
     public function testDisplay(): void
     {
-        $this->assertTrue(true);
+        $this->instance->display('error', ['heading' => 'An Error Was Encountered', 'message' => 'Oh Darn!'], 500);
+
+        $this->assertEquals('<h1>An Error Was Encountered<h1><p>Oh Darn!</p>', $this->output->get());
     }
 }

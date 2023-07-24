@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use dmyers\orange\Config;
 use PHPUnit\Framework\TestCase;
+use dmyers\orange\exceptions\InvalidConfigurationValue;
 
 final class ConfigTest extends TestCase
 {
@@ -11,7 +12,9 @@ final class ConfigTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->instance = new Config([]);
+        $this->instance = new Config([
+            'skip defaults' => true,
+        ]);
     }
 
     // Tests
@@ -89,6 +92,15 @@ final class ConfigTest extends TestCase
         $config = $this->instance->get('configexample1');
 
         $this->assertEquals($config['color'], 'red');
+    }
+
+    public function testBadConfigException(): void 
+    {
+        $this->instance->addPath(__DIR__ . '/support', true);
+
+        $this->expectException(InvalidConfigurationValue::class);
+
+        $name = $this->instance->get('badConfig','name');
     }
 
 }

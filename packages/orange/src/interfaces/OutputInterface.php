@@ -10,10 +10,10 @@ interface OutputInterface
     const JSON = 'application/json';
     const JSONOPTIONS = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT;
 
-    public function flushOutput(): self;
-    public function setOutput(?string $html): self;
-    public function appendOutput(string $html): self;
-    public function getOutput(): string;
+    public function flush(): self;
+    public function set(string $html): self;
+    public function append(string $html): self;
+    public function get(): string;
     public function contentType(string $contentType): self;
     public function getContentType(): string;
     public function header(string $header, string $key = null): self;

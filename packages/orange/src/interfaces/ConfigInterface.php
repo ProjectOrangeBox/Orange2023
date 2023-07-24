@@ -6,7 +6,7 @@ namespace dmyers\orange\interfaces;
 
 interface ConfigInterface
 {
-    public function addPath(string $absPath, bool $prepend = false): self;
+    public function addPath(string $absolutePath, bool $prepend = false): self;
 
     public function __get(string $filename): array;
     public function __set(string $filename, array $value): void;

@@ -25,4 +25,5 @@ return [
     'request type' => 'html',
     'default error view' => 'error',
     'default status code' => 500,
+    'default key' => 'default',
 ];

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
+use Throwable;
 use dmyers\orange\exceptions\ViewNotFound;
 use dmyers\orange\interfaces\DataInterface;
 use dmyers\orange\exceptions\FileNotWritable;
-use dmyers\orange\exceptions\FolderNotFound;
 use dmyers\orange\interfaces\ViewerInterface;
 
 abstract class ViewerAbstract implements ViewerInterface
@@ -36,7 +36,11 @@ abstract class ViewerAbstract implements ViewerInterface
         $tempFile = $this->tempFolder . '/' . md5($string) . $this->extension;
 
         if (!\file_exists($tempFile) || $this->debug === true) {
+            // throws error
+            $this->isFileWritable($tempFile);
+
             if (file_put_contents_atomic($tempFile, $string) === false) {
+                // didn't write anything?
                 throw new FileNotWritable();
             }
         }
@@ -182,4 +186,23 @@ abstract class ViewerAbstract implements ViewerInterface
         ];
     }
 
+    protected function isFileWritable(string $file): bool
+    {
+        // check we can write in the directory
+        $dir = dirname($file);
+
+        if (!is_dir($dir)) {
+            try {
+                mkdir($dir, 0755, true);
+            } catch (Throwable $e) {
+                throw new FileNotWritable($dir);
+            }
+        }
+
+        if (!is_writable($dir)) {
+            throw new FileNotWritable($dir);
+        }
+
+        return true;
+    }
 }

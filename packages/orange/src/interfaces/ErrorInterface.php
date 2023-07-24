@@ -9,7 +9,7 @@ interface ErrorInterface
     public function requestType(string $requestType): self;
     public function add(mixed $value, string $key = null): self;
     public function collectErrors(object $object, string $key = null): self;
-    public function clear(string $key): self;
+    public function clear(?string $key = null): self;
     public function reset(): self;
     public function has(?string $key = null): bool;
     public function errors(?string $key = null): mixed;

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9d2831e1ffadf424991405ced278488c",
+    "content-hash": "e986e4e73835c71c0814f396dd574e1e",
     "packages": [
         {
             "name": "aplus/cache",

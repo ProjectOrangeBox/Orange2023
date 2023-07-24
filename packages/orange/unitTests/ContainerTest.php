@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use dmyers\orange\Container;
 use PHPUnit\Framework\TestCase;
+use dmyers\orange\exceptions\ServiceNotFound;
 use dmyers\orange\interfaces\ContainerInterface;
 
 final class ContainerTest extends TestCase
@@ -168,4 +169,12 @@ final class ContainerTest extends TestCase
 
         $this->assertFalse($this->instance->has('foo'));
     }
+
+    public function testServiceNotFoundException(): void 
+    {
+        $this->expectException(ServiceNotFound::class);
+
+        $this->instance->get('bogus service');
+    }
+
 }
