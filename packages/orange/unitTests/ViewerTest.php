@@ -73,6 +73,7 @@ final class ViewerTest extends TestCase
     public function testRenderViewNotFoundException()
     {
         $this->expectException(ViewNotFound::class);
+        $this->expectExceptionMessage('View "dummy" Extension ".php" Not Found.');
 
         $this->instance->render('dummy');
     }
@@ -90,6 +91,7 @@ final class ViewerTest extends TestCase
         $this->instance = new View($config, new Data());
 
         $this->expectException(FileNotWritable::class);
+        $this->expectExceptionMessage('/bogusFolder');
 
         $this->instance->renderString('<h1><?=$hello ?></h1>');
     }

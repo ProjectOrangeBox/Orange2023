@@ -37,6 +37,7 @@ final class EventTest extends TestCase
     public function testRegisterEventUnknownCallableException(): void
     {
         $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessage('123');
 
         $this->instance->register('open.file', 123);
     }
@@ -44,6 +45,7 @@ final class EventTest extends TestCase
     public function testRegisterEventCalledArrayException(): void
     {
         $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessage('"controller","method","extra!"]');
 
         $this->instance->register('open.file', ['controller', 'method', 'extra!']);
     }

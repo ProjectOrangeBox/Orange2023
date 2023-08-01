@@ -10,6 +10,7 @@ use dmyers\orange\interfaces\OutputInterface;
 class Output implements OutputInterface
 {
     private static OutputInterface $instance;
+
     protected int $code = 200;
     protected string $contentType = '';
     protected string $charSet = '';
@@ -20,6 +21,8 @@ class Output implements OutputInterface
     protected int $sentCode = 0;
     protected bool $simulate = false;
     protected bool $showAlreadySentError = false;
+    protected array $cookies = [];
+    protected array $sentCookies = [];
 
     public function __construct(array $config)
     {
@@ -110,7 +113,7 @@ class Output implements OutputInterface
 
     public function flushAll(): self
     {
-        return $this->flush()->flushHeaders();
+        return $this->flush()->flushCookies()->flushHeaders();
     }
 
     public function sendHeaders(): self
@@ -185,7 +188,7 @@ class Output implements OutputInterface
     {
         // http_response_code - called
         // header - called
-        $this->sendResponseCode()->sendHeaders();
+        $this->sendResponseCode()->sendHeaders()->sendCookies();
 
         if (!$this->simulate) {
             // this should be the only echo
@@ -202,6 +205,73 @@ class Output implements OutputInterface
         $this->flushAll()->header('Location: ' . $url)->responseCode($responseCode)->send($exit);
     }
 
+    public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = NULL, bool $httponly = NULL, string $samesite = NULL)
+    {
+        if (is_array($name)) {
+            // always leave 'name' in last place, as the loop will break otherwise, due to $$item
+            foreach (['value', 'expire', 'domain', 'path', 'prefix', 'secure', 'httponly', 'samesite', 'name'] as $item) {
+                if (isset($name[$item])) {
+                    $$item = $name[$item];
+                }
+            }
+        }
+
+        $configCookie = $this->config['cookie'];
+
+        if ($domain == '' && $configCookie['domain'] != '') {
+            $domain = $configCookie['domain'];
+        }
+
+        if ($path === '/' && $configCookie['path'] !== '/') {
+            $path = $configCookie['path'];
+        }
+
+        $secure = ($secure === NULL && $configCookie['secure'] !== NULL) ? (bool) $configCookie['secure'] : (bool) $secure;
+        $httponly = ($httponly === NULL && $configCookie['httponly'] !== NULL) ? (bool) $configCookie['httponly'] : (bool) $httponly;
+
+        $expire = ($expire > 0) ? time() + $expire : 0;
+
+        isset($samesite) || $samesite = $configCookie['samesite'];
+
+        if (isset($samesite)) {
+            $samesite = ucfirst(strtolower($samesite));
+            in_array($samesite, ['Lax', 'Strict', 'None'], TRUE) || $samesite = 'Lax';
+        } else {
+            $samesite = 'Lax';
+        }
+
+        $setCookieOptions = [
+            'expires' => $expire,
+            'path' => $path,
+            'domain' => $domain,
+            'secure' => $secure,
+            'httponly' => $httponly,
+            'samesite' => $samesite,
+        ];
+
+        $this->cookies[$name] = ['name' => $name, 'value' => $value, 'options' => $setCookieOptions];
+    }
+
+    public function flushCookies(): self
+    {
+        $this->cookies = [];
+
+        return $this;
+    }
+
+    public function sendCookies(): self
+    {
+        if (!$this->simulate) {
+            foreach ($this->cookies as $record) {
+                setcookie($record['name'], $record['value'], $record['setCookieOptions']);
+
+                $this->sentCookies[$record['name']] = ['name' => $record['name'], 'value' => $record['value'], 'options' => $record['setCookieOptions']];
+            }
+        }
+
+        return $this;
+    }
+
     public function __debugInfo(): array
     {
         return [
@@ -213,6 +283,8 @@ class Output implements OutputInterface
             'sent headers' => $this->sentHeaders,
             'sent code' => $this->sentCode,
             'output' => $this->output,
+            'sent cookies' => $this->sentCookies,
+            'cookies' => $this->cookies,
         ];
     }
 }

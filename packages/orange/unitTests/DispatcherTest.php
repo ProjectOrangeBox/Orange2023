@@ -34,6 +34,7 @@ final class DispatcherTest extends TestCase
     public function testControllerClassNotFoundException(): void
     {
         $this->expectException(ControllerClassNotFound::class);
+        $this->expectExceptionMessage('foobar');
 
         $router = new BogusRouter([
             'argv' => [],
@@ -46,6 +47,7 @@ final class DispatcherTest extends TestCase
     public function testMethodNotFoundException(): void
     {
         $this->expectException(MethodNotFound::class);
+        $this->expectExceptionMessage('foobar');
 
         $router = new BogusRouter([
             'argv' => [],

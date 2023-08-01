@@ -150,7 +150,7 @@ class Event implements EventInterface
         return $success;
     }
 
-    public function __debugInfo()
+    public function __debugInfo(): array
     {
         $debug = [];
 

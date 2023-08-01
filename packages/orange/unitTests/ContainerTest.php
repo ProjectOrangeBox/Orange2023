@@ -173,6 +173,7 @@ final class ContainerTest extends TestCase
     public function testServiceNotFoundException(): void 
     {
         $this->expectException(ServiceNotFound::class);
+        $this->expectExceptionMessage('bogus service');
 
         $this->instance->get('bogus service');
     }

@@ -17,6 +17,13 @@ final class OutputTest extends TestCase
             'charSet' => 'utf-8',
             'show already sent error' => false,
             'simulate' => true,
+            'cookie' => [
+                'domain' => '',
+                'path' => '',
+                'secure' => '',
+                'httponly' => '',
+                'samesite' => '',
+            ]
         ]);
     }
 
@@ -174,6 +181,7 @@ final class OutputTest extends TestCase
         $debug = $this->instance->__debugInfo();
 
         $this->assertEmpty($debug['headers']);
+        $this->assertEmpty($debug['cookies']);
         $this->assertEquals('', $debug['output']);
     }
 
@@ -185,10 +193,11 @@ final class OutputTest extends TestCase
             'show already sent error' => true,
             'simulate' => true,
         ]);
-        
+
         $this->instance->sendHeaders();
 
         $this->expectException(ExceptionsOutput::class);
+        $this->expectExceptionMessage('Content has already been sent therefore headers cannot be flushed at this time.');
 
         $this->instance->flushHeaders();
     }
@@ -201,10 +210,11 @@ final class OutputTest extends TestCase
             'show already sent error' => true,
             'simulate' => true,
         ]);
-        
+
         $this->instance->sendHeaders();
 
         $this->expectException(ExceptionsOutput::class);
+        $this->expectExceptionMessage('Content has already been sent therefore headers cannot be sent at this time.');
 
         $this->instance->sendHeaders();
     }
@@ -220,9 +230,39 @@ final class OutputTest extends TestCase
         ]);
 
         $this->instance->sendResponseCode();
-        
+
         $this->expectException(ExceptionsOutput::class);
+        $this->expectExceptionMessage('Response Code Already Sent.');
 
         $this->instance->responseCode(404);
+    }
+
+    public function testCookie(): void
+    {
+        $minutes = 600;
+        $expire = time() + $minutes;
+        
+        $this->instance->cookie('username', 'Johnny Appleseed', $minutes);
+
+        $debug = $this->instance->__debugInfo();
+
+        $this->assertEquals(['username' => ['name' => 'username', 'value' => 'Johnny Appleseed', 'options' => [
+            'expires' => $expire,
+            'path' => '',
+            'domain' => '',
+            'secure' => false,
+            'httponly' => false,
+            'samesite' => "Lax",
+        ]]], $debug['cookies']);
+    }
+
+    public function testFlushCookie(): void
+    {
+        $this->instance->cookie('username', 'Johnny Appleseed', 6000);
+        $this->instance->flushCookies();
+
+        $debug = $this->instance->__debugInfo();
+
+        $this->assertEmpty($debug['cookies']);
     }
 }

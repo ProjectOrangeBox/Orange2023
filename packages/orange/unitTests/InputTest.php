@@ -37,6 +37,12 @@ final class InputTest extends TestCase
                 'name' => 'Johnny Appleseed',
                 'age' => 28,
             ],
+            'config' => [
+                'convert keys to' => 'lowercase',
+                'filter keys' => FILTER_SANITIZE_SPECIAL_CHARS,
+                'filter keys flag' => FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK | FILTER_FLAG_ENCODE_HIGH,
+                'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
+            ],
         ]);
     }
 
@@ -123,6 +129,14 @@ final class InputTest extends TestCase
     public function testFile(): void
     {
         $this->assertEquals([], $this->instance->file());
+    }
+
+    public function testCookie(): void
+    {
+        $this->assertEquals([
+            'name' => 'Johnny Appleseed',
+            'age' => 28,
+        ], $this->instance->Cookie());
     }
 
     public function testCopy(): void

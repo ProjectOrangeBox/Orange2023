@@ -7,4 +7,11 @@ return [
     'charSet' => 'utf-8',
     'show already sent error' => false,
     'simulate' => false,
+    'cookie' => [
+        'domain' => '',
+        'path' => '',
+        'secure' => '',
+        'httponly' => '',
+        'samesite' => '',
+    ]
 ];

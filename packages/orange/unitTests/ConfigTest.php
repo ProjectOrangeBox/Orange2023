@@ -99,6 +99,7 @@ final class ConfigTest extends TestCase
         $this->instance->addPath(__DIR__ . '/support', true);
 
         $this->expectException(InvalidConfigurationValue::class);
+        $this->expectExceptionMessage('"/Users/donmyers/devilbox/data/www/git/packages/orange/unitTests/support/badConfig.php" did not return an array.');
 
         $name = $this->instance->get('badConfig','name');
     }

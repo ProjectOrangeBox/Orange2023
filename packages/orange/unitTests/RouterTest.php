@@ -110,6 +110,7 @@ final class RouterTest extends TestCase
         $this->instance->match('/product/abc/123', 'get');
 
         $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessage('Unknown routing value "foobar"');
 
         $this->instance->getMatched('foobar'); // there is no value foobar
     }
@@ -117,6 +118,7 @@ final class RouterTest extends TestCase
     public function testGetUrlInvalidValueException(): void
     {
         $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessage('Parameter count mismatch. Expecting 2 got 1 route named "product".');
 
         $this->assertEquals('/product/xyz/890', $this->instance->getUrl('product', [890], false));
     }
@@ -124,6 +126,7 @@ final class RouterTest extends TestCase
     public function testGetUrlParameterInvalidValueException(): void
     {
         $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessage('Parameter mismatch. Expecting \d+ got xyz route named "product".');
 
         $this->assertEquals('/product/xyz/890', $this->instance->getUrl('product', ['abc','xyz'], false));
     }
@@ -131,6 +134,7 @@ final class RouterTest extends TestCase
     public function testMatchRouteNotFoundException1(): void
     {
         $this->expectException(RouteNotFound::class);
+        $this->expectExceptionMessage('[GET]/bla/bla/bla');
 
         $this->instance->match('/bla/bla/bla','GET');
     }
@@ -138,6 +142,7 @@ final class RouterTest extends TestCase
     public function testMatchRouteNotFoundException2(): void
     {
         $this->expectException(RouteNotFound::class);
+        $this->expectExceptionMessage('[GET]/poster');
 
         $this->instance->match('/poster','GET');
     }
@@ -145,6 +150,7 @@ final class RouterTest extends TestCase
     public function testGetUrlRouterNameNotFound(): void
     {
         $this->expectException(RouterNameNotFound::class);
+        $this->expectExceptionMessage('url route named "notreal" not found');
 
         $this->instance->getUrl('notreal');
     }
@@ -159,6 +165,7 @@ final class RouterTest extends TestCase
         ];
 
         $this->expectException(ConfigNotFound::class);
+        $this->expectExceptionMessage('Route config "site" in routes.php can not be empty.');
 
         new Router($routes);
     }

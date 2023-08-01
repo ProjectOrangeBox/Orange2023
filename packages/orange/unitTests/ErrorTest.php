@@ -78,6 +78,7 @@ final class ErrorTest extends TestCase
     public function testRequestTypeException(): void
     {
         $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessage('Unknown type "monkeys".');
 
         $this->instance->requestType('monkeys');
     }
@@ -110,6 +111,7 @@ final class ErrorTest extends TestCase
         $object = new BogusRouter([]);
 
         $this->expectException(MethodNotFound::class);
+        $this->expectExceptionMessage('Errors could not collect from "BogusRouter" because it does not have a errors method.');
 
         $this->instance->collectErrors($object);
     }

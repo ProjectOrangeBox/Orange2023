@@ -11,4 +11,10 @@ return [
     'server' => $_SERVER,
     'files' => $_FILES,
     'cookie' => $_COOKIE,
+    'config' => [
+        'convert keys to' => 'lowercase',
+        'filter keys' => FILTER_SANITIZE_SPECIAL_CHARS,
+        'filter keys flag' => FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK | FILTER_FLAG_ENCODE_HIGH,
+        'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
+    ],
 ];

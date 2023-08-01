@@ -95,6 +95,7 @@ final class LogTest extends TestCase
     public function testConvert2Exception(): void
     {
         $this->expectException(InvalidValue::class);
+        $this->expectExceptionMessage('Unknown message log level "foobar".');
 
         $this->instance->convert2('foobar');
     }
@@ -102,7 +103,8 @@ final class LogTest extends TestCase
     public function testMonoLoggerException(): void
     {
         $this->expectException(invalidConfigurationValue::class);
-        
+        $this->expectExceptionMessage('monolog must be instance of \Monolog\Logger');
+
         $this->config['monolog'] = new stdClass();
 
         $foo = new Log($this->config);
@@ -111,7 +113,8 @@ final class LogTest extends TestCase
     public function testNotWritableException(): void
     {
         $this->expectException(FileNotWritable::class);
-        
+        $this->expectExceptionMessage('/foo/bar');
+
         $this->config['filepath'] = '/foo/bar/log.txt';
 
         new Log($this->config);

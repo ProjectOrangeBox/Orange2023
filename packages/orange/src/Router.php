@@ -74,7 +74,7 @@ class Router implements RouterInterface
         }
 
         if (!$url) {
-            throw new RouteNotFound();
+            throw new RouteNotFound('['.$requestMethod.']'.$requestUri);
         }
 
         $this->matched = [

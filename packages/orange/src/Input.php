@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
+use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\interfaces\InputInterface;
 
 class Input implements InputInterface
@@ -13,10 +14,13 @@ class Input implements InputInterface
     protected string $requestType = '';
     protected string $requestMethod = '';
     protected bool $isHttps = false;
-    protected array $validKeys = ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'];
+    protected string $ipAddress = '';
+    protected array $config = [];
 
     public function __construct(array $config)
     {
+        $this->config = $config['config'];
+
         $this->replace($config);
     }
 
@@ -36,7 +40,7 @@ class Input implements InputInterface
 
     public function uriSegement(int $int): string
     {
-        $segs = explode('/', ltrim($this->requestUri(),'/'));
+        $segs = explode('/', ltrim($this->requestUri(), '/'));
 
         return $segs[$int - 1] ?? '';
     }
@@ -108,8 +112,16 @@ class Input implements InputInterface
 
     public function replace(array $input): self
     {
-        foreach ($this->validKeys as $key) {
-            $this->input[$key] = (isset($input[$key])) ? array_change_key_case((array)$input[$key], CASE_LOWER) : [];
+        foreach ($this->config['valid input keys'] as $key) {
+            $this->input[$key] = [];
+
+            if (isset($input[$key])) {
+                if (!is_array($input[$key])) {
+                    throw new InvalidValue('Input key "' . $key . '" does not contain an array.');
+                }
+
+                $this->input[$key] = $this->cleanKeys($input[$key]);
+            }
         }
 
         // setup the request type based on a few things
@@ -157,6 +169,36 @@ class Input implements InputInterface
         return $value;
     }
 
+    protected function cleanKeys(array $inputArray): array
+    {
+        var_dump($this->config);
+        
+        $filterKeys = $this->config['filter keys'];
+        $filterKeysFlag = $this->config['filter keys flag'];
+        $convertKeysTo = strtolower((string)$this->config['convert keys to']);
+
+        var_dump($filterKeysFlag);
+
+        foreach ($inputArray as $arrayKey => $arrayValue) {
+            switch ($convertKeysTo) {
+                case 'lowercase':
+                    $arrayKey = strtolower($arrayKey);
+                    break;
+                case 'uppercase':
+                    $arrayKey = strtoupper($arrayKey);
+                    break;
+            }
+
+            if ($filterKeys) {
+                $arrayKey = filter_var($arrayKey, $filterKeys, $filterKeysFlag);
+            }
+
+            $inputArray[$arrayKey] = $arrayValue;
+        }
+
+        return $inputArray;
+    }
+
     public function __debugInfo(): array
     {
         return [
@@ -164,7 +206,7 @@ class Input implements InputInterface
             'requestType' => $this->requestType,
             'requestMethod' => $this->requestMethod,
             'isHttps' => $this->isHttps,
-            'validKeys' => $this->validKeys,
+            'config' => $this->config,
         ];
     }
 }
