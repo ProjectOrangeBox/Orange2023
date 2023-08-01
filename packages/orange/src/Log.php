@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
+use Throwable;
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\interfaces\LogInterface;
 use dmyers\orange\exceptions\FileNotWritable;
+use dmyers\orange\exceptions\FolderNotWritable;
 use dmyers\orange\exceptions\invalidConfigurationValue;
-use Throwable;
 
 class Log implements LogInterface
 {
@@ -155,11 +156,11 @@ class Log implements LogInterface
         // check we can write in the directory
         $dir = dirname($file);
 
-        if (!is_dir($dir)) {
+        if (!file_exists($dir)) {
             try {
-                mkdir($dir, 0755, true);
+                mkdir($dir, 0777, true);
             } catch (Throwable $e) {
-                throw new FileNotWritable($dir);
+                throw new FolderNotWritable($dir);
             }
         }
 
@@ -169,5 +170,4 @@ class Log implements LogInterface
 
         return true;
     }
-
 }

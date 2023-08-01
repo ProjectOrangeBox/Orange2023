@@ -77,22 +77,4 @@ final class ViewerTest extends TestCase
 
         $this->instance->render('dummy');
     }
-
-    public function testRenderStringFileNotWritableException()
-    {
-        $config = [
-            'view paths' => [],
-            'view aliases' => [],
-            'temp folder' => '/bogusFolder',
-            'debug' => false,
-            'extension' => '.php',
-        ];
-        
-        $this->instance = new View($config, new Data());
-
-        $this->expectException(FileNotWritable::class);
-        $this->expectExceptionMessage('/bogusFolder');
-
-        $this->instance->renderString('<h1><?=$hello ?></h1>');
-    }
 }

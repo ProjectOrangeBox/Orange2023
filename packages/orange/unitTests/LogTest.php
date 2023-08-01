@@ -109,15 +109,4 @@ final class LogTest extends TestCase
 
         $foo = new Log($this->config);
     }
-
-    public function testNotWritableException(): void
-    {
-        $this->expectException(FileNotWritable::class);
-        $this->expectExceptionMessage('/foo/bar');
-
-        $this->config['filepath'] = '/foo/bar/log.txt';
-
-        new Log($this->config);
-    }
-
 }

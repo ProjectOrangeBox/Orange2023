@@ -112,7 +112,7 @@ class Config extends ArrayObject implements ConfigInterface
                 $loadedConfig = include $absolutePath;
 
                 if (!is_array($loadedConfig)) {
-                    throw new InvalidConfigurationValue('"' . $absolutePath . '" did not return an array.');
+                    throw new InvalidConfigurationValue('"' . str_replace(__ROOT__, '', $absolutePath) . '" did not return an array.');
                 }
 
                 $config = array_replace_recursive($config, $loadedConfig);

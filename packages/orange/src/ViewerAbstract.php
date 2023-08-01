@@ -9,6 +9,7 @@ use dmyers\orange\exceptions\ViewNotFound;
 use dmyers\orange\interfaces\DataInterface;
 use dmyers\orange\exceptions\FileNotWritable;
 use dmyers\orange\interfaces\ViewerInterface;
+use dmyers\orange\exceptions\FolderNotWritable;
 
 abstract class ViewerAbstract implements ViewerInterface
 {
@@ -191,11 +192,11 @@ abstract class ViewerAbstract implements ViewerInterface
         // check we can write in the directory
         $dir = dirname($file);
 
-        if (!is_dir($dir)) {
+        if (!file_exists($dir)) {
             try {
-                mkdir($dir, 0755, true);
+                mkdir($dir, 0777, true);
             } catch (Throwable $e) {
-                throw new FileNotWritable($dir);
+                throw new FolderNotWritable($dir);
             }
         }
 
