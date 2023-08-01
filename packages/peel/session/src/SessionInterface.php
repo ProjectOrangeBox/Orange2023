@@ -6,6 +6,7 @@ namespace peel\session;
 
 interface SessionInterface
 {
+    public static function getInstance(array $config): self;
     public function __get(string $key): mixed;
     public function __set(string $key, mixed $value): void;
     public function __isset(string $key): bool;

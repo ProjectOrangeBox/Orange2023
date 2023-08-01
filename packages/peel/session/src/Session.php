@@ -10,7 +10,7 @@ class Session extends aplusSession implements SessionInterface
 {
     private static SessionInterface $instance;
 
-    private function __construct(array $config)
+    public function __construct(array $config)
     {
         parent::__construct($config);
     }
