@@ -32,6 +32,8 @@
         "aplus/cache": "^3.0",
         "michelf/php-markdown": "^2.0",
         "zordius/lightncandy": "dev-master",
-        "catfan/medoo": "^2.1"
+        "catfan/medoo": "^2.1",
+        "symfony/console": "^6.3",
+        "league/climate": "^3.8"
     }
 }

@@ -9,4 +9,8 @@ return [
     'request' => $_REQUEST,
     'server' => $_SERVER,
     'files' => $_FILES,
+    
+    'convert keys to' => 'lowercase',
+    're key filter' => '@[^a-z0-9 \[\]\-_]+@',
+    'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
 ];

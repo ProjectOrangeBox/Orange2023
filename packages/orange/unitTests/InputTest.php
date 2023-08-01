@@ -37,12 +37,10 @@ final class InputTest extends TestCase
                 'name' => 'Johnny Appleseed',
                 'age' => 28,
             ],
-            'config' => [
-                'convert keys to' => 'lowercase',
-                'filter keys' => FILTER_SANITIZE_SPECIAL_CHARS,
-                'filter keys flag' => FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH | FILTER_FLAG_STRIP_BACKTICK | FILTER_FLAG_ENCODE_HIGH,
-                'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
-            ],
+
+            'convert keys to' => 'lowercase',
+            're key filter' => '@[^a-z0-9 \[\]\-_]+@',
+            'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
         ]);
     }
 
@@ -188,5 +186,40 @@ final class InputTest extends TestCase
         $this->instance->replace($replace);
 
         $this->assertEquals($replace, $this->instance->copy());
+    }
+
+    public function testKeysFilter(): void
+    {
+        $this->instance = new Input([
+            'post' => [
+                'name[]' => 'Johnny Appleseed',
+                'NameHere' => 1,
+                'name_here' => 2,
+                'name-here' => 3,
+                'NameHere' => 4,
+                'NAME123[]' => 5,
+                'NAME HERE' => 6,
+                'NAME#HERE' => 7,
+                'NAME#$%^&*()HERE' => 8,
+                'NA#$%^&*ME#HERE' => 9,
+                'NAME%20HERE' => 10,
+            ],
+            'convert keys to' => 'lowercase',
+            're key filter' => '@[^a-z0-9 \[\]\-_]+@',
+            'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
+        ]);
+
+        $debug = $this->instance->__debugInfo();
+
+        $this->assertEquals([
+            'name[]' => 'Johnny Appleseed',
+            'namehere' => 9,
+            'name_here' => 2,
+            'name-here' => 3,
+            'name123[]' => 5,
+            'name here' => 6,
+            'name20here' => 10,
+        ],$debug['input']['post']);
+
     }
 }

@@ -16,10 +16,11 @@ class Input implements InputInterface
     protected bool $isHttps = false;
     protected string $ipAddress = '';
     protected array $config = [];
+    protected array $_server = [];
 
     public function __construct(array $config)
     {
-        $this->config = $config['config'];
+        $this->config = $config;
 
         $this->replace($config);
     }
@@ -35,7 +36,7 @@ class Input implements InputInterface
 
     public function requestUri(): string
     {
-        return isset($this->input['server']['request_uri']) ? $this->input['server']['request_uri'] : '';
+        return isset($this->_server['request_uri']) ? $this->_server['request_uri'] : '';
     }
 
     public function uriSegement(int $int): string
@@ -116,17 +117,26 @@ class Input implements InputInterface
             $this->input[$key] = [];
 
             if (isset($input[$key])) {
-                if (!is_array($input[$key])) {
-                    throw new InvalidValue('Input key "' . $key . '" does not contain an array.');
-                }
+                if ($key == 'raw') {
+                    $this->input[$key] = $input[$key];
+                } else {
+                    if (!is_array($input[$key])) {
+                        throw new InvalidValue('Input key "' . $key . '" does not contain an array.');
+                    }
 
-                $this->input[$key] = $this->cleanKeys($input[$key]);
+                    // save a copy for internal logic
+                    if ($key == 'server') {
+                        $this->_server = array_change_key_case($input[$key], CASE_LOWER);
+                    }
+
+                    $this->input[$key] = $this->cleanKeys($input[$key]);
+                }
             }
         }
 
         // setup the request type based on a few things
-        $isAjax = (!empty($this->input['server']['http_x_requested_with']) && strtolower($this->input['server']['http_x_requested_with']) == 'xmlhttprequest');
-        $isJson = (!empty($this->input['server']['http_accept']) && strpos(strtolower($this->input['server']['http_accept']), 'application/json') !== false);
+        $isAjax = (!empty($this->_server['http_x_requested_with']) && strtolower($this->_server['http_x_requested_with']) == 'xmlhttprequest');
+        $isJson = (!empty($this->_server['http_accept']) && strpos(strtolower($this->_server['http_accept']), 'application/json') !== false);
         $isCli = (strtoupper(PHP_SAPI) === 'CLI' || defined('STDIN'));
 
         if ($isAjax || $isJson) {
@@ -138,14 +148,14 @@ class Input implements InputInterface
         }
 
         // get the http request method
-        $this->requestMethod = ($isCli) ? 'cli' : $this->input['server']['request_method'];
+        $this->requestMethod = ($isCli) ? 'cli' : $this->_server['request_method'];
 
         // is this https
-        if (!empty($this->input['server']['https']) && $this->input['server']['https'] !== 'off') {
+        if (!empty($this->_server['https']) && $this->_server['https'] !== 'off') {
             $this->isHttps = true;
-        } elseif (isset($this->input['server']['http_x_forwarded_proto']) && $this->input['server']['http_x_forwarded_proto'] === 'https') {
+        } elseif (isset($this->_server['http_x_forwarded_proto']) && $this->_server['http_x_forwarded_proto'] === 'https') {
             $this->isHttps = true;
-        } elseif (!empty($this->input['server']['http_front_end_https']) && $this->input['server']['http_front_end_https'] !== 'off') {
+        } elseif (!empty($this->_server['http_front_end_https']) && $this->_server['http_front_end_https'] !== 'off') {
             $this->isHttps = true;
         } else {
             $this->isHttps = false;
@@ -160,8 +170,8 @@ class Input implements InputInterface
     {
         if ($name === null) {
             $value = $this->input[$type];
-        } elseif (isset($this->input[$type][strtolower($name)])) {
-            $value = $this->input[$type][strtolower($name)];
+        } elseif (isset($this->input[$type][$this->cleanKey($name)])) {
+            $value = $this->input[$type][$this->cleanKey($name)];
         } else {
             $value = $default;
         }
@@ -170,29 +180,30 @@ class Input implements InputInterface
     }
 
     protected function cleanKeys(array $inputArray): array
-    {        
-        $filterKeys = $this->config['filter keys'];
-        $filterKeysFlag = $this->config['filter keys flag'];
-        $convertKeysTo = strtolower((string)$this->config['convert keys to']);
+    {
+        $outputArray = [];
 
         foreach ($inputArray as $arrayKey => $arrayValue) {
-            switch ($convertKeysTo) {
-                case 'lowercase':
-                    $arrayKey = strtolower($arrayKey);
-                    break;
-                case 'uppercase':
-                    $arrayKey = strtoupper($arrayKey);
-                    break;
-            }
-
-            if ($filterKeys) {
-                $arrayKey = filter_var($arrayKey, $filterKeys, $filterKeysFlag);
-            }
-
-            $inputArray[$arrayKey] = $arrayValue;
+            $outputArray[$this->cleanKey($arrayKey)] = $arrayValue;
         }
 
-        return $inputArray;
+        return $outputArray;
+    }
+
+    protected function cleanKey(string $key): string
+    {
+        switch (strtolower((string)$this->config['convert keys to'])) {
+            case 'lowercase':
+                $key = strtolower($key);
+                break;
+            case 'uppercase':
+                $key = strtoupper($key);
+                break;
+        }
+
+        $re = $this->config['re key filter'];
+
+        return empty($re) ? $key :  preg_replace($re, '', $key);
     }
 
     public function __debugInfo(): array
@@ -202,7 +213,9 @@ class Input implements InputInterface
             'requestType' => $this->requestType,
             'requestMethod' => $this->requestMethod,
             'isHttps' => $this->isHttps,
-            'config' => $this->config,
+            'convert keys to' => $this->config['convert keys to'],
+            're key filter' => $this->config['re key filter'],
+            'valid input keys' => $this->config['valid input keys'],
         ];
     }
 }
