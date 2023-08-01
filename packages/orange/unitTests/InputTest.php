@@ -172,6 +172,21 @@ final class InputTest extends TestCase
 
     public function testReplace(): void
     {
-        $this->assertTrue(true);
+        $replace = [
+            'raw' => [],
+            'file' => [],
+            'server' => [],
+            'post' => [
+                'name' => 'Jenny Appleseed',
+                'age' => 29,
+            ],
+            'get' => [],
+            'request' => [],
+            'cookie' => [],
+        ];
+
+        $this->instance->replace($replace);
+
+        $this->assertEquals($replace, $this->instance->copy());
     }
 }

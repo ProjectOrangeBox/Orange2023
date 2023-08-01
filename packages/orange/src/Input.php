@@ -170,14 +170,10 @@ class Input implements InputInterface
     }
 
     protected function cleanKeys(array $inputArray): array
-    {
-        var_dump($this->config);
-        
+    {        
         $filterKeys = $this->config['filter keys'];
         $filterKeysFlag = $this->config['filter keys flag'];
         $convertKeysTo = strtolower((string)$this->config['convert keys to']);
-
-        var_dump($filterKeysFlag);
 
         foreach ($inputArray as $arrayKey => $arrayValue) {
             switch ($convertKeysTo) {
