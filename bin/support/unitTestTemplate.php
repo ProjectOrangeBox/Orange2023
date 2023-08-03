@@ -16,6 +16,6 @@ final class {{classname}}Test extends TestCase
         fwrite(STDOUT, __METHOD__ . "\n");
     }
 
-    // Tests
+    /* Tests */
 {{tests}}
 }

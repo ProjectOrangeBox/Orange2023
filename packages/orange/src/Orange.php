@@ -89,6 +89,9 @@ if (!function_exists('bootstrap')) {
             require_once($config['config folder'] . '/' . ENVIRONMENT . '/constants.php');
         }
 
+        // set to a known state
+        umask(0000);
+
         switch (ENVIRONMENT) {
             case 'phpunit':
                 ini_set('display_errors', '1');

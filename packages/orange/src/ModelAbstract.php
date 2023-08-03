@@ -5,42 +5,38 @@ declare(strict_types=1);
 namespace dmyers\orange;
 
 use PDO;
+use Exception;
+use Throwable;
+use PDOStatement;
 
 abstract class ModelAbstract
 {
     protected PDO $pdo;
-    protected string $lastSql = '';
-    protected int $errorCode = 0;
-    protected string $errorInfo = '';
+    protected PDOStatement $PDOStatement;
+    protected array $config = [];
+
     protected bool $hasError = false;
+    protected string $errorCode = '';
+    protected string $errorMsg = '';
+
+    protected string $lastSQL = '';
+    protected array $lastArgs = [];
+
+    // required in extending class
     protected string $tablename = '';
-    protected string $join = '';
-    protected string $limit = '';
-    protected string $orderby = '';
-    protected $responds = null;
-    protected $fetchType = PDO::FETCH_ASSOC;
+    protected string $primaryColumn = '';
 
-    // if used/different set in child
-    protected string $primaryColumn = 'id';
+    protected int $defaultFetchType = PDO::FETCH_ASSOC;
+    protected string $fetchClass = '';
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo, array $config = [])
     {
         // inject your connection when building your service
         $this->pdo = $pdo;
 
-        $this->reset();
-    }
+        $this->config = $config;
 
-    protected function reset(): self
-    {
-        $this->errorCode = 0;
-        $this->errorInfo = '';
-        $this->hasError = false;
-        $this->join = '';
-        $this->limit = '';
-        $this->orderby = '';
-
-        return $this;
+        $this->_reset();
     }
 
     public function hasError(): bool
@@ -55,181 +51,269 @@ abstract class ModelAbstract
     {
         return [
             'code' => $this->errorCode,
-            'info' => $this->errorInfo,
+            'msg' => $this->errorMsg,
         ];
     }
 
-    protected function getConnection(): PDO
+    /* protected */
+    protected function _reset(): self
     {
-        return $this->pdo;
+        $this->errorCode = '';
+        $this->errorMsg = '';
+        $this->hasError = false;
+
+        $this->lastSQL = '';
+        $this->lastArgs = [];
+
+        return $this;
     }
 
-    protected function getLastQuery(): string
+    protected function _getById($id, int $fetchMode = -1)
     {
-        return $this->lastSql;
+        return $this->_row("SELECT * FROM " . $this->_table() . " WHERE " . $this->_escapeTableColumn($this->primaryColumn) . " = ?", [$id], $fetchMode);
     }
 
-    protected function startTransaction()
+    protected function _getColumnById(string $column, $id, int $fetchMode = -1)
     {
-        $this->pdo->beginTransaction();
+        return $this->_row("SELECT " . $this->_escapeTableColumn($column) . " FROM " . $this->_table() . " WHERE " . $this->_escapeTableColumn($this->primaryColumn) . " = ?", [$id], $fetchMode);
     }
 
-    protected function endTransaction()
+    protected function _getValueById(string $column, $id)
     {
-        $this->pdo->commit();
+        $record = $this->_row("SELECT " . $this->_escapeTableColumn($column) . " FROM " . $this->_table() . " WHERE " . $this->_escapeTableColumn($this->primaryColumn) . " = ?", [$id], PDO::FETCH_ASSOC);
+
+        return $record[$column];
     }
 
-    protected function rollback()
+    protected function _row(string $sql, array $args = [], int $fetchMode = -1)
     {
-        $this->pdo->rollback();
+        $this->_run($sql, $args);
+
+        $this->_setFetchMode($fetchMode);
+
+        return $this->PDOStatement->fetch();
     }
 
-    protected function insert(array $insertParams): int
+    protected function _rows(string $sql, array $args = [], int $fetchMode = -1)
     {
-        $keys = array_keys($insertParams);
+        $this->_run($sql, $args);
 
-        $sql = "INSERT INTO `" . $this->tablename . "` (`" . implode('`,`', $keys) . "`) VALUES (:" . implode(", :", $keys) . ")";
+        $this->_setFetchMode($fetchMode);
 
-        $this->responds = $this->query($sql, $this->prepareBind($insertParams));
-
-        return ($this->responds !== false) ? (int)$this->pdo->lastInsertId() : 0;
+        return $this->PDOStatement->fetchAll();
     }
 
-    protected function update(array $updateparams, string $where, array $whereparams): int
+    protected function _insert(array $data): self
     {
-        $set = [];
+        //add columns into comma seperated string
+        $columns = implode(',', array_keys($data));
 
-        foreach (array_keys($updateparams) as $key) {
-            $set[] = '`' . $key . '` = :' . $key;
+        //get values
+        $values = array_values($data);
+
+        $placeholders = array_map(function ($val) {
+            return '?';
+        }, array_keys($data));
+
+        //convert array into comma seperated string
+        $placeholders = implode(',', array_values($placeholders));
+
+        $this->_run("INSERT INTO " . $this->_table() . " ($columns) VALUES ($placeholders)", $values);
+
+        return $this;
+    }
+
+    protected function _lastInsertId()
+    {
+        return $this->pdo->lastInsertId();
+    }
+
+    protected function _updateById(array $data, $id): self
+    {
+        return $this->_update($data, [$this->primaryColumn => $id]);
+    }
+
+    protected function _update(array $data, array $where): self
+    {
+        //collect the values from data and where
+        $values = [];
+
+        //setup fields
+        $fieldDetails = [];
+
+        foreach ($data as $key => $value) {
+            $fieldDetails[] = $key . " = ?";
+            $values[] = $value;
         }
 
-        $sql = "UPDATE `" . $this->tablename . "` SET " . implode(',', $set) . ' WHERE ' . $where;
+        //setup where 
+        $whereDetails = [];
 
-        $this->responds = $this->query($sql, $this->prepareBind(array_replace($updateparams, $whereparams)));
-
-        return ($this->responds !== false) ? $this->responds->rowCount() : 0;
-    }
-
-    protected function delete(string $where, array $whereparams): int
-    {
-        $sql = "DELETE FROM `" . $this->tablename . "` WHERE " . $where;
-
-        $this->responds = $this->query($sql, $this->prepareBind($whereparams));
-
-        return ($this->responds !== false) ? $this->responds->rowCount() : 0;
-    }
-
-    protected function select(array $columns = ['*'], string $where = null, array $whereparams = null): array
-    {
-        $this->responds = $this->buildSelect($columns, $where, $whereparams);
-
-        return ($this->responds !== false) ? $this->fetchMany() : [];
-    }
-
-    protected function selectOne(array $columns = ['*'], string $where = null, array $whereparams = null): array
-    {
-        $this->responds = $this->buildSelect($columns, $where, $whereparams);
-
-        return ($this->responds !== false) ? $this->fetchOne() : [];
-    }
-
-    protected function buildSelect(array $columns, ?string $where = null, ?array $whereparams = null): mixed
-    {
-        $sqlColumns = ($columns == ['*']) ? '*' : `' . implode("\`,\`", $columns) . '`;
-
-        $sql = 'SELECT ' . $sqlColumns . ' FROM `' . $this->tablename . '` ';
-
-        $this->append('', 'join', $sql);
-
-        if ($where) {
-            $sql .= ' WHERE ' . $where;
+        foreach ($where as $key => $value) {
+            $whereDetails[] = "`" . $key . "` = ?";
+            $values[] = $value;
         }
 
-        $this->append('ORDER BY', 'orderby', $sql)->append('LIMIT', 'limit', $sql);
-
-        return $this->query($sql, $this->prepareBind($whereparams));
-    }
-
-    protected function join(string $string): self
-    {
-        $this->join = $string;
+        $this->PDOStatement = $this->_run("UPDATE " . $this->_table() . " SET " . implode(',', $fieldDetails) . " WHERE " . implode(' AND ', $whereDetails), $values);
 
         return $this;
     }
 
-    protected function orderby(string $string): self
+    protected function _lastAffectedRows()
     {
-        $this->orderby = $string;
+        return $this->PDOStatement->rowCount();
+    }
+
+    protected function _delete(array $where, int $limit = 1): self
+    {
+        //collect the values from collection
+        $values = array_values($where);
+
+        //setup where 
+        $whereDetails = [];
+
+        foreach (array_keys($where) as $key) {
+            $whereDetails[] = "`" . $key . "` = ?";
+        }
+
+        //if limit is a number use a limit on the query
+        if (is_numeric($limit)) {
+            $limit = " LIMIT " . $limit;
+        }
+
+        $this->PDOStatement = $this->_run("DELETE FROM " . $this->_table() . " WHERE " . implode(' AND ', $whereDetails) . $limit, $values);
 
         return $this;
     }
 
-    protected function limit(string $string): self
+    protected function _deleteById($id): self
     {
-        $this->limit = $string;
-
-        return $this;
+        return $this->_delete([$this->primaryColumn => $id], 1);
     }
 
-    /**
-     * override in child class if necessary
-     */
-    public function fetchMany(): mixed
+    protected function _run(string $sql, array $args = []): PDOStatement
     {
-        return $this->responds->fetchAll($this->fetchType);
-    }
+        $this->_reset();
 
-    /**
-     * override in child class if necessary
-     */
-    public function fetchOne(): mixed
-    {
-        return $this->responds->fetch($this->fetchType);
-    }
+        $this->lastSQL = $sql;
+        $this->lastArgs = $args;
 
-    public function fetchType(string $fetchType): self
-    {
-        $this->fetchType = $fetchType;
+        if (empty($args)) {
+            try {
+                $this->PDOStatement = $this->pdo->query($sql);
+            } catch (Throwable $e) {
+                $this->_captureError($e);
+            }
+        } else {
+            $this->PDOStatement = $this->pdo->prepare($sql);
 
-        return $this;
-    }
+            //check if args is associative or sequential?
+            $is_assoc = (array() === $args) ? false : array_keys($args) !== range(0, count($args) - 1);
 
-    protected function prepareBind(?array $params): array
-    {
-        $bind = [];
-
-        if (is_array($params)) {
-            foreach ($params as $key => $value) {
-                $bind[':' . trim($key, ':')] = $value;
+            if ($is_assoc) {
+                foreach ($args as $key => $value) {
+                    if (is_int($value)) {
+                        $this->PDOStatement->bindValue(":$key", $value, PDO::PARAM_INT);
+                    } else {
+                        $this->PDOStatement->bindValue(":$key", $value);
+                    }
+                }
+                try {
+                    $this->PDOStatement->execute();
+                } catch (Throwable $e) {
+                    $this->_captureError($e);
+                }
+            } else {
+                try {
+                    $this->PDOStatement->execute($args);
+                } catch (Throwable $e) {
+                    $this->_captureError($e);
+                }
             }
         }
 
-        return $bind;
+        return $this->PDOStatement;
     }
 
-    protected function query(mixed $sql, array $bind = []): mixed
+    protected function _captureError(Throwable $e): void
     {
-        $this->reset();
+        $this->errorCode = $e->getCode();
+        $this->errorMsg = $e->getMessage();
 
-        $this->lastSql = trim($sql);
+        $this->hasError = true;
 
-        $PDOStatement = $this->pdo->prepare($this->lastSql);
-
-        if ($PDOStatement->execute($bind) === false) {
-            $this->errorCode = $PDOStatement->errorCode();
-            $this->errorInfo = $PDOStatement->errorInfo();
-            $this->hasError = true;
+        if (isset($this->config['throw error']) && $this->config['throw error'] == true) {
+            throw new Exception($this->errorMsg . ' [' . $this->errorCode . ']', 500);
         }
-
-        return $PDOStatement;
     }
 
-    protected function append(string $sqlKey, string $key, string &$sql): self
+    protected function _setFetchMode(int $fetchMode = -1): PDOStatement
     {
-        if (!empty($this->$key)) {
-            $sql .= ' ' . $sqlKey . ' ' . $this->$key . ' ';
+        if ($fetchMode == -1 && !empty($this->fetchClass)) {
+            $this->PDOStatement->setFetchMode(PDO::FETCH_CLASS, $this->fetchClass);
+        } elseif ($fetchMode != -1) {
+            $this->PDOStatement->setFetchMode($fetchMode);
+        } else {
+            $this->PDOStatement->setFetchMode($this->defaultFetchType);
         }
 
-        return $this;
+        return $this->PDOStatement;
+    }
+
+    protected function _columns(array $columns): string
+    {
+        $escapedColumns = [];
+
+        foreach ($columns as $column) {
+            $escapedColumns[] = $this->_escapeTableColumn($column);
+        }
+
+        return implode(',', $escapedColumns);
+    }
+
+    protected function _table(string $tablename = null): string
+    {
+        $tablename = ($tablename) ?? $this->tablename;
+
+        return $this->_escapeTableColumn($tablename);
+    }
+
+    protected function _primary(string $column = null): string
+    {
+        $column = ($column) ?? $this->primaryColumn;
+
+        return $this->_escapeTableColumn($column);
+    }
+
+    protected function _escapeTableColumn(string $input): string
+    {
+        $output = '`' . $input . '`';
+
+        if (strpos($input, '.') !== false) {
+            list($a, $b) = explode('.', $input);
+
+            $output = '`' . $a . '`.`' . $b . '`';
+        }
+
+        return $output;
+    }
+
+    public function __debugInfo(): array
+    {
+        return [
+            'config' => $this->config,
+            'hasError' => $this->hasError,
+            'errorCode' => $this->errorCode,
+            'errorMsg' => $this->errorMsg,
+
+            'lastSQL' => $this->lastSQL,
+            'lastArgs' => $this->lastArgs,
+
+            'tablename' => $this->tablename,
+            'primaryColumn' => $this->primaryColumn,
+
+            'defaultFetchType' => $this->defaultFetchType,
+            'fetchClass' => $this->fetchClass,
+        ];
     }
 }

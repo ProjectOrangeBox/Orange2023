@@ -27,17 +27,19 @@ if (!$file) {
 
 echo $file . $n;
 
-$singleTemplate = file_get_contents(__ROOT__ . '/support/unitTestSingleTemplate.php');
-$template = file_get_contents(__ROOT__ . '/support/unitTestTemplate.php');
-
-$methods = getPublicMethods($file);
-$methodText = '';
 $basename = basename($file, '.php');
+$template = file_get_contents(__ROOT__ . '/support/unitTestTemplate.php');
+$methodText = '';
 
-foreach ($methods as $method) {
-    echo $method . PHP_EOL;
+foreach (['public', 'protected'] as $type) {
+    $methodText .= PHP_EOL.chr(9).'/* '.$type.' */'.PHP_EOL.PHP_EOL;
+    $singleTemplate = file_get_contents(__ROOT__ . '/support/unitTest' . ucfirst($type) . 'Template.php');
+    $methods = getMethods($type, $file);
 
-    $methodText .= str_replace('{{method}}', ucfirst($method), $singleTemplate);
+    foreach ($methods as $method) {
+        echo $method . PHP_EOL;
+        $methodText .= str_replace('{{method}}', ucfirst($method), $singleTemplate);
+    }
 }
 
 $complete = '<?php' . PHP_EOL . PHP_EOL . str_replace(['{{classname}}', '{{tests}}'], [$basename, $methodText], $template) . PHP_EOL;
@@ -50,10 +52,10 @@ if (file_exists($finalName)) {
 
 file_put_contents($finalName, $complete);
 
-function getPublicMethods(string $file): array
+function getMethods(string $type, string $file): array
 {
     $methods = [];
-    $re = '/public[\s*]function[\s*](.*)\(/m';
+    $re = '/' . $type . '[\s*]function[\s*](.*)\(/m';
     $string = file_get_contents($file);
 
     preg_match_all($re, $string, $matches, PREG_SET_ORDER, 0);
