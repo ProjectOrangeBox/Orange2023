@@ -42,6 +42,12 @@ class Event implements EventInterface
         return $this;
     }
 
+
+    public function triggers(): array
+    {
+        return [];
+    }
+
     public function has(string $name): bool
     {
         return true;
@@ -57,7 +63,7 @@ class Event implements EventInterface
         return 0;
     }
 
-    public function unregister(string $name, $matches = null): bool
+    public function unregister(int $eventId): bool
     {
         return true;
     }
@@ -65,5 +71,10 @@ class Event implements EventInterface
     public function unregisterAll(string $name = null): bool
     {
         return true;
+    }
+
+    public function __debugInfo(): array
+    {
+        return [];
     }
 }

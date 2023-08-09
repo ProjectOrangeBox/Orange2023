@@ -54,5 +54,6 @@ class Log implements LogInterface
 
     public function __debugInfo(): array
     {
+        return [];
     }
 }

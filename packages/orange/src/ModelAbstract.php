@@ -29,6 +29,12 @@ abstract class ModelAbstract
     protected int $defaultFetchType = PDO::FETCH_ASSOC;
     protected string $fetchClass = '';
 
+    protected array $where = [];
+    protected array $values = [];
+    protected array $orderBy = [];
+    protected array $limit = [];
+    protected array $join  = [];
+
     public function __construct(PDO $pdo, array $config = [])
     {
         // inject your connection when building your service
@@ -58,9 +64,19 @@ abstract class ModelAbstract
     /* protected */
     protected function _reset(): self
     {
+        // cleared before each _run()
+        unset($this->PDOStatement);
+
+        $this->hasError = false;
         $this->errorCode = '';
         $this->errorMsg = '';
-        $this->hasError = false;
+
+        $this->values = [];
+
+        $this->where = [];
+        $this->orderBy = [];
+        $this->limit = [];
+        $this->join = [];
 
         $this->lastSQL = '';
         $this->lastArgs = [];
@@ -68,130 +84,308 @@ abstract class ModelAbstract
         return $this;
     }
 
-    protected function _getById($id, int $fetchMode = -1)
+    protected function _getFrom(): string
     {
-        return $this->_row("SELECT * FROM " . $this->_table() . " WHERE " . $this->_escapeTableColumn($this->primaryColumn) . " = ?", [$id], $fetchMode);
+        return " FROM " . $this->_tablename();
+    }
+
+    protected function _getById($id, string $columns = '*', int $fetchMode = -1)
+    {
+        return $this->_where($this->primaryColumn, $id)->_row($this->_getSelectSql($columns), $this->_getValues(), $fetchMode);
     }
 
     protected function _getColumnById(string $column, $id, int $fetchMode = -1)
     {
-        return $this->_row("SELECT " . $this->_escapeTableColumn($column) . " FROM " . $this->_table() . " WHERE " . $this->_escapeTableColumn($this->primaryColumn) . " = ?", [$id], $fetchMode);
+        return $this->_where($this->primaryColumn, $id)->_row($this->_getSelectSql($column), $this->_getValues(), $fetchMode);
     }
 
     protected function _getValueById(string $column, $id)
     {
-        $record = $this->_row("SELECT " . $this->_escapeTableColumn($column) . " FROM " . $this->_table() . " WHERE " . $this->_escapeTableColumn($this->primaryColumn) . " = ?", [$id], PDO::FETCH_ASSOC);
+        $record = $this->_where($this->primaryColumn, $id)->_row($this->_getSelectSql($column), $this->_getValues(), PDO::FETCH_ASSOC);
 
-        return $record[$column];
+        return ($record) ? $record[$column] : null;
+    }
+
+    protected function _select(string $columns = '*', int $fetchMode = -1): array|bool
+    {
+        return $this->_run($this->_getSelectSql($columns), $this->_getValues(), $fetchMode)->fetchAll();
+    }
+
+    protected function _getSelectSql(string $columns = '*'): string
+    {
+        return "SELECT " . $this->_columns($columns) . $this->_getFrom() . ' ' . $this->_getJoin() . ' ' . $this->_getWhere() . ' ' . $this->_getOrderBy() . ' ' . $this->_getLimit();
     }
 
     protected function _row(string $sql, array $args = [], int $fetchMode = -1)
     {
-        $this->_run($sql, $args);
-
-        $this->_setFetchMode($fetchMode);
-
-        return $this->PDOStatement->fetch();
+        return $this->_run($sql, $args, $fetchMode)->fetch();
     }
 
-    protected function _rows(string $sql, array $args = [], int $fetchMode = -1)
+    protected function _rows(string $sql, array $args = [], int $fetchMode = -1): array|bool
     {
-        $this->_run($sql, $args);
+        return $this->_run($sql, $args, $fetchMode)->fetchAll();
+    }
 
-        $this->_setFetchMode($fetchMode);
+    protected function _existsById($id): bool
+    {
+        return $this->_where($this->primaryColumn, $id)->_limit(1)->_exists($this->_getSelectSql($this->primaryColumn), $this->_getValues());
+    }
 
-        return $this->PDOStatement->fetchAll();
+    protected function _exists(string $sql, array $args = []): bool
+    {
+        return ($this->_row($sql, $args, PDO::FETCH_ASSOC) === false) ? false : true;
     }
 
     protected function _insert(array $data): self
     {
-        //add columns into comma seperated string
-        $columns = implode(',', array_keys($data));
+        $placeholders = [];
 
-        //get values
-        $values = array_values($data);
+        foreach ($data as $column => $value) {
+            $placeholders[$column] = '?';
 
-        $placeholders = array_map(function ($val) {
-            return '?';
-        }, array_keys($data));
+            $this->_addValue($value);
+        }
 
-        //convert array into comma seperated string
-        $placeholders = implode(',', array_values($placeholders));
-
-        $this->_run("INSERT INTO " . $this->_table() . " ($columns) VALUES ($placeholders)", $values);
+        $this->_run("INSERT INTO " . $this->_tablename() . " (" . $this->_columns(array_keys($data)) . ") VALUES (" . implode(',', $placeholders) . ")", $this->_getValues());
 
         return $this;
     }
 
-    protected function _lastInsertId()
+    protected function _lastInsertId(): string|false
     {
         return $this->pdo->lastInsertId();
     }
 
     protected function _updateById(array $data, $id): self
     {
-        return $this->_update($data, [$this->primaryColumn => $id]);
+        $this->_where($this->primaryColumn, $id);
+
+        return $this->_update($data);
     }
 
-    protected function _update(array $data, array $where): self
+    protected function _update(array $data): self
     {
-        //collect the values from data and where
-        $values = [];
-
         //setup fields
         $fieldDetails = [];
 
         foreach ($data as $key => $value) {
             $fieldDetails[] = $key . " = ?";
-            $values[] = $value;
+            $this->_addValue($value);
         }
 
-        //setup where 
-        $whereDetails = [];
-
-        foreach ($where as $key => $value) {
-            $whereDetails[] = "`" . $key . "` = ?";
-            $values[] = $value;
-        }
-
-        $this->PDOStatement = $this->_run("UPDATE " . $this->_table() . " SET " . implode(',', $fieldDetails) . " WHERE " . implode(' AND ', $whereDetails), $values);
+        $this->PDOStatement = $this->_run("UPDATE " . $this->_tablename() . " SET " . implode(',', $fieldDetails) . $this->_getWhere() . $this->_getLimit(), $this->_getValues());
 
         return $this;
     }
 
-    protected function _lastAffectedRows()
+    protected function _lastAffectedRows(): int
     {
         return $this->PDOStatement->rowCount();
     }
 
-    protected function _delete(array $where, int $limit = 1): self
+    protected function _delete(): self
     {
-        //collect the values from collection
-        $values = array_values($where);
-
-        //setup where 
-        $whereDetails = [];
-
-        foreach (array_keys($where) as $key) {
-            $whereDetails[] = "`" . $key . "` = ?";
-        }
-
-        //if limit is a number use a limit on the query
-        if (is_numeric($limit)) {
-            $limit = " LIMIT " . $limit;
-        }
-
-        $this->PDOStatement = $this->_run("DELETE FROM " . $this->_table() . " WHERE " . implode(' AND ', $whereDetails) . $limit, $values);
+        $this->PDOStatement = $this->_run("DELETE " . $this->_getFrom() . $this->_getWhere() . $this->_getLimit(), $this->_getValues());
 
         return $this;
     }
 
     protected function _deleteById($id): self
     {
-        return $this->_delete([$this->primaryColumn => $id], 1);
+        $this->_where($this->primaryColumn, $id);
+
+        return $this->_delete();
     }
 
-    protected function _run(string $sql, array $args = []): PDOStatement
+    protected function _addValue($value): self
+    {
+        $this->values[] = $value;
+
+        return $this;
+    }
+
+    protected function _getValues(): array
+    {
+        return $this->values;
+    }
+
+    protected function _whereAndArray(array $where): self
+    {
+        end($where);
+        $lastKey = key($where);
+
+        foreach ($where as $key => $value) {
+            $this->_where($key, $value);
+
+            if ($key != $lastKey) {
+                $this->_whereAnd();
+            }
+        }
+
+        return $this;
+    }
+
+    protected function _where(string $column, $value): self
+    {
+        $this->where[] = [$column, $value];
+
+        return $this;
+    }
+
+    protected function _whereAnd(): self
+    {
+        $this->_whereRaw('AND');
+
+        return $this;
+    }
+
+    protected function _whereOr(): self
+    {
+        $this->_whereRaw('OR');
+
+        return $this;
+    }
+
+    protected function _whereNot(): self
+    {
+        $this->_whereRaw('NOT');
+
+        return $this;
+    }
+
+    protected function _whereIn(): self
+    {
+        $this->_whereRaw('IN');
+
+        return $this;
+    }
+
+    protected function _whereBetween(): self
+    {
+        $this->_whereRaw('BETWEEN');
+
+        return $this;
+    }
+
+    protected function _whereGroupStart(): self
+    {
+        $this->_whereRaw('(');
+
+        return $this;
+    }
+
+    protected function _whereGroupEnd(): self
+    {
+        $this->_whereRaw(')');
+
+        return $this;
+    }
+
+    protected function _whereRaw(string $raw): self
+    {
+        $this->where[] = [' ' . $raw . ' ', true];
+
+        return $this;
+    }
+
+    protected function _getWhere(): string
+    {
+        $sql = '';
+
+        foreach ($this->where as $record) {
+            // is it a "raw" value?
+            if ($record[1] === true) {
+                $sql .= $record[0];
+            } else {
+                $sql .= $this->_escapeTableColumn($record[0]) . " = ?";
+
+                $this->_addValue($record[1]);
+            }
+        }
+
+        return (!empty($sql)) ? 'WHERE ' . trim($sql) : '';
+    }
+
+    protected function _limit(int $limit, int $count = -1): self
+    {
+        $this->limit[] = [$limit, $count];
+
+        return $this;
+    }
+
+    protected function _getLimit(): string
+    {
+        $sql = '';
+
+        foreach ($this->limit as $record) {
+            if ($record[1] == -1) {
+                $sql = 'LIMIT ' . $record[0];
+            } else {
+                $sql = 'LIMIT ' . $record[0] . ',' . $record[1];
+            }
+        }
+
+        return $sql;
+    }
+
+    protected function _orderBy(string $columnName, string $dir = ''): self
+    {
+        $this->orderBy[$columnName] = $dir;
+
+        return $this;
+    }
+
+    protected function _getOrderBy(): string
+    {
+        $sql = [];
+
+        foreach ($this->orderBy as $column => $dir) {
+            $sql[] = trim($this->_escapeTableColumn($column) . ' ' . $dir);
+        }
+
+        return (!empty($sql)) ? 'ORDER BY ' . implode(', ', $sql) : '';
+    }
+
+    protected function _join(string $joinTable, string $on, string $left, string $right): self
+    {
+        $this->join[$left . $on . $right] = ['on' => strtoupper($on), 'tablename' => $joinTable, 'left' => $left, 'right' => $right];
+
+        return $this;
+    }
+
+    protected function _joinInner(string $joinTable, string $left, string $right): self
+    {
+        $this->_join($joinTable, 'INNER',  $left, $right);
+
+        return $this;
+    }
+
+    protected function _joinLeft(string $joinTable, string $left, string $right): self
+    {
+        $this->_join($joinTable, 'LEFT',  $left, $right);
+
+        return $this;
+    }
+
+    protected function _joinRight(string $joinTable, string $left, string $right): self
+    {
+        $this->_join($joinTable, 'RIGHT',  $left, $right);
+
+        return $this;
+    }
+
+    protected function _getJoin(): string
+    {
+        $sql = [];
+
+        foreach ($this->join as $join) {
+            $sql[] = $join['on'] . ' JOIN ' . $this->_escapeTableColumn($join['tablename']) . ' ON ' . $this->_escapeTableColumn($join['left']) . '=' . $this->_escapeTableColumn($join['right']);
+        }
+
+        return (!empty($sql)) ? implode(' ', $sql) : '';
+    }
+
+    protected function _run(string $sql, array $args = [], int $fetchMode = -1): PDOStatement
     {
         $this->_reset();
 
@@ -232,6 +426,8 @@ abstract class ModelAbstract
             }
         }
 
+        $this->_setFetchMode($fetchMode);
+
         return $this->PDOStatement;
     }
 
@@ -260,39 +456,38 @@ abstract class ModelAbstract
         return $this->PDOStatement;
     }
 
-    protected function _columns(array $columns): string
+    protected function _columns($columns): string
     {
+        // convert to array
+        if (is_string($columns)) {
+            $columns = explode(',', $columns);
+        }
+
         $escapedColumns = [];
 
         foreach ($columns as $column) {
-            $escapedColumns[] = $this->_escapeTableColumn($column);
+            // let's make sure they didn't add spaces
+            $column = trim($column);
+
+            $escapedColumns[] = ($column == '*') ? '*' : $this->_escapeTableColumn($column);
         }
 
         return implode(',', $escapedColumns);
     }
 
-    protected function _table(string $tablename = null): string
+    protected function _tablename(): string
     {
-        $tablename = ($tablename) ?? $this->tablename;
-
-        return $this->_escapeTableColumn($tablename);
-    }
-
-    protected function _primary(string $column = null): string
-    {
-        $column = ($column) ?? $this->primaryColumn;
-
-        return $this->_escapeTableColumn($column);
+        return $this->_escapeTableColumn($this->tablename);
     }
 
     protected function _escapeTableColumn(string $input): string
     {
-        $output = '`' . $input . '`';
-
-        if (strpos($input, '.') !== false) {
-            list($a, $b) = explode('.', $input);
-
-            $output = '`' . $a . '`.`' . $b . '`';
+        if (preg_match_all('/(?<tablecolumn>.*) (?<as>as) (?<alias>.*)/i', $input, $matches, PREG_SET_ORDER, 0)) {
+            $output = $this->_escapeTableColumn($matches[0]['tablecolumn']) . ' AS ' . $this->_escapeTableColumn($matches[0]['alias']);
+        } elseif (preg_match_all('/(?<table>.*)\.(?<column>.*)/i', $input, $matches, PREG_SET_ORDER, 0)) {
+            $output = '`' . trim($matches[0]['table']) . '`.`' . trim($matches[0]['column']) . '`';
+        } else {
+            $output = '`' . trim($input) . '`';
         }
 
         return $output;
@@ -314,6 +509,13 @@ abstract class ModelAbstract
 
             'defaultFetchType' => $this->defaultFetchType,
             'fetchClass' => $this->fetchClass,
+
+            'values' => $this->values,
+
+            'where' => $this->where,
+            'orderby' => $this->orderBy,
+            'limit' => $this->limit,
+            'join' => $this->join,
         ];
     }
 }

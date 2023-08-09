@@ -6,7 +6,6 @@ use dmyers\orange\Data;
 use dmyers\orange\View;
 use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\ViewNotFound;
-use dmyers\orange\exceptions\FileNotWritable;
 
 final class ViewerTest extends TestCase
 {

@@ -11,6 +11,14 @@ use dmyers\orange\exceptions\FileNotWritable;
 use dmyers\orange\interfaces\ViewerInterface;
 use dmyers\orange\exceptions\FolderNotWritable;
 
+/**
+ * This should be extended by viewer classes
+ * 
+ * The default view.php is a simple PHP based view rendering engine
+ * 
+ * other could be for example handlebars, markdown, twig, mailmerge
+ * 
+ */
 abstract class ViewerAbstract implements ViewerInterface
 {
     protected DataInterface $data;
@@ -174,16 +182,16 @@ abstract class ViewerAbstract implements ViewerInterface
     public function __debugInfo(): array
     {
         return [
-            'config'=>$this->config,
-            'viewPaths'=>$this->viewPaths,
-            'extension'=>$this->extension,
-            'foundView'=>$this->foundView,
-            'tempFolder'=>$this->tempFolder,
-            'debug'=>$this->debug,
-            'plugins'=>$this->plugins,
-            'delimiters'=>$this->delimiters,
-            'l_delim'=>$this->l_delim,
-            'r_delim'=>$this->r_delim,
+            'config' => $this->config,
+            'viewPaths' => $this->viewPaths,
+            'extension' => $this->extension,
+            'foundView' => $this->foundView,
+            'tempFolder' => $this->tempFolder,
+            'debug' => $this->debug,
+            'plugins' => $this->plugins,
+            'delimiters' => $this->delimiters,
+            'l_delim' => $this->l_delim,
+            'r_delim' => $this->r_delim,
         ];
     }
 
