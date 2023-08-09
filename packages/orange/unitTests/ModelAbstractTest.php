@@ -38,7 +38,7 @@ final class ModelAbstractTest extends TestCase
 
     public function testHasError1(): void
     {
-        $this->callMethod('_row', ['select * from `foobar` where id = :id', ['id' => 2], -1]);
+        $this->callMethod('_row', ['select * from `foobar` where id = ?', [2], -1]);
 
         $this->assertTrue($this->callMethod('hasError'));
         $this->assertEquals(['code' => '42S02', 'msg' => 'SQLSTATE[42S02]: Base table or view not found: 1146 Table \'' . $_ENV['phpunit']['database'] . '.foobar\' doesn\'t exist'], $this->callMethod('errors'));
@@ -46,7 +46,7 @@ final class ModelAbstractTest extends TestCase
 
     public function testHasError2(): void
     {
-        $this->callMethod('_row', ['select * from `main` where foobar = :id', ['id' => 2], -1]);
+        $this->callMethod('_row', ['select * from `main` where foobar = ?', [2], -1]);
 
         $this->assertTrue($this->callMethod('hasError'));
         $this->assertEquals(['code' => '42S22', 'msg' => 'SQLSTATE[42S22]: Column not found: 1054 Unknown column \'foobar\' in \'where clause\''], $this->callMethod('errors'));
@@ -67,11 +67,17 @@ final class ModelAbstractTest extends TestCase
             'last_name' => 'Appleseed',
             'age' => 28,
         ], $this->callMethod('_getById', [1]));
+
+        $this->assertEquals('SELECT * FROM `main`  WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 1], $this->getPrivatePublic('lastArgs'));
     }
 
     public function test_getById2(): void
     {
         $this->assertFalse($this->callMethod('_getById', [999]));
+
+        $this->assertEquals('SELECT * FROM `main`  WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 999], $this->getPrivatePublic('lastArgs'));
     }
 
     public function test_getColumnById(): void
@@ -79,11 +85,27 @@ final class ModelAbstractTest extends TestCase
         $this->assertEquals([
             'first_name' => 'Johnny',
         ], $this->callMethod('_getColumnById', ['first_name', 1]));
+
+        $this->assertEquals('SELECT `first_name` FROM `main`  WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 1], $this->getPrivatePublic('lastArgs'));
+    }
+
+    public function test_getColumnById2(): void
+    {
+        $this->assertEquals([
+            'fname' => 'Johnny',
+        ], $this->callMethod('_getColumnById', ['first_name as fname', 1]));
+
+        $this->assertEquals('SELECT `first_name` AS `fname` FROM `main`  WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 1], $this->getPrivatePublic('lastArgs'));
     }
 
     public function test_getValueById(): void
     {
         $this->assertEquals('Johnny', $this->callMethod('_getValueById', ['first_name', 1]));
+
+        $this->assertEquals('SELECT `first_name` FROM `main`  WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 1], $this->getPrivatePublic('lastArgs'));
     }
 
     public function test_row(): void
@@ -93,7 +115,10 @@ final class ModelAbstractTest extends TestCase
             'first_name' => 'Jenny',
             'last_name' => 'Appleseed',
             'age' => 31,
-        ], $this->callMethod('_row', ['select * from `main` where id = :id', ['id' => 2], -1]));
+        ], $this->callMethod('_row', ['SELECT * FROM `main` WHERE `id` = ?', [2], -1]));
+
+        $this->assertEquals('SELECT * FROM `main` WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 2], $this->getPrivatePublic('lastArgs'));
     }
 
     public function test_rows(): void
@@ -111,7 +136,10 @@ final class ModelAbstractTest extends TestCase
                 'last_name' => 'Appleseed',
                 'age' => 31,
             ],
-        ], $this->callMethod('_rows', ['select * from `main`', [], -1]));
+        ], $this->callMethod('_rows', ['SELECT * FROM `main`', [], -1]));
+
+        $this->assertEquals('SELECT * FROM `main`', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([], $this->getPrivatePublic('lastArgs'));
     }
 
     public function test_select(): void
@@ -126,6 +154,9 @@ final class ModelAbstractTest extends TestCase
                 'last_name' => 'Appleseed',
             ],
         ], $this->callMethod('_select', ['first_name,last_name', -1]));
+
+        $this->assertEquals('SELECT `first_name`,`last_name` FROM `main`', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([], $this->getPrivatePublic('lastArgs'));
     }
 
     public function test_select2(): void
@@ -137,12 +168,18 @@ final class ModelAbstractTest extends TestCase
                 'last_name' => 'Appleseed',
             ],
         ], $this->callMethod('_select', ['first_name,last_name', -1]));
+
+        $this->assertEquals('SELECT `first_name`,`last_name` FROM `main`  WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 2], $this->getPrivatePublic('lastArgs'));
     }
 
     public function test_select3(): void
     {
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_where', ['id', 999]));
         $this->assertEquals([], $this->callMethod('_select', ['first_name,last_name', -1]));
+
+        $this->assertEquals('SELECT `first_name`,`last_name` FROM `main`  WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 999], $this->getPrivatePublic('lastArgs'));
     }
 
     public function test_selectAlias(): void
@@ -152,6 +189,9 @@ final class ModelAbstractTest extends TestCase
             'foobar' => 'Johnny',
             'last_name' => 'Appleseed',
         ]], $this->callMethod('_select', ['first_name As foobar,last_name', -1]));
+
+        $this->assertEquals('SELECT `first_name` AS `foobar`,`last_name` FROM `main`  WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 1], $this->getPrivatePublic('lastArgs'));
     }
 
     public function test_SelectWithJoin(): void
@@ -179,6 +219,9 @@ final class ModelAbstractTest extends TestCase
             ],
             $this->callMethod('_select')
         );
+
+        $this->assertEquals('SELECT * FROM `main` INNER JOIN `join` ON `join`.`parent_id`=`main`.`id` WHERE `main`.`id` = ?', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 2], $this->getPrivatePublic('lastArgs'));
     }
 
     public function test_join(): void
@@ -198,6 +241,7 @@ final class ModelAbstractTest extends TestCase
     public function test_insert(): void
     {
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_insert', [['first_name' => 'Joe', 'last_name' => 'Coffee', 'age' => 21]]));
+        $this->assertEquals('INSERT INTO `main` (`first_name`,`last_name`,`age`) VALUES (?,?,?)', $this->getPrivatePublic('lastSQL'));
         $this->assertEquals(3, $this->callMethod('_lastInsertId'));
         $this->assertEquals(1, $this->callMethod('_lastAffectedRows'));
 
@@ -212,6 +256,8 @@ final class ModelAbstractTest extends TestCase
     public function test_updateById(): void
     {
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_updateById', [['first_name' => 'Joe', 'last_name' => 'Coffee', 'age' => 21], 2]));
+        $this->assertEquals('UPDATE `main` SET `first_name` = ?,`last_name` = ?,`age` = ?WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
+
         $this->assertEquals(1, $this->callMethod('_lastAffectedRows'));
 
         $this->assertEquals([
@@ -226,6 +272,7 @@ final class ModelAbstractTest extends TestCase
     {
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_where', ['id', 2]));
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_update', [['first_name' => 'Joe', 'last_name' => 'Coffee', 'age' => 21]]));
+        $this->assertEquals('UPDATE `main` SET `first_name` = ?,`last_name` = ?,`age` = ?WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
         $this->assertEquals(1, $this->callMethod('_lastAffectedRows'));
 
         $this->assertEquals([
@@ -242,6 +289,7 @@ final class ModelAbstractTest extends TestCase
 
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_where', ['id', 2]));
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_delete'));
+        $this->assertEquals('DELETE FROM `main`WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
         $this->assertEquals(1, $this->callMethod('_lastAffectedRows'));
 
         $this->assertFalse($this->callMethod('_existsById', [2]));
@@ -252,6 +300,7 @@ final class ModelAbstractTest extends TestCase
         $this->assertTrue($this->callMethod('_existsById', [2]));
 
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_deleteById', [2]));
+        $this->assertEquals('DELETE FROM `main`WHERE `id` = ?', $this->getPrivatePublic('lastSQL'));
         $this->assertEquals(1, $this->callMethod('_lastAffectedRows'));
 
         $this->assertFalse($this->callMethod('_existsById', [2]));
@@ -273,24 +322,34 @@ final class ModelAbstractTest extends TestCase
     public function test_existsById(): void
     {
         $this->assertTrue($this->callMethod('_existsById', [2]));
+        $this->assertEquals('SELECT `id` FROM `main`  WHERE `id` = ?  LIMIT 1', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 2], $this->getPrivatePublic('lastArgs'));
+
         $this->assertFalse($this->callMethod('_existsById', [999]));
     }
 
     public function test_exists(): void
     {
         $this->assertTrue($this->callMethod('_exists', ["SELECT `id` FROM `main` where `id` = ?", [2]]));
+        $this->assertEquals('SELECT `id` FROM `main` where `id` = ?', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 2], $this->getPrivatePublic('lastArgs'));
+
         $this->assertFalse($this->callMethod('_exists', ["SELECT `id` FROM `main` where `id` = ?", [999]]));
     }
 
     public function test_lastInsertId(): void
     {
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_insert', [['first_name' => 'Joe', 'last_name' => 'Coffee', 'age' => 21]]));
+        $this->assertEquals('INSERT INTO `main` (`first_name`,`last_name`,`age`) VALUES (?,?,?)', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 'Joe', 1 => 'Coffee', 2 => '21'], $this->getPrivatePublic('lastArgs'));
         $this->assertEquals(3, $this->callMethod('_lastInsertId'));
     }
 
     public function test_lastAffectedRows(): void
     {
-        $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_insert', [['first_name' => 'Joe', 'last_name' => 'Coffee', 'age' => 21]]));
+        $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_insert', [['first_name' => 'Joe', 'last_name' => 'Coffee', 'age' => 29]]));
+        $this->assertEquals('INSERT INTO `main` (`first_name`,`last_name`,`age`) VALUES (?,?,?)', $this->getPrivatePublic('lastSQL'));
+        $this->assertEquals([0 => 'Joe', 1 => 'Coffee', 2 => '29'], $this->getPrivatePublic('lastArgs'));
         $this->assertEquals(1, $this->callMethod('_lastAffectedRows'));
     }
 
@@ -298,6 +357,7 @@ final class ModelAbstractTest extends TestCase
     {
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_whereAndArray', [['first_name' => 'Joe', 'last_name' => 'Coffee', 'age' => 21]]));
         $this->assertEquals('WHERE `first_name` = ? AND `last_name` = ? AND `age` = ?', $this->callMethod('_getWhere'));
+
         $this->assertEquals([0 => 'Joe', 1 => 'Coffee', 2 => 21], $this->callMethod('_getValues'));
     }
 
@@ -305,6 +365,7 @@ final class ModelAbstractTest extends TestCase
     {
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_where', ['first_name', 'Joe']));
         $this->assertEquals('WHERE `first_name` = ?', $this->callMethod('_getWhere'));
+
         $this->assertEquals([0 => 'Joe'], $this->callMethod('_getValues'));
     }
 
@@ -315,6 +376,7 @@ final class ModelAbstractTest extends TestCase
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_where', ['last_name', 'Coffee']));
 
         $this->assertEquals('WHERE `first_name` = ? AND `last_name` = ?', $this->callMethod('_getWhere'));
+
         $this->assertEquals([0 => 'Joe', 1 => 'Coffee'], $this->callMethod('_getValues'));
     }
 
@@ -325,6 +387,7 @@ final class ModelAbstractTest extends TestCase
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_where', ['last_name', 'Coffee']));
 
         $this->assertEquals('WHERE `first_name` = ? OR `last_name` = ?', $this->callMethod('_getWhere'));
+
         $this->assertEquals([0 => 'Joe', 1 => 'Coffee'], $this->callMethod('_getValues'));
     }
 
@@ -337,6 +400,7 @@ final class ModelAbstractTest extends TestCase
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_whereGroupEnd'));
 
         $this->assertEquals('WHERE ( `first_name` = ? AND `last_name` = ? )', $this->callMethod('_getWhere'));
+
         $this->assertEquals([0 => 'Joe', 1 => 'Coffee'], $this->callMethod('_getValues'));
     }
 
@@ -351,6 +415,7 @@ final class ModelAbstractTest extends TestCase
         $this->assertInstanceOf(ModelAbstract::class, $this->callMethod('_where', ['admin', 1]));
 
         $this->assertEquals('WHERE ( `first_name` = ? AND `last_name` = ? )  OR `admin` = ?', $this->callMethod('_getWhere'));
+
         $this->assertEquals([0 => 'Joe', 1 => 'Coffee', 2 => 1], $this->callMethod('_getValues'));
     }
 

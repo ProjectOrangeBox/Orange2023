@@ -86,7 +86,7 @@ abstract class ModelAbstract
 
     protected function _getFrom(): string
     {
-        return " FROM " . $this->_tablename();
+        return 'FROM ' . $this->_tablename();
     }
 
     protected function _getById($id, string $columns = '*', int $fetchMode = -1)
@@ -113,7 +113,7 @@ abstract class ModelAbstract
 
     protected function _getSelectSql(string $columns = '*'): string
     {
-        return "SELECT " . $this->_columns($columns) . $this->_getFrom() . ' ' . $this->_getJoin() . ' ' . $this->_getWhere() . ' ' . $this->_getOrderBy() . ' ' . $this->_getLimit();
+        return 'SELECT ' . $this->_columns($columns) . ' ' . $this->_getFrom() . ' ' . $this->_getJoin() . ' ' . $this->_getWhere() . ' ' . $this->_getOrderBy() . ' ' . $this->_getLimit();
     }
 
     protected function _row(string $sql, array $args = [], int $fetchMode = -1)
@@ -146,7 +146,7 @@ abstract class ModelAbstract
             $this->_addValue($value);
         }
 
-        $this->_run("INSERT INTO " . $this->_tablename() . " (" . $this->_columns(array_keys($data)) . ") VALUES (" . implode(',', $placeholders) . ")", $this->_getValues());
+        $this->_run('INSERT INTO ' . $this->_tablename() . ' (' . $this->_columns(array_keys($data)) . ') VALUES (' . implode(',', $placeholders) . ')', $this->_getValues());
 
         return $this;
     }
@@ -169,11 +169,11 @@ abstract class ModelAbstract
         $fieldDetails = [];
 
         foreach ($data as $key => $value) {
-            $fieldDetails[] = $key . " = ?";
+            $fieldDetails[] = $this->_escapeTableColumn($key) . ' = ?';
             $this->_addValue($value);
         }
 
-        $this->PDOStatement = $this->_run("UPDATE " . $this->_tablename() . " SET " . implode(',', $fieldDetails) . $this->_getWhere() . $this->_getLimit(), $this->_getValues());
+        $this->PDOStatement = $this->_run('UPDATE ' . $this->_tablename() . ' SET ' . implode(',', $fieldDetails) . $this->_getWhere() . $this->_getLimit(), $this->_getValues());
 
         return $this;
     }
@@ -185,7 +185,7 @@ abstract class ModelAbstract
 
     protected function _delete(): self
     {
-        $this->PDOStatement = $this->_run("DELETE " . $this->_getFrom() . $this->_getWhere() . $this->_getLimit(), $this->_getValues());
+        $this->PDOStatement = $this->_run('DELETE ' . $this->_getFrom() . $this->_getWhere() . $this->_getLimit(), $this->_getValues());
 
         return $this;
     }
@@ -297,7 +297,7 @@ abstract class ModelAbstract
             if ($record[1] === true) {
                 $sql .= $record[0];
             } else {
-                $sql .= $this->_escapeTableColumn($record[0]) . " = ?";
+                $sql .= $this->_escapeTableColumn($record[0]) . ' = ?';
 
                 $this->_addValue($record[1]);
             }
@@ -389,7 +389,7 @@ abstract class ModelAbstract
     {
         $this->_reset();
 
-        $this->lastSQL = $sql;
+        $this->lastSQL = trim($sql);
         $this->lastArgs = $args;
 
         if (empty($args)) {
@@ -407,9 +407,9 @@ abstract class ModelAbstract
             if ($is_assoc) {
                 foreach ($args as $key => $value) {
                     if (is_int($value)) {
-                        $this->PDOStatement->bindValue(":$key", $value, PDO::PARAM_INT);
+                        $this->PDOStatement->bindValue(':'.$key, $value, PDO::PARAM_INT);
                     } else {
-                        $this->PDOStatement->bindValue(":$key", $value);
+                        $this->PDOStatement->bindValue(':'.$key, $value);
                     }
                 }
                 try {
