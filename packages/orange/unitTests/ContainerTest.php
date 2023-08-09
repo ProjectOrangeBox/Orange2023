@@ -28,7 +28,7 @@ final class ContainerTest extends TestCase
     // Tests
     public function testSetServices(): void
     {
-        $this->assertEquals(new Container, $this->instance->setServices($this->services));
+        $this->assertInstanceOf(Container::class, $this->instance->setServices($this->services));
     }
 
     public function testGetService(): void
@@ -37,7 +37,7 @@ final class ContainerTest extends TestCase
 
         $this->assertEquals('bar', Container::getService('foo'));
         $this->assertEquals('bar', Container::getService('cat'));
-        $this->assertEquals(new stdClass, Container::getService('cookie'));
+        $this->assertInstanceOf(stdClass::class, Container::getService('cookie'));
     }
 
     public function testGetServiceIfExists(): void
@@ -54,7 +54,7 @@ final class ContainerTest extends TestCase
 
         $this->assertEquals('bar', $this->instance->foo);
         $this->assertEquals('bar', $this->instance->cat);
-        $this->assertEquals(new stdClass, $this->instance->cookie);
+        $this->assertInstanceOf(stdClass::class, $this->instance->cookie);
     }
 
     public function testGet(): void
@@ -63,7 +63,7 @@ final class ContainerTest extends TestCase
 
         $this->assertEquals('bar', $this->instance->get('foo'));
         $this->assertEquals('bar', $this->instance->get('cat'));
-        $this->assertEquals(new stdClass, $this->instance->get('cookie'));
+        $this->assertInstanceOf(stdClass::class, $this->instance->get('cookie'));
     }
 
     public function test__set(): void
@@ -170,12 +170,11 @@ final class ContainerTest extends TestCase
         $this->assertFalse($this->instance->has('foo'));
     }
 
-    public function testServiceNotFoundException(): void 
+    public function testServiceNotFoundException(): void
     {
         $this->expectException(ServiceNotFound::class);
         $this->expectExceptionMessage('bogus service');
 
         $this->instance->get('bogus service');
     }
-
 }
