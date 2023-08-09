@@ -106,12 +106,12 @@ final class ErrorTest extends TestCase
 
     public function testCollectErrorsException(): void
     {
-        include_once __DIR__ . '/support/bogusRouter.php';
+        include_once __DIR__ . '/support/mockRouter.php';
 
-        $object = new BogusRouter([]);
+        $object = new mockRouter([]);
 
         $this->expectException(MethodNotFound::class);
-        $this->expectExceptionMessage('Errors could not collect from "BogusRouter" because it does not have a errors method.');
+        $this->expectExceptionMessage('Errors could not collect from "mockRouter" because it does not have a errors method.');
 
         $this->instance->collectErrors($object);
     }

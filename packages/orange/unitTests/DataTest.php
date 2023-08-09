@@ -27,12 +27,12 @@ final class DataTest extends TestCase
     {
         $this->instance->merge(['name'=>'Johnny Appleseed','age'=>21,'food'=>'pizza']);
 
-        $this->assertEquals((array)$this->instance,['name'=>'Johnny Appleseed','age'=>21,'food'=>'pizza']);
+        $this->assertEquals(['name'=>'Johnny Appleseed','age'=>21,'food'=>'pizza'],(array)$this->instance);
         $this->assertEquals(3, count($this->instance));
 
         $this->instance->merge(['name'=>'Jenny Appleseed','age'=>25]);
 
-        $this->assertEquals((array)$this->instance,['name'=>'Jenny Appleseed','age'=>25,'food'=>'pizza']);
+        $this->assertEquals(['name'=>'Jenny Appleseed','age'=>25,'food'=>'pizza'],(array)$this->instance);
         $this->assertEquals(3, count($this->instance));
     }
 }

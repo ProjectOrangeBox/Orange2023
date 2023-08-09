@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class controllerClass
+class mockController
 {
     public function index(){
         return '<h1>foobar</h1>';

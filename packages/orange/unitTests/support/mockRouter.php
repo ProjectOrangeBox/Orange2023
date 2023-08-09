@@ -5,7 +5,7 @@ declare(strict_types=1);
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\interfaces\RouterInterface;
 
-class BogusRouter implements RouterInterface
+class mockRouter implements RouterInterface
 {
     protected array $matched = [];
 

@@ -16,16 +16,16 @@ final class DispatcherTest extends TestCase
     {
         $this->instance = Dispatcher::getInstance(new Container());
 
-        include_once __DIR__ . '/support/controllerClass.php';
-        include_once __DIR__ . '/support/bogusRouter.php';
+        include_once __DIR__ . '/support/mockController.php';
+        include_once __DIR__ . '/support/mockRouter.php';
     }
 
     // Tests
     public function testCall(): void
     {
-        $router = new BogusRouter([
+        $router = new mockRouter([
             'argv' => [],
-            'callback' => ['controllerClass', 'index'],
+            'callback' => ['mockController', 'index'],
         ]);
 
         $this->assertEquals('<h1>foobar</h1>',$this->instance->call($router));
@@ -36,7 +36,7 @@ final class DispatcherTest extends TestCase
         $this->expectException(ControllerClassNotFound::class);
         $this->expectExceptionMessage('foobar');
 
-        $router = new BogusRouter([
+        $router = new mockRouter([
             'argv' => [],
             'callback' => ['foobar', 'index'],
         ]);
@@ -49,9 +49,9 @@ final class DispatcherTest extends TestCase
         $this->expectException(MethodNotFound::class);
         $this->expectExceptionMessage('foobar');
 
-        $router = new BogusRouter([
+        $router = new mockRouter([
             'argv' => [],
-            'callback' => ['controllerClass', 'foobar'],
+            'callback' => ['mockController', 'foobar'],
         ]);
 
         $this->instance->call($router);
