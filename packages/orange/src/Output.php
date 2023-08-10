@@ -205,7 +205,7 @@ class Output implements OutputInterface
         $this->flushAll()->header('Location: ' . $url)->responseCode($responseCode)->send($exit);
     }
 
-    public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = NULL, bool $httponly = NULL, string $samesite = NULL)
+    public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = NULL, bool $httponly = NULL, string $samesite = NULL): self
     {
         if (is_array($name)) {
             // always leave 'name' in last place, as the loop will break otherwise, due to $$item
@@ -250,6 +250,8 @@ class Output implements OutputInterface
         ];
 
         $this->cookies[$name] = ['name' => $name, 'value' => $value, 'options' => $setCookieOptions];
+
+        return $this;
     }
 
     public function flushCookies(): self

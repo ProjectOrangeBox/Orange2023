@@ -11,6 +11,7 @@ use dmyers\orange\Input;
 use dmyers\orange\Config;
 use dmyers\orange\Output;
 use dmyers\orange\Router;
+use dmyers\orange\Console;
 use dmyers\orange\Dispatcher;
 use dmyers\orange\interfaces\LogInterface;
 use dmyers\orange\interfaces\ErrorInterface;
@@ -47,6 +48,9 @@ return [
     },
     'output' => function (ContainerInterface $container): OutputInterface {
         return Output::getInstance($container->config->output);
+    },
+    'console' => function (ContainerInterface $container) {
+        return Console::getInstance($container->config->output);
     },
     'router' => function (ContainerInterface $container): RouterInterface {
         // get out our config so we can append something onto it

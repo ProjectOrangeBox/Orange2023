@@ -31,7 +31,7 @@ interface OutputInterface
     public function getResponseCode(): int;
     public function sendResponseCode(): self;
 
-    public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = NULL, bool $httponly = NULL, string $samesite = NULL);
+    public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = NULL, bool $httponly = NULL, string $samesite = NULL): self;
     public function flushCookies(): self;
 
     public function flushAll(): self;

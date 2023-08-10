@@ -1,0 +1,27 @@
+if you don't want to use these services
+it easier to just use these "dummy" stubs for the services
+
+That way when somebody requests the Event service for example they don't get a missing service error.
+
+They could also the containers method "getServiceIfExists" which won't throw a error on a missing service
+but instead simply return null. You could then test for this before calling a method on the server
+
+in the __construct()
+    
+    $this->eventService = Container::getServiceIfExists('event');
+
+In a method which needs to call a method on the service
+    
+    if ($this->eventService) {
+        $this->eventService->trigger('load.model');
+    }
+
+using the stub as a service
+
+in the __construct()
+    
+    $this->eventService = Container::getService('event');
+
+In a method which needs to call a method on the service
+    
+    $this->eventService->trigger('load.model');
