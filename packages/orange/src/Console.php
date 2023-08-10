@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
-class Console
+use dmyers\orange\interfaces\ConsoleInterface;
+
+class Console implements ConsoleInterface
 {
     protected array $foregroundColors = [
         'bold' => '1',
@@ -115,5 +117,10 @@ class Console
         $lf = ($linefeed) ?  $this->lf : '';
 
         return $string . "\033[0m" . $lf;
+    }
+
+    public function __debugInfo(): array
+    {
+        return [];
     }
 }

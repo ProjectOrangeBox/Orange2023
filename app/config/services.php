@@ -21,6 +21,7 @@ use dmyers\orange\interfaces\ConfigInterface;
 use dmyers\orange\interfaces\OutputInterface;
 use dmyers\orange\interfaces\RouterInterface;
 use dmyers\orange\interfaces\ViewerInterface;
+use dmyers\orange\interfaces\ConsoleInterface;
 use dmyers\orange\interfaces\ContainerInterface;
 use dmyers\orange\interfaces\DispatcherInterface;
 
@@ -49,7 +50,7 @@ return [
     'output' => function (ContainerInterface $container): OutputInterface {
         return Output::getInstance($container->config->output);
     },
-    'console' => function (ContainerInterface $container) {
+    'console' => function (ContainerInterface $container): ConsoleInterface {
         return Console::getInstance($container->config->output);
     },
     'router' => function (ContainerInterface $container): RouterInterface {
