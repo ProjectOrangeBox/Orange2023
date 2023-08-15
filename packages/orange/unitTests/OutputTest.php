@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use dmyers\orange\Output;
-use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\Output as ExceptionsOutput;
 
 final class OutputTest extends unitTestHelper

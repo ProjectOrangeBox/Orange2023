@@ -21,16 +21,12 @@ final class ConfigTest extends unitTestHelper
     {
         $this->instance->addPath('/foo/bar');
 
-        $debug = $this->instance->__debugInfo()['searchPaths'];
-
-        $this->assertEquals($debug[0], '/foo/bar');
+        $this->assertEquals($this->getPrivatePublic('searchPaths')[0], '/foo/bar');
 
         $this->instance->addPath('/bar/foo', true);
 
-        $debug = $this->instance->__debugInfo()['searchPaths'];
-
-        $this->assertEquals($debug[0], '/bar/foo');
-        $this->assertEquals($debug[1], '/foo/bar');
+        $this->assertEquals($this->getPrivatePublic('searchPaths')[0], '/bar/foo');
+        $this->assertEquals($this->getPrivatePublic('searchPaths')[1], '/foo/bar');
     }
 
     public function testMagicGet(): void

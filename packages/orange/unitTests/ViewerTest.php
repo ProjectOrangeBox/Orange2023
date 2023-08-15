@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use dmyers\orange\Data;
 use dmyers\orange\View;
-use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\ViewNotFound;
 
 final class ViewerTest extends unitTestHelper

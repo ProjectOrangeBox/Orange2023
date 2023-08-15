@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use dmyers\orange\Router;
-use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\exceptions\RouteNotFound;
 use dmyers\orange\exceptions\ConfigNotFound;
