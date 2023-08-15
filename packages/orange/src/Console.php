@@ -397,33 +397,29 @@ class Console implements ConsoleInterface
 
         $enabled = false;
 
-        if (!$this->simulate) {
-            preg_match_all('/<([^>]*)>/i', $string, $matches, PREG_SET_ORDER, 0);
+        // find all the <tags>
+        preg_match_all('/<([^>]*)>/i', $string, $tags, PREG_SET_ORDER, 0);
 
-            foreach ($matches as $match) {
-                $name = $match[1];
+        foreach ($tags as $tag) {
+            // no color remove tag
+            $colorsEscaped = (!$this->color) ? '' : $tag[0];
 
-                $colorsEscaped = '';
-
-                // apply color escape codes?
-                if ($this->color) {
-                    if (!isset($this->ANSICodes[$name])) {
-                        $this->stop('Could not find tag "' . $name . '"');
-                    }
-
-                    $colorEscapeCodes = (string)$this->ANSICodes[$name];
-
-                    foreach (explode(',', $colorEscapeCodes) as $colorEscapeCode) {
-                        $colorsEscaped .= "\033[" . $colorEscapeCode . "m";
-                        $enabled = true;
-                    }
+            if (!$this->simulate && $this->color) {
+                // apply color escape codes
+                if (!isset($this->ANSICodes[$tag[1]])) {
+                    $this->stop('Could not find tag "' . $tag[1] . '"');
                 }
 
-                $string = str_replace($match[0], $colorsEscaped, $string);
+                foreach (explode(',', (string)$this->ANSICodes[$tag[1]]) as $colorEscapeCode) {
+                    $colorsEscaped .= "\033[" . $colorEscapeCode . "m";
+                    $enabled = true;
+                }
             }
+
+            $string = str_replace($tag[0], $colorsEscaped, $string);
         }
 
-        $turnOff = ($enabled) ? "\033[".$this->ANSICodes['off']."m" : '';
+        $turnOff = ($enabled) ? "\033[" . $this->ANSICodes['off'] . "m" : '';
 
         $lf = ($linefeed) ? $this->lf : '';
 

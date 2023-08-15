@@ -9,33 +9,39 @@ class unitTestHelper extends TestCase
     protected $instance;
     /* support for private / protected properties and methods */
 
-    protected function getPrivatePublic($attribute)
+    protected function getPrivatePublic($attribute, $instance = null)
     {
+        $instance = ($instance) ?? $this->instance;
+
         $getter = function () use ($attribute) {
             return $this->$attribute;
         };
 
-        $closure = \Closure::bind($getter, $this->instance, get_class($this->instance));
+        $closure = \Closure::bind($getter, $instance, get_class($instance));
 
         return $closure();
     }
 
-    protected function setPrivatePublic($attribute, $value)
+    protected function setPrivatePublic($attribute, $value, $instance = null)
     {
+        $instance = ($instance) ?? $this->instance;
+        
         $setter = function ($value) use ($attribute) {
             $this->$attribute = $value;
         };
 
-        $closure = \Closure::bind($setter, $this->instance, get_class($this->instance));
+        $closure = \Closure::bind($setter, $instance, get_class($instance));
 
         $closure($value);
     }
 
-    protected function callMethod(string $method, array $args = null)
+    protected function callMethod(string $method, array $args = null, $instance = null)
     {
-        $reflectionMethod = new ReflectionMethod($this->instance, $method);
+        $instance = ($instance) ?? $this->instance;
 
-        return (is_array($args)) ? $reflectionMethod->invokeArgs($this->instance, $args) : $reflectionMethod->invoke($this->instance);
+        $reflectionMethod = new ReflectionMethod($instance, $method);
+
+        return (is_array($args)) ? $reflectionMethod->invokeArgs($instance, $args) : $reflectionMethod->invoke($instance);
     }
 
     protected function stripInvisible(string $string): string

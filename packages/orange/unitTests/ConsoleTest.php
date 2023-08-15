@@ -65,7 +65,6 @@ final class ConsoleTest extends unitTestHelper
     public function testErrorNoColor(): void
     {
         $this->setPrivatePublic('color',false);
-        $this->setPrivatePublic('simulate',false);
      
         $this->instance->error('Danger, Will Robinson!');
 
