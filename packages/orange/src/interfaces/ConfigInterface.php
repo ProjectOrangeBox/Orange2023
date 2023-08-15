@@ -13,6 +13,4 @@ interface ConfigInterface
     
     public function get(string $filename, mixed $key = NOVALUE): mixed;
     public function set(string $filename, mixed $key, mixed $value = NOVALUE): void;
-
-    public function __debugInfo(): array;
 }

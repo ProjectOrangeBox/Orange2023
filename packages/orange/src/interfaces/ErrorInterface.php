@@ -17,5 +17,4 @@ interface ErrorInterface
     public function sendOnError(int|string $view = null, int $code = 0, ?string $key = null, ?string $requestType = null): void;
     public function showError(string $message, int $code = 0, string $heading = 'An Error Was Encountered', string $view = null, array $override = []): void;
     public function display(int|string $view, array $data, int $code = 0, array $override = []): void;
-    public function __debugInfo(): array;
 }

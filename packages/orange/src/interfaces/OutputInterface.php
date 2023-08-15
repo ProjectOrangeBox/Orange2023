@@ -36,5 +36,4 @@ interface OutputInterface
 
     public function flushAll(): self;
     public function redirect(string $url, int $responseCode = 200, bool $exit = true): void;
-    public function __debugInfo(): array;
 }

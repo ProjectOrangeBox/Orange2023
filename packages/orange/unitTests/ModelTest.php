@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-use PHPUnit\Framework\TestCase;
-
-final class ModelTest extends TestCase
+final class ModelTest extends unitTestHelper
 {
-    private $instance;
-    private $pdo;
+    protected $instance;
+    protected $pdo;
 
     protected function setUp(): void
     {

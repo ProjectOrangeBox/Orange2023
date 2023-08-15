@@ -407,9 +407,9 @@ abstract class ModelAbstract
             if ($is_assoc) {
                 foreach ($args as $key => $value) {
                     if (is_int($value)) {
-                        $this->PDOStatement->bindValue(':'.$key, $value, PDO::PARAM_INT);
+                        $this->PDOStatement->bindValue(':' . $key, $value, PDO::PARAM_INT);
                     } else {
-                        $this->PDOStatement->bindValue(':'.$key, $value);
+                        $this->PDOStatement->bindValue(':' . $key, $value);
                     }
                 }
                 try {
@@ -484,6 +484,9 @@ abstract class ModelAbstract
     {
         if (preg_match_all('/(?<tablecolumn>.*) (?<as>as) (?<alias>.*)/i', $input, $matches, PREG_SET_ORDER, 0)) {
             $output = $this->_escapeTableColumn($matches[0]['tablecolumn']) . ' AS ' . $this->_escapeTableColumn($matches[0]['alias']);
+        } elseif (strpos($input, ' ') !== false) {
+            list($a, $b) = explode(' ', $input, 2);
+            $output = $this->_escapeTableColumn($a) . ' AS ' . $this->_escapeTableColumn($b);
         } elseif (preg_match_all('/(?<table>.*)\.(?<column>.*)/i', $input, $matches, PREG_SET_ORDER, 0)) {
             $output = '`' . trim($matches[0]['table']) . '`.`' . trim($matches[0]['column']) . '`';
         } else {

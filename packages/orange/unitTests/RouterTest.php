@@ -7,13 +7,12 @@ use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\exceptions\RouteNotFound;
 use dmyers\orange\exceptions\ConfigNotFound;
-use dmyers\orange\interfaces\RouterInterface;
 use dmyers\orange\exceptions\RouterNameNotFound;
 
-final class RouterTest extends TestCase
+final class RouterTest extends unitTestHelper
 {
-    private $instance;
-    private $callback = ['\app\controllers\controller', 'index'];
+    protected $instance;
+    protected $callback = ['\app\controllers\controller', 'index'];
 
     protected function setUp(): void
     {
@@ -128,7 +127,7 @@ final class RouterTest extends TestCase
         $this->expectException(InvalidValue::class);
         $this->expectExceptionMessage('Parameter mismatch. Expecting \d+ got xyz route named "product".');
 
-        $this->assertEquals('/product/xyz/890', $this->instance->getUrl('product', ['abc','xyz'], false));
+        $this->assertEquals('/product/xyz/890', $this->instance->getUrl('product', ['abc', 'xyz'], false));
     }
 
     public function testMatchRouteNotFoundException1(): void
@@ -136,7 +135,7 @@ final class RouterTest extends TestCase
         $this->expectException(RouteNotFound::class);
         $this->expectExceptionMessage('[GET]/bla/bla/bla');
 
-        $this->instance->match('/bla/bla/bla','GET');
+        $this->instance->match('/bla/bla/bla', 'GET');
     }
 
     public function testMatchRouteNotFoundException2(): void
@@ -144,7 +143,7 @@ final class RouterTest extends TestCase
         $this->expectException(RouteNotFound::class);
         $this->expectExceptionMessage('[GET]/poster');
 
-        $this->instance->match('/poster','GET');
+        $this->instance->match('/poster', 'GET');
     }
 
     public function testGetUrlRouterNameNotFound(): void
@@ -160,8 +159,7 @@ final class RouterTest extends TestCase
         $routes = [
             'site' => null, // REQUIRED!
             'isHttps' => false,
-            'routes' => [
-            ],
+            'routes' => [],
         ];
 
         $this->expectException(ConfigNotFound::class);

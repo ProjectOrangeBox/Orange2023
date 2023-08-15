@@ -6,9 +6,9 @@ use dmyers\orange\Output;
 use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\Output as ExceptionsOutput;
 
-final class OutputTest extends TestCase
+final class OutputTest extends unitTestHelper
 {
-    private $instance;
+    protected $instance;
 
     protected function setUp(): void
     {
@@ -92,9 +92,7 @@ final class OutputTest extends TestCase
 
         $this->instance->sendHeaders();
 
-        $debug = $this->instance->__debugInfo();
-
-        $this->assertContains('HTTP/1.1 404 Not Found', $debug['sent headers']);
+        $this->assertContains('HTTP/1.1 404 Not Found', $this->getPrivatePublic('sentHeaders'));
     }
 
     public function testFlushHeaders(): void
@@ -134,9 +132,7 @@ final class OutputTest extends TestCase
     {
         $this->instance->sendResponseCode();
 
-        $debug = $this->instance->__debugInfo();
-
-        $this->assertEquals(200, $debug['sent code']);
+        $this->assertEquals(200, $this->getPrivatePublic('sentCode'));
     }
 
     /**
@@ -148,10 +144,8 @@ final class OutputTest extends TestCase
 
         $this->instance->send();
 
-        $debug = $this->instance->__debugInfo();
-
-        $this->assertEquals(200, $debug['sent code']);
-        $this->assertContains('Content-Type: text/html; charset=utf-8', $debug['sent headers']);
+        $this->assertEquals(200,  $this->getPrivatePublic('sentCode'));
+        $this->assertContains('Content-Type: text/html; charset=utf-8',  $this->getPrivatePublic('sentHeaders'));
         $this->assertEquals('this is the output', $this->instance->get());
     }
 
@@ -164,10 +158,8 @@ final class OutputTest extends TestCase
         $this->instance->redirect('http://www.example.com', 123, false);
         $output = ob_get_clean();
 
-        $debug = $this->instance->__debugInfo();
-
-        $this->assertEquals(123, $debug['sent code']);
-        $this->assertContains('Location: http://www.example.com', $debug['sent headers']);
+        $this->assertEquals(123,  $this->getPrivatePublic('sentCode'));
+        $this->assertContains('Location: http://www.example.com',  $this->getPrivatePublic('sentHeaders'));
         $this->assertEquals('', $output);
     }
 
@@ -178,11 +170,9 @@ final class OutputTest extends TestCase
 
         $this->instance->flushAll();
 
-        $debug = $this->instance->__debugInfo();
-
-        $this->assertEmpty($debug['headers']);
-        $this->assertEmpty($debug['cookies']);
-        $this->assertEquals('', $debug['output']);
+        $this->assertEmpty($this->getPrivatePublic('headers'));
+        $this->assertEmpty($this->getPrivatePublic('cookies'));
+        $this->assertEquals('', $this->getPrivatePublic('output'));
     }
 
     public function testHeaderSentFlushException(): void
@@ -241,10 +231,8 @@ final class OutputTest extends TestCase
     {
         $minutes = 600;
         $expire = time() + $minutes;
-        
-        $this->instance->cookie('username', 'Johnny Appleseed', $minutes);
 
-        $debug = $this->instance->__debugInfo();
+        $this->instance->cookie('username', 'Johnny Appleseed', $minutes);
 
         $this->assertEquals(['username' => ['name' => 'username', 'value' => 'Johnny Appleseed', 'options' => [
             'expires' => $expire,
@@ -253,7 +241,7 @@ final class OutputTest extends TestCase
             'secure' => false,
             'httponly' => false,
             'samesite' => "Lax",
-        ]]], $debug['cookies']);
+        ]]], $this->getPrivatePublic('cookies'));
     }
 
     public function testFlushCookie(): void
@@ -261,8 +249,6 @@ final class OutputTest extends TestCase
         $this->instance->cookie('username', 'Johnny Appleseed', 6000);
         $this->instance->flushCookies();
 
-        $debug = $this->instance->__debugInfo();
-
-        $this->assertEmpty($debug['cookies']);
+        $this->assertEmpty($this->getPrivatePublic('cookies'));
     }
 }

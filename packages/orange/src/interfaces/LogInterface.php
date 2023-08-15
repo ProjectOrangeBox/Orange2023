@@ -20,5 +20,4 @@ interface LogInterface
     public function getThreshold(): int;
     public function isEnabled(): bool;
     public function __call($name, $arguments);
-    public function __debugInfo(): array;
 }

@@ -3,12 +3,11 @@
 declare(strict_types=1);
 
 use dmyers\orange\Event;
-use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\InvalidValue;
 
-final class EventTest extends TestCase
+final class EventTest extends unitTestHelper
 {
-    private $instance;
+    protected $instance;
 
     protected function setUp(): void
     {

@@ -3,14 +3,13 @@
 declare(strict_types=1);
 
 use dmyers\orange\Container;
-use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\ServiceNotFound;
 use dmyers\orange\interfaces\ContainerInterface;
 
-final class ContainerTest extends TestCase
+final class ContainerTest extends unitTestHelper
 {
-    private $instance;
-    private $services;
+    protected $instance;
+    protected $services;
 
     protected function setUp(): void
     {

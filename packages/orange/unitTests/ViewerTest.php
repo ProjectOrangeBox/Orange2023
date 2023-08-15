@@ -7,9 +7,9 @@ use dmyers\orange\View;
 use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\ViewNotFound;
 
-final class ViewerTest extends TestCase
+final class ViewerTest extends unitTestHelper
 {
-    private $instance;
+    protected $instance;
 
     protected function setUp(): void
     {
@@ -32,28 +32,22 @@ final class ViewerTest extends TestCase
     public function testAddPath(): void
     {
         // path added above let's test for it.
-        $debug = $this->instance->__debugInfo();
-
-        $this->assertTrue(in_array(__DIR__ . '/support/views', $debug['viewPaths']));
+        $this->assertTrue(in_array(__DIR__ . '/support/views', $this->getPrivatePublic('viewPaths')));
     }
 
     public function testAddPaths(): void
     {
         $this->instance->addPaths(['/foo', '/bar']);
 
-        $debug = $this->instance->__debugInfo();
-
-        $this->assertTrue(in_array('/foo', $debug['viewPaths']));
-        $this->assertTrue(in_array('/bar', $debug['viewPaths']));
+        $this->assertTrue(in_array('/foo', $this->getPrivatePublic('viewPaths')));
+        $this->assertTrue(in_array('/bar', $this->getPrivatePublic('viewPaths')));
     }
 
     public function testAddPlugin(): void
     {
         $this->instance->addPlugin('strtolower', ['function', 'strtolower']);
 
-        $debug = $this->instance->__debugInfo();
-
-        $this->assertTrue(isset($debug['plugins']['strtolower']));
+        $this->assertTrue(isset($this->getPrivatePublic('plugins')['strtolower']));
     }
 
     public function testAddPlugins(): void
@@ -63,10 +57,8 @@ final class ViewerTest extends TestCase
             'trimmer' => ['funciton' => 'trim'],
         ]);
 
-        $debug = $this->instance->__debugInfo();
-
-        $this->assertTrue(isset($debug['plugins']['strtoupper']));
-        $this->assertTrue(isset($debug['plugins']['trimmer']));
+        $this->assertTrue(isset($this->getPrivatePublic('plugins')['strtoupper']));
+        $this->assertTrue(isset($this->getPrivatePublic('plugins')['trimmer']));
     }
 
     public function testRenderViewNotFoundException()

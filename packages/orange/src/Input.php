@@ -36,7 +36,7 @@ class Input implements InputInterface
 
     public function requestUri(): string
     {
-        return isset($this->_server['request_uri']) ? $this->_server['request_uri'] : '';
+        return $this->_server['request_uri'] ?? '';
     }
 
     public function uriSegement(int $int): string
@@ -137,18 +137,24 @@ class Input implements InputInterface
         // setup the request type based on a few things
         $isAjax = (!empty($this->_server['http_x_requested_with']) && strtolower($this->_server['http_x_requested_with']) == 'xmlhttprequest');
         $isJson = (!empty($this->_server['http_accept']) && strpos(strtolower($this->_server['http_accept']), 'application/json') !== false);
-        $isCli = (strtoupper(PHP_SAPI) === 'CLI' || defined('STDIN'));
+        
+        // 2 different checks
+        $isCli1 = (!empty($input['PHP_SAPI']) && $input['PHP_SAPI'] === 'CLI');
+        $isCli2 = (!empty($input['STDIN']) && $input['STDIN'] === true);
+
+        // if either are true it's cli
+        $isCli = ($isCli1 || $isCli2);
 
         if ($isAjax || $isJson) {
             $this->requestType = 'ajax';
+            $this->requestMethod = $this->_server['request_method'] ?? '';
         } elseif ($isCli) {
             $this->requestType = 'cli';
+            $this->requestMethod = 'cli';
         } else {
             $this->requestType = 'html';
+            $this->requestMethod = $this->_server['request_method'] ?? '';
         }
-
-        // get the http request method
-        $this->requestMethod = ($isCli) ? 'cli' : $this->_server['request_method'];
 
         // is this https
         if (!empty($this->_server['https']) && $this->_server['https'] !== 'off') {
@@ -201,7 +207,10 @@ class Input implements InputInterface
                 break;
         }
 
-        $re = $this->config['re key filter'];
+        // do we have a filter for the input keys?
+        // @[^a-z0-9 \[\]\-_]+@
+        // a-z A-Z 0-9 [ ] - _ (space)
+        $re = $this->config['re key filter'] ?? '';
 
         return empty($re) ? $key :  preg_replace($re, '', $key);
     }

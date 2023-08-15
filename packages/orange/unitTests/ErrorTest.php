@@ -6,14 +6,13 @@ use dmyers\orange\Data;
 use dmyers\orange\View;
 use dmyers\orange\Error;
 use dmyers\orange\Output;
-use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\exceptions\MethodNotFound;
 
-final class ErrorTest extends TestCase
+final class ErrorTest extends unitTestHelper
 {
-    private $instance;
-    private $output;
+    protected $instance;
+    protected $output;
 
     protected function setUp(): void
     {
@@ -70,9 +69,7 @@ final class ErrorTest extends TestCase
     {
         $this->instance->requestType('cli');
 
-        $debug = $this->instance->__debugInfo();
-
-        $this->assertEquals('cli', $debug['requestType']);
+        $this->assertEquals('cli', $this->getPrivatePublic('requestType'));
     }
 
     public function testRequestTypeException(): void
@@ -133,10 +130,8 @@ final class ErrorTest extends TestCase
 
         $this->instance->clear();
 
-        $debug = $this->instance->__debugInfo();
-
         $this->assertEquals([], $this->instance->errors());
-        $this->assertEquals('html', $debug['requestType']);
+        $this->assertEquals('html', $this->getPrivatePublic('requestType'));
     }
 
     public function testHas(): void

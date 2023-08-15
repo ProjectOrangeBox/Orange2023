@@ -10,5 +10,4 @@ interface RouterInterface
     public function getMatched(string $key = null): mixed; /* mixed string|array */
     public function getUrl(string $name, array $arguments = [], bool $appendSiteUrl = true): string;
     public function siteUrl(bool|string $appendHttp = true): string;
-    public function __debugInfo(): array;
 }

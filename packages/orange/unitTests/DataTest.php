@@ -3,11 +3,10 @@
 declare(strict_types=1);
 
 use dmyers\orange\Data;
-use PHPUnit\Framework\TestCase;
 
-final class DataTest extends TestCase
+final class DataTest extends unitTestHelper
 {
-    private $instance;
+    protected $instance;
 
     protected function setUp(): void
     {
@@ -25,14 +24,14 @@ final class DataTest extends TestCase
     // Tests
     public function testMerge(): void
     {
-        $this->instance->merge(['name'=>'Johnny Appleseed','age'=>21,'food'=>'pizza']);
+        $this->instance->merge(['name' => 'Johnny Appleseed', 'age' => 21, 'food' => 'pizza']);
 
-        $this->assertEquals(['name'=>'Johnny Appleseed','age'=>21,'food'=>'pizza'],(array)$this->instance);
+        $this->assertEquals(['name' => 'Johnny Appleseed', 'age' => 21, 'food' => 'pizza'], (array)$this->instance);
         $this->assertEquals(3, count($this->instance));
 
-        $this->instance->merge(['name'=>'Jenny Appleseed','age'=>25]);
+        $this->instance->merge(['name' => 'Jenny Appleseed', 'age' => 25]);
 
-        $this->assertEquals(['name'=>'Jenny Appleseed','age'=>25,'food'=>'pizza'],(array)$this->instance);
+        $this->assertEquals(['name' => 'Jenny Appleseed', 'age' => 25, 'food' => 'pizza'], (array)$this->instance);
         $this->assertEquals(3, count($this->instance));
     }
 }

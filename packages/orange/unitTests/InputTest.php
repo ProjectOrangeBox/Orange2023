@@ -3,11 +3,10 @@
 declare(strict_types=1);
 
 use dmyers\orange\Input;
-use PHPUnit\Framework\TestCase;
 
-final class InputTest extends TestCase
+final class InputTest extends unitTestHelper
 {
-    private $instance;
+    protected $instance;
 
     protected function setUp(): void
     {
@@ -41,6 +40,10 @@ final class InputTest extends TestCase
             'convert keys to' => 'lowercase',
             're key filter' => '@[^a-z0-9 \[\]\-_]+@',
             'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
+
+            // looks like a apache server request
+            'PHP_SAPI' => 'APACHE',
+            'STDIN' => false,
         ]);
     }
 
@@ -54,11 +57,14 @@ final class InputTest extends TestCase
     {
         $this->assertEquals('product', $this->instance->uriSegement(1));
         $this->assertEquals('123abc', $this->instance->uriSegement(2));
+        $this->assertEquals('', $this->instance->uriSegement(3));
+        $this->assertEquals('', $this->instance->uriSegement(0));
+        $this->assertEquals('', $this->instance->uriSegement(-1));
     }
 
     public function testRequestMethod(): void
     {
-        $this->assertEquals('cli', $this->instance->requestMethod());
+        $this->assertEquals('get', $this->instance->requestMethod());
     }
 
     public function testRequestType(): void
@@ -219,7 +225,6 @@ final class InputTest extends TestCase
             'name123[]' => 5,
             'name here' => 6,
             'name20here' => 10,
-        ],$debug['input']['post']);
-
+        ], $this->getPrivatePublic('input')['post']);
     }
 }

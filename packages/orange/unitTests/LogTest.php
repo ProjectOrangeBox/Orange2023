@@ -3,15 +3,13 @@
 declare(strict_types=1);
 
 use dmyers\orange\Log;
-use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\InvalidValue;
-use dmyers\orange\exceptions\FileNotWritable;
 use dmyers\orange\exceptions\invalidConfigurationValue;
 
-final class LogTest extends TestCase
+final class LogTest extends unitTestHelper
 {
-    private $instance;
-    private $config = [
+    protected $instance;
+    protected $config = [
         'filepath' => __DIR__ . '/support/log.txt',
         'threshold' => 128,
         'permissions' => 0777,
@@ -69,7 +67,7 @@ final class LogTest extends TestCase
 
         $this->instance->emergency('This is an emergency');
         $this->instance->notice('This is an notice 111');
-        
+
         $this->assertFileExists($this->config['filepath']);
 
         $this->assertStringContainsString('This is an emergency', file_get_contents($this->config['filepath']));
@@ -85,11 +83,11 @@ final class LogTest extends TestCase
 
     public function testConvert2(): void
     {
-        $this->assertEquals('none',$this->instance->convert2(0));
-        $this->assertEquals('emergency',$this->instance->convert2(1));
+        $this->assertEquals('none', $this->instance->convert2(0));
+        $this->assertEquals('emergency', $this->instance->convert2(1));
 
-        $this->assertEquals(0,$this->instance->convert2('none'));
-        $this->assertEquals(1,$this->instance->convert2('emergency'));
+        $this->assertEquals(0, $this->instance->convert2('none'));
+        $this->assertEquals(1, $this->instance->convert2('emergency'));
     }
 
     public function testConvert2Exception(): void

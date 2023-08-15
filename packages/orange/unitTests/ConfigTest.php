@@ -3,12 +3,11 @@
 declare(strict_types=1);
 
 use dmyers\orange\Config;
-use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 
-final class ConfigTest extends TestCase
+final class ConfigTest extends unitTestHelper
 {
-    private $instance;
+    protected $instance;
 
     protected function setUp(): void
     {
@@ -22,16 +21,16 @@ final class ConfigTest extends TestCase
     {
         $this->instance->addPath('/foo/bar');
 
-        $vars = $this->instance->__debugInfo()['searchPaths'];
+        $debug = $this->instance->__debugInfo()['searchPaths'];
 
-        $this->assertEquals($vars[0], '/foo/bar');
+        $this->assertEquals($debug[0], '/foo/bar');
 
         $this->instance->addPath('/bar/foo', true);
 
-        $vars = $this->instance->__debugInfo()['searchPaths'];
+        $debug = $this->instance->__debugInfo()['searchPaths'];
 
-        $this->assertEquals($vars[0], '/bar/foo');
-        $this->assertEquals($vars[1], '/foo/bar');
+        $this->assertEquals($debug[0], '/bar/foo');
+        $this->assertEquals($debug[1], '/foo/bar');
     }
 
     public function testMagicGet(): void
@@ -50,7 +49,7 @@ final class ConfigTest extends TestCase
 
         $this->assertEquals($config['name'], 'Jenny Appleseed');
         $this->assertEquals($config['age'], 21);
-        $this->assertEquals($config['example'], 2   );
+        $this->assertEquals($config['example'], 2);
     }
 
     public function testMagicSet(): void
@@ -74,13 +73,13 @@ final class ConfigTest extends TestCase
     {
         $this->instance->addPath(__DIR__ . '/support', true);
 
-        $name = $this->instance->get('configexample1','name');
+        $name = $this->instance->get('configexample1', 'name');
 
         $this->assertEquals($name, 'Johnny Appleseed');
 
         $this->instance->addPath(__DIR__ . '/support/env');
 
-        $name = $this->instance->get('configexample2','name');
+        $name = $this->instance->get('configexample2', 'name');
 
         $this->assertEquals($name, 'Jenny Appleseed');
     }
@@ -94,14 +93,13 @@ final class ConfigTest extends TestCase
         $this->assertEquals($config['color'], 'red');
     }
 
-    public function testBadConfigException(): void 
+    public function testBadConfigException(): void
     {
         $this->instance->addPath(__DIR__ . '/support', true);
 
         $this->expectException(InvalidConfigurationValue::class);
         $this->expectExceptionMessage('"/packages/orange/unitTests/support/badConfig.php" did not return an array.');
 
-        $name = $this->instance->get('badConfig','name');
+        $name = $this->instance->get('badConfig', 'name');
     }
-
 }

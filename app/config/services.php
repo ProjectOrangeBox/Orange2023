@@ -51,7 +51,7 @@ return [
         return Output::getInstance($container->config->output);
     },
     'console' => function (ContainerInterface $container): ConsoleInterface {
-        return Console::getInstance($container->config->output);
+        return Console::getInstance($container->config->console, $container->input);
     },
     'router' => function (ContainerInterface $container): RouterInterface {
         // get out our config so we can append something onto it

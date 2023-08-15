@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 use dmyers\orange\Container;
 use dmyers\orange\Dispatcher;
-use PHPUnit\Framework\TestCase;
 use dmyers\orange\exceptions\ControllerClassNotFound;
 use dmyers\orange\exceptions\MethodNotFound;
 
-final class DispatcherTest extends TestCase
+final class DispatcherTest extends unitTestHelper
 {
-    private $instance;
+    protected $instance;
 
     protected function setUp(): void
     {
@@ -28,7 +27,7 @@ final class DispatcherTest extends TestCase
             'callback' => ['mockController', 'index'],
         ]);
 
-        $this->assertEquals('<h1>foobar</h1>',$this->instance->call($router));
+        $this->assertEquals('<h1>foobar</h1>', $this->instance->call($router));
     }
 
     public function testControllerClassNotFoundException(): void

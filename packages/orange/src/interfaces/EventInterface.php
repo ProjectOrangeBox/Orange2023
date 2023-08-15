@@ -19,5 +19,4 @@ interface EventInterface
     public function triggers(): array;
     public function unregister(int $eventId): bool;
     public function unregisterAll(string $trigger = null): bool;
-    public function __debugInfo(): array;
 }
