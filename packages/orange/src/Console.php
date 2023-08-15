@@ -90,15 +90,15 @@ class Console implements ConsoleInterface
     {
         $this->config = $config;
 
-        $this->lf = $this->config['Linefeed Character'];
+        $this->lf = $this->config['Linefeed Character'] ?? chr(10);
 
         $this->named = $this->config['named'];
 
-        $this->combined = $this->foregroundColors +  $this->backgroundColors +  $this->options + $this->named;
-
         $this->icons = $this->config['icons'];
 
-        $this->simulate = $this->config['simulate'];
+        $this->simulate = $this->config['simulate'] ?? false;
+
+        $this->combined = $this->foregroundColors +  $this->backgroundColors +  $this->options + $this->named;
 
         $this->input = $input;
     }
@@ -223,8 +223,6 @@ class Console implements ConsoleInterface
             call_user_func_array('printf', $row);
 
             $this->echo(trim(ob_get_clean()));
-
-            $this->linefeed();
 
             if ($rowIndex == 0) {
                 $this->line($totalWidth);
