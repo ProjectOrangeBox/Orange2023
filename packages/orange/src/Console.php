@@ -15,61 +15,85 @@ class Console implements ConsoleInterface
     protected array $config = [];
     protected InputInterface $input;
 
-    protected array $foregroundColors = [
-        'bold' => '1',
-        'dim' => '2',
-        'black' => '0;30',
-        'dark_gray' => '1;30',
-        'blue' => '0;34',
-        'light_blue' => '1;34',
-        'green' => '0;32',
-        'light_green' => '1;32',
-        'cyan' => '0;36',
-        'light_cyan' => '1;36',
-        'red' => '0;31',
-        'light_red' => '1;31',
-        'purple' => '0;35',
-        'light_purple' => '1;35',
-        'brown' => '0;33',
-        'yellow' => '1;33',
-        'light_gray' => '0;37',
-        'white' => '1;37',
-        'normal' => '0;39',
+    protected $ANSICodes = [
+        'off'               => 0,
+
+        'bold'              => 1,
+        'dim'               => 2,
+        'italic'            => 3,
+        'underline'         => 4,
+        'blink'             => 5,
+        'inverse'           => 7,
+        'hidden'            => 8,
+
+        'bold off'          => 21,
+        'dim off'           => 22,
+        'italic off'        => 23,
+        'underline off'     => 24,
+        'blink off'         => 25,
+        'inverse off'       => 27,
+        'hidden off'        => 28,
+
+        'black'             => 30,
+        'red'               => 31,
+        'green'             => 32,
+        'yellow'            => 33,
+        'blue'              => 34,
+        'magenta'           => 35,
+        'cyan'              => 36,
+        'white'             => 37,
+        'default'           => 39,
+
+        'black bg'          => 40,
+        'red bg'            => 41,
+        'green bg'          => 42,
+        'yellow bg'         => 43,
+        'blue bg'           => 44,
+        'magenta bg'        => 45,
+        'cyan bg'           => 46,
+        'white bg'          => 47,
+        'default bg'        => 49,
+
+        'bright black'      => 90,
+        'bright red'        => 91,
+        'bright green'      => 92,
+        'bright yellow'     => 93,
+        'bright blue'       => 94,
+        'bright magenta'    => 95,
+        'bright cyan'       => 96,
+        'bright white'      => 97,
+        'bright default'    => 99,
+
+        'bright black bg'   => 100,
+        'bright red bg'     => 101,
+        'bright green bg'   => 102,
+        'bright yellow bg'  => 103,
+        'bright blue bg'    => 104,
+        'bright magenta bg' => 105,
+        'bright cyan bg'    => 106,
+        'bright white bg'   => 107,
+        'bright default bg' => 109,
+
+
+        'primary'       => 36,
+        'secondary'     => 33,
+
+        'success'       => 32,
+        'danger'        => '37,41',
+        'warning'       => '30,43',
+        'info'          => '30,44',
     ];
 
-    protected array $backgroundColors = [
-        'bg_black' => '40',
-        'bg_red' => '41',
-        'bg_green' => '42',
-        'bg_yellow' => '43',
-        'bg_blue' => '44',
-        'bg_magenta' => '45',
-        'bg_cyan' => '46',
-        'bg_light_gray' => '47',
+    protected array $icons = [
+        'success' => '✔',
+        'danger' => '✘',
+        'warning' => '❖',
+        'info' => '➜',
     ];
 
-    protected array $options = [
-        'underline' => '4',
-        'blink' => '5',
-        'reverse' => '7',
-        'hidden' => '8',
-    ];
-
-    protected array $named = [
-        'primary' => '0;34',
-        'secondary' => '1;34',
-
-        'success' => '0;32',
-        'danger' => '1:37,41',
-        'warning' => '1;33',
-        'info' => '1;36',
-
-        'light' => '1;37',
-        'dark' => '0;37',
-    ];
-
+    protected string $listFormat = '<off>[<primary>%key%<off>] %value%';
     protected string $lf = "\n";
-    protected string $normal = "\033[0m";
+    protected bool $color = true;
 
     // unit testing
     protected bool $simulate = false;
@@ -78,27 +102,23 @@ class Console implements ConsoleInterface
     protected string $stdout = '';
     protected string $system = '';
 
-    protected array $icons = [
-        'success' => '✔',
-        'danger' => '✘',
-        'warning' => '❖',
-        'info' => '➜',
-    ];
-    protected array $combined = [];
-
     public function __construct(array $config, InputInterface $input)
     {
         $this->config = $config;
 
-        $this->lf = $this->config['Linefeed Character'] ?? chr(10);
+        $this->lf = $this->config['Linefeed Character'] ?? $this->lf;
 
-        $this->named = $this->config['named'];
+        $this->icons = $this->config['icons'] ?? $this->icons;
 
-        $this->icons = $this->config['icons'];
+        $this->simulate = $this->config['simulate'] ?? $this->simulate;
 
-        $this->simulate = $this->config['simulate'] ?? false;
+        $this->listFormat = $this->config['List Format'] ?? $this->listFormat;
 
-        $this->combined = $this->foregroundColors +  $this->backgroundColors +  $this->options + $this->named;
+        $this->color = $this->config['color'] ?? $this->color;
+
+        if (isset($this->config['ANSI Codes'])) {
+            $this->ANSICodes = array_replace($this->ANSICodes, $this->config['ANSI Codes']);
+        }
 
         $this->input = $input;
     }
@@ -237,7 +257,7 @@ class Console implements ConsoleInterface
     public function list(array $list, array $options = []): Self
     {
         foreach ($list as $key => $value) {
-            $this->echo(str_replace(['%key%', '%value%'], [$key, $value], $this->config['List Format']));
+            $this->echo(str_replace(['%key%', '%value%'], [$key, $value], $this->listFormat));
         }
 
         return $this;
@@ -375,32 +395,37 @@ class Console implements ConsoleInterface
         // quick find and replace for all linefeeds
         $string = str_replace('<lf>', $this->lf, $string);
 
-        preg_match_all('/<([^>]*)>/i', $string, $matches, PREG_SET_ORDER, 0);
-
         $enabled = false;
 
-        foreach ($matches as $match) {
-            $name = $match[1];
+        if (!$this->simulate) {
+            preg_match_all('/<([^>]*)>/i', $string, $matches, PREG_SET_ORDER, 0);
 
-            if (!isset($this->combined[$name])) {
-                $this->stop('Could not find tag "' . $name . '"');
+            foreach ($matches as $match) {
+                $name = $match[1];
+
+                $colorsEscaped = '';
+
+                // apply color escape codes?
+                if ($this->color) {
+                    if (!isset($this->ANSICodes[$name])) {
+                        $this->stop('Could not find tag "' . $name . '"');
+                    }
+
+                    $colorEscapeCodes = (string)$this->ANSICodes[$name];
+
+                    foreach (explode(',', $colorEscapeCodes) as $colorEscapeCode) {
+                        $colorsEscaped .= "\033[" . $colorEscapeCode . "m";
+                        $enabled = true;
+                    }
+                }
+
+                $string = str_replace($match[0], $colorsEscaped, $string);
             }
-
-            $colorsEscaped = '';
-            $colorEscapes = $this->combined[$name];
-
-            foreach (explode(',', $colorEscapes) as $colorEscape) {
-                $enabled = true;
-                $colorsEscaped .= "\033[" . $colorEscape . "m";
-            }
-
-            $string = str_replace($match[0], $colorsEscaped, $string);
         }
 
-        $lf = ($linefeed) ? $this->lf : '';
+        $turnOff = ($enabled) ? "\033[".$this->ANSICodes['off']."m" : '';
 
-        // finish with "off"
-        $turnOff = ($enabled) ? $this->normal : '';
+        $lf = ($linefeed) ? $this->lf : '';
 
         return $string . $turnOff . $lf;
     }
@@ -428,8 +453,8 @@ class Console implements ConsoleInterface
     {
         $icon = '';
 
-        if (isset($this->config['icons'][$name]) && !empty($this->config['icons'][$name])) {
-            $icon = $this->config['icons'][$name] . ' ';
+        if (isset($this->icons[$name]) && !empty($this->icons[$name])) {
+            $icon = $this->icons[$name] . ' ';
         } else {
             throw new InvalidConfigurationValue('Icon "' . $name . '" not found.');
         }
@@ -477,12 +502,10 @@ class Console implements ConsoleInterface
     {
         return [
             'config' => $this->config,
-            'foregroundColors' => $this->foregroundColors,
-            'backgroundColors' => $this->backgroundColors,
-            'options' => $this->options,
-            'named' => $this->named,
+            'ansicolors' => $this->ANSICodes,
+            'List Format' => $this->listFormat,
             'lf' => $this->lf,
-            'normal' => $this->normal,
+            'color' => $this->color,
             'simulate' => $this->simulate,
             'stderr' => $this->stderr,
             'stdout' => $this->stdout,

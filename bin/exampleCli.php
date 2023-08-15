@@ -11,30 +11,41 @@ require_once __ROOT__ . '/vendor/autoload.php';
 mergeEnv(__ROOT__ . '/.env');
 
 /* send config into application */
-$c = cli(include __ROOT__ . '/app/config/config.php');
+$container = cli(include __ROOT__ . '/app/config/config.php');
 
-$c->console->line();
+$console = $container->console;
 
-// all services are now available!
-$c->console->echo('<yellow>This is <green>a <yellow>test');
+$console->line();
 
-$c->console->minimumArguments(1, 'Please provide the filename.');
+$console->echo('<primary>This is a primary test');
+$console->echo('<secondary>This is a secondary test');
 
-$filename = $c->console->getArgument(1);
+$console->line();
 
-$c->console->echo('<red>Using File <white>' . $filename);
+$console->error('Danger, Will Robinson!');
+$console->success('Task Success!');
+$console->info('Important Information!');
+$console->warning('Warning! System Overload!');
 
-$color = $c->console->getArgumentByOption('-color');
+$console->line();
 
-$c->console->echo('<red>Using Color <white>' . $color);
+$console->minimumArguments(1, 'Please provide the filename.');
 
-$last = $c->console->getLastArgument();
+$filename = $console->getArgument(1);
 
-$c->console->echo('<red>Last <white>' . $last);
+$console->echo('Using File <bold>' . $filename);
 
-$arg1 = $c->console->getArgument(1);
+$color = $console->getArgumentByOption('-color');
 
-$c->console->echo('<red>Arg 1 <white>' . $arg1);
+$console->echo('Using Color <bold>' . $color);
+
+$last = $console->getLastArgument();
+
+$console->echo('Last <bold>' . $last);
+
+$arg1 = $console->getArgument(1);
+
+$console->echo('Arg 1 <bold>' . $arg1);
 
 $table = [
     ['Colors','Names','Age'],
@@ -44,14 +55,14 @@ $table = [
     ['Yellow','Jack Black',857],
 ];
 
-$c->console->table($table);
+$console->table($table);
 
-$name = $c->console->getLine('<yellow>What is your name?');
+$name = $console->getLine('What is your name?');
 
-$c->console->echo('<purple>Hello <normal>' . $name);
+$console->echo('<bright blue>Hello <secondary>' . $name);
 
-$c->console->list([1=>'red',2=>'blue',3=>'green']);
+$console->list([1=>'red',2=>'blue',3=>'green']);
 
-$selection = $c->console->getOneOf(null, [1,2,3]);
+$selection = $console->getOneOf(null, [1,2,3]);
 
-$c->console->echo('<purple>You selected <normal>' . $selection);
+$console->echo('<primary>You selected <secondary>' . $selection);

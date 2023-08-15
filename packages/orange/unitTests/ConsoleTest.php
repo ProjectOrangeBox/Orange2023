@@ -15,32 +15,14 @@ final class ConsoleTest extends unitTestHelper
     {
         $this->instance = new Console([
             'simulate' => true,
+            'color' => true,
             'Linefeed Character' => 'EOL',
-            'List Format' => '<dark>[<primary>%key%<dark>] %value%',
-            'named' => [
-                'primary' => '0;34',
-                'secondary' => '1;34',
-
-                'success' => '0;32',
-                'danger' => '1:37,41',
-                'warning' => '1;33',
-                'info' => '1;36',
-
-                'light' => '1;37',
-                'dark' => '0;37',
-            ],
+            'List Format' => '<off>[<primary>%key%<off>] %value%',
             'icons' => [
-                'success' => '✔',
-                'danger' => '✘',
-                'warning' => '❖',
-                'info' => '➜',
-            ],
-
-            'icons' => [
-                'success' => '✔',
-                'danger' => '✘',
-                'warning' => '❖',
-                'info' => '➜',
+                'success' => '@',
+                'danger' => '#',
+                'warning' => '$',
+                'info' => '*',
             ],
         ], new Input([
             'server' => [
@@ -73,32 +55,49 @@ final class ConsoleTest extends unitTestHelper
         $this->assertEquals('This is a test', $this->getPrivatePublic('stdout'));
     }
 
+    public function testEcho3(): void
+    {
+        $this->instance->echo('<primary>This is a <blink>test', false);
+
+        $this->assertEquals('<primary>This is a <blink>test', $this->getPrivatePublic('stdout'));
+    }
+
+    public function testErrorNoColor(): void
+    {
+        $this->setPrivatePublic('color',false);
+        $this->setPrivatePublic('simulate',false);
+     
+        $this->instance->error('Danger, Will Robinson!');
+
+        $this->assertEquals('# Danger, Will Robinson!EOL', $this->getPrivatePublic('stderr'));
+    }
+
     public function testError(): void
     {
-        $this->instance->error('This is a test');
+        $this->instance->error('Danger, Will Robinson!');
 
-        $this->assertEquals('%1B%5B1%3A37m%1B%5B41m%E2%9C%98+This+is+a+test%1B%5B0mEOL', urlencode($this->getPrivatePublic('stderr')));
+        $this->assertEquals('<danger># Danger, Will Robinson!EOL', $this->getPrivatePublic('stderr'));
     }
 
     public function testSuccess(): void
     {
-        $this->instance->success('This is a test');
+        $this->instance->success('Task Success!');
 
-        $this->assertEquals('%1B%5B0%3B32m%E2%9C%94+This+is+a+test%1B%5B0mEOL', urlencode($this->getPrivatePublic('stdout')));
+        $this->assertEquals('<success>@ Task Success!EOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testInfo(): void
     {
-        $this->instance->info('This is a test');
+        $this->instance->info('Important Information!');
 
-        $this->assertEquals('%1B%5B1%3B36m%E2%9E%9C+This+is+a+test%1B%5B0mEOL', urlencode($this->getPrivatePublic('stdout')));
+        $this->assertEquals('<info>* Important Information!EOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testWarning(): void
     {
-        $this->instance->warning('This is a test');
+        $this->instance->warning('Warning! System Overload!');
 
-        $this->assertEquals('%1B%5B1%3B33m%E2%9D%96+This+is+a+test%1B%5B0mEOL', urlencode($this->getPrivatePublic('stdout')));
+        $this->assertEquals('<warning>$ Warning! System Overload!EOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testStop(): void
@@ -176,14 +175,14 @@ final class ConsoleTest extends unitTestHelper
 
         $this->instance->table($table);
 
-        $this->assertEquals('-------------------EOL| name    | age  |EOLEOL-------------------EOL| Johnny  | 21   |EOLEOL| Jenny   | 28   |EOLEOL-------------------EOL', $this->getPrivatePublic('stdout'));
+        $this->assertEquals('-------------------EOL| name    | age  |EOL-------------------EOL| Johnny  | 21   |EOL| Jenny   | 28   |EOL-------------------EOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testList(): void
     {
         $this->assertInstanceOf(ConsoleInterface::class, $this->instance->list([1 => 'red', 2 => 'blue', 3 => 'green']));
 
-        $this->assertEquals('%1B%5B0%3B37m%5B%1B%5B0%3B34m1%1B%5B0%3B37m%5D+red%1B%5B0mEOL%1B%5B0%3B37m%5B%1B%5B0%3B34m2%1B%5B0%3B37m%5D+blue%1B%5B0mEOL%1B%5B0%3B37m%5B%1B%5B0%3B34m3%1B%5B0%3B37m%5D+green%1B%5B0mEOL', urlencode($this->getPrivatePublic('stdout')));
+        $this->assertEquals('<off>[<primary>1<off>] redEOL<off>[<primary>2<off>] blueEOL<off>[<primary>3<off>] greenEOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testGetLine(): void
