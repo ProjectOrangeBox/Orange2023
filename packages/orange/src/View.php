@@ -14,7 +14,7 @@ class View extends ViewerAbstract implements ViewerInterface
 
     public function __construct(array $config, ?DataInterface $data = null)
     {
-        $this->config = \mergeDefaultConfig($config, __DIR__ . '/config/view.php');
+        $this->config = $config;
         $this->data = $data;
 
         $this->setConfiguration();

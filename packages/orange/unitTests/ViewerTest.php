@@ -12,7 +12,15 @@ final class ViewerTest extends unitTestHelper
 
     protected function setUp(): void
     {
-        $this->instance = new View([], new Data());
+        $config = [
+            'view paths' => [],
+            'view aliases' => [],
+            'temp folder' => sys_get_temp_dir(),
+            'debug' => false,
+            'extension' => '.php',
+        ];
+
+        $this->instance = new View($config, new Data());
 
         $this->instance->addPath(__DIR__ . '/support/views');
     }

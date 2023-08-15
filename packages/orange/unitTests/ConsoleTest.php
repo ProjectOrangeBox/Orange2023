@@ -14,8 +14,28 @@ final class ConsoleTest extends unitTestHelper
     protected function setUp(): void
     {
         $this->instance = new Console([
-            'testing' => true,
+            'simulate' => true,
             'Linefeed Character' => 'EOL',
+            'List Format' => '<dark>[<primary>%key%<dark>] %value%',
+            'named' => [
+                'primary' => '0;34',
+                'secondary' => '1;34',
+
+                'success' => '0;32',
+                'danger' => '1:37,41',
+                'warning' => '1;33',
+                'info' => '1;36',
+
+                'light' => '1;37',
+                'dark' => '0;37',
+            ],
+            'icons' => [
+                'success' => '✔',
+                'danger' => '✘',
+                'warning' => '❖',
+                'info' => '➜',
+            ],
+
             'icons' => [
                 'success' => '✔',
                 'danger' => '✘',

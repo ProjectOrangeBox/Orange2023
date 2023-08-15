@@ -72,7 +72,7 @@ class Console implements ConsoleInterface
     protected string $normal = "\033[0m";
 
     // unit testing
-    protected bool $testing = false;
+    protected bool $simulate = false;
     protected string $stdin = '';
     protected string $stderr = '';
     protected string $stdout = '';
@@ -88,7 +88,7 @@ class Console implements ConsoleInterface
 
     public function __construct(array $config, InputInterface $input)
     {
-        $this->config = mergeDefaultConfig($config, __DIR__ . '/config/console.php');
+        $this->config = $config;
 
         $this->lf = $this->config['Linefeed Character'];
 
@@ -98,7 +98,7 @@ class Console implements ConsoleInterface
 
         $this->icons = $this->config['icons'];
 
-        $this->testing = $this->config['testing'];
+        $this->simulate = $this->config['simulate'];
 
         $this->input = $input;
     }
@@ -143,7 +143,7 @@ class Console implements ConsoleInterface
     {
         $this->error($string, $linefeed);
 
-        if ($this->testing) {
+        if ($this->simulate) {
             throw new ExitException('exit(1)');
         }
 
@@ -441,7 +441,7 @@ class Console implements ConsoleInterface
 
     protected function write(string $handle, string $string): self
     {
-        if ($this->testing) {
+        if ($this->simulate) {
             if ($handle == 'STDERR') {
                 $this->stderr .= $string;
             } else {
@@ -466,7 +466,7 @@ class Console implements ConsoleInterface
 
         $this->system .= $command;
 
-        if (!$this->testing) {
+        if (!$this->simulate) {
             $results = exec($command);
         }
 
@@ -485,7 +485,7 @@ class Console implements ConsoleInterface
             'named' => $this->named,
             'lf' => $this->lf,
             'normal' => $this->normal,
-            'testing' => $this->testing,
+            'simulate' => $this->simulate,
             'stderr' => $this->stderr,
             'stdout' => $this->stdout,
             'stdin' => $this->stdin,
