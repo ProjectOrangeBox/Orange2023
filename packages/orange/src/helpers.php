@@ -162,10 +162,12 @@ if (!function_exists('orangeErrorHandler')) {
 if (!function_exists('_lowleveldeath')) {
     function _lowleveldeath(string $text, int $errorCode = 500): void
     {
-        $container = Container::getServiceIfExists('error');
+        $container = Container::getInstance();
 
         if ($container) {
-            $container->error->reset()->showError($text, $errorCode);
+            if ($container->has('error')) {
+                $container->error->reset()->showError($text, $errorCode);
+            }
         } else {
             // error service not setup
             if (isset($_SERVER['SERVER_PROTOCOL'])) {

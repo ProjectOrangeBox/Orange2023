@@ -185,7 +185,7 @@ class Error implements ErrorInterface
         $mimeType = $override['mime type'] ?? $this->requestConfig['mime type'];
         $subFolder = $override['subfolder'] ?? $this->requestConfig['subfolder'];
 
-        if (!empty($subFolder)) {
+        if (empty($subFolder)) {
             $finalView = (string)$view;
         } else {
             $finalView = trim($subFolder, '/') . '/' . $view;

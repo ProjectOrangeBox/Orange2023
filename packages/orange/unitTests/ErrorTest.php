@@ -18,7 +18,7 @@ final class ErrorTest extends unitTestHelper
     {
         $errorConfig = [
             'view paths' => [
-                __DIR__ . '/support/views',
+                __DIR__ . '/support/views/errors',
             ],
             'types' => [
                 'cli' => [
