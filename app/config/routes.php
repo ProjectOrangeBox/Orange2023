@@ -8,6 +8,13 @@ return [
         /* home page */
         ['method' => '*', 'url' => '/', 'callback' => [\app\controllers\MainController::class, 'index'], 'name' => 'home'],
 
+        ['method' => 'get',     'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'get'],    'name' => 'restGet'],
+        ['method' => 'post',    'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'post'],   'name' => 'restPost'],
+        ['method' => 'put',     'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'put'],    'name' => 'restPut'],
+        ['method' => 'delete',  'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'delete'], 'name' => 'restDelete'],
+        ['method' => 'patch',   'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'patch'],  'name' => 'restPatch'],
+        ['method' => 'options', 'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'options'],'name' => 'restOptions'],
+
         /* 404 catch all */
         ['method' => '*', 'url' => '(.*)', 'callback' => [\app\controllers\FourohfourController::class, 'index'], 'name'=> 'fourohfour'],
 

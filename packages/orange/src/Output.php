@@ -23,6 +23,7 @@ class Output implements OutputInterface
     protected bool $showAlreadySentError = false;
     protected array $cookies = [];
     protected array $sentCookies = [];
+    protected array $popularContentTypes = [];
 
     public function __construct(array $config)
     {
@@ -31,6 +32,7 @@ class Output implements OutputInterface
         $this->charSet = $config['charSet'];
         $this->simulate = $config['simulate'];
         $this->showAlreadySentError = $config['show already sent error'];
+        $this->popularContentTypes = require __DIR__ . '/config/mimes.php';
 
         $this->header('Content-Type: ' . $this->contentType . '; charset=' . $this->charSet, 'Content-Type');
     }
@@ -72,6 +74,10 @@ class Output implements OutputInterface
 
     public function contentType(string $contentType): self
     {
+        // if they send in the shorthand content type convert to proper content type
+        if (isset($this->popularContentTypes[$contentType])) {
+            $contentType = $this->popularContentTypes[$contentType];
+        }
 
         $this->contentType = $contentType;
 
@@ -205,7 +211,7 @@ class Output implements OutputInterface
         $this->flushAll()->header('Location: ' . $url)->responseCode($responseCode)->send($exit);
     }
 
-    public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = NULL, bool $httponly = NULL, string $samesite = NULL): self
+    public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = null, bool $httponly = null, string $samesite = null): self
     {
         if (is_array($name)) {
             // always leave 'name' in last place, as the loop will break otherwise, due to $$item
@@ -226,8 +232,8 @@ class Output implements OutputInterface
             $path = $configCookie['path'];
         }
 
-        $secure = ($secure === NULL && $configCookie['secure'] !== NULL) ? (bool) $configCookie['secure'] : (bool) $secure;
-        $httponly = ($httponly === NULL && $configCookie['httponly'] !== NULL) ? (bool) $configCookie['httponly'] : (bool) $httponly;
+        $secure = ($secure === null && $configCookie['secure'] !== null) ? (bool) $configCookie['secure'] : (bool) $secure;
+        $httponly = ($httponly === null && $configCookie['httponly'] !== null) ? (bool) $configCookie['httponly'] : (bool) $httponly;
 
         $expire = ($expire > 0) ? time() + $expire : 0;
 
@@ -235,7 +241,7 @@ class Output implements OutputInterface
 
         if (isset($samesite)) {
             $samesite = ucfirst(strtolower($samesite));
-            in_array($samesite, ['Lax', 'Strict', 'None'], TRUE) || $samesite = 'Lax';
+            in_array($samesite, ['Lax', 'Strict', 'None'], true) || $samesite = 'Lax';
         } else {
             $samesite = 'Lax';
         }

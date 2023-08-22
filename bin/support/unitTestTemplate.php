@@ -2,7 +2,7 @@ declare(strict_types=1);
 
 final class {{classname}}Test extends unitTestHelper
 {
-    private $instance;
+    protected $instance;
     
     protected function setUp(): void
     {
@@ -14,7 +14,11 @@ final class {{classname}}Test extends unitTestHelper
         fwrite(STDOUT, __METHOD__ . "\n");
     }
 
-    /* Tests */
-{{tests}}
+    /* Public Method Tests */
 
+    {{public}}
+
+    /* Protected Method Tests */
+
+    {{protected}}
 }

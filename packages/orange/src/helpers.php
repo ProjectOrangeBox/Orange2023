@@ -4,14 +4,13 @@ use dmyers\orange\Container;
 use dmyers\orange\exceptions\ConfigFileNotFound;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 
-/**
- * Used to load default config
- * 
- * $this->config = mergeDefaultConfig($config,__DIR__.'/config/myClassLocalDefaultfConfig.php');
- * 
- */
-
- if (!function_exists('mergeDefaultConfig')) {
+if (!function_exists('mergeDefaultConfig')) {
+    /**
+     * Used to load default config
+     *
+     * $this->config = mergeDefaultConfig($config,__DIR__.'/config/myClassLocalDefaultfConfig.php');
+     *
+     */
     function mergeDefaultConfig(array &$current, string $absFilePath): array
     {
         if (!\file_exists($absFilePath)) {
@@ -172,12 +171,48 @@ if (!function_exists('_lowleveldeath')) {
             if (isset($_SERVER['SERVER_PROTOCOL'])) {
                 header($_SERVER['SERVER_PROTOCOL'] . ' ' . $errorCode . ' Internal Server Error', true, $errorCode);
             }
-            
+
             $text = (defined('ENVIRONMENT') && ENVIRONMENT == 'production') ? $text : $errorCode;
-            
+
             echo '<pre>Error: ' . PHP_EOL . $text . PHP_EOL . '</pre>';
         }
 
         exit(1);
+    }
+}
+
+if (!function_exists('concat')) {
+    function concat(): string
+    {
+        return implode('', func_get_args());
+    }
+}
+
+if (!function_exists('getDotNotation')) {
+    function getDotNotation($input, string $dotNotation, $default = null, string $dot = '.')
+    {
+        if (!empty($dotNotation) && !empty($dot)) {
+            $keys = explode($dot, $dotNotation);
+
+            foreach ($keys as $key) {
+                if (is_array($input)) {
+                    if (isset($input[$key])) {
+                        $input = $input[$key];
+                    } else {
+                        return $default;
+                    }
+                } elseif (is_object($input)) {
+                    if (isset($input->$key)) {
+                        $input = $input->$key;
+                    } else {
+                        return $default;
+                    }
+                } else {
+                    return $default;
+                }
+            }
+        }
+
+        return $input;
     }
 }

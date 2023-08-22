@@ -65,5 +65,5 @@ class Dispatcher implements DispatcherInterface
     public function __debugInfo(): array
     {
         return [];
-    }    
+    }
 }

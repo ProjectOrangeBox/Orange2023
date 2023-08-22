@@ -29,10 +29,11 @@ echo $file . $n;
 
 $basename = basename($file, '.php');
 $template = file_get_contents(__ROOT__ . '/support/unitTestTemplate.php');
-$methodText = '';
+
+$methodsPHP = [];
 
 foreach (['public', 'protected'] as $type) {
-    $methodText .= PHP_EOL.chr(9).'/* '.$type.' */'.PHP_EOL.PHP_EOL;
+    $methodText = '';
     $singleTemplate = file_get_contents(__ROOT__ . '/support/unitTest' . ucfirst($type) . 'Template.php');
     $methods = getMethods($type, $file);
 
@@ -40,9 +41,11 @@ foreach (['public', 'protected'] as $type) {
         echo $method . PHP_EOL;
         $methodText .= str_replace('{{method}}', ucfirst($method), $singleTemplate);
     }
+
+    $methodsPHP[$type] = $methodText;
 }
 
-$complete = '<?php' . PHP_EOL . PHP_EOL . str_replace(['{{classname}}', '{{tests}}'], [$basename, $methodText], $template) . PHP_EOL;
+$complete = '<?php' . PHP_EOL . PHP_EOL . str_replace(['{{classname}}', '{{public}}','{{protected}}'], [$basename, $methodsPHP['public'],$methodsPHP['protected']], $template) . PHP_EOL;
 
 $finalName = ucfirst($basename) . 'Test.php';
 

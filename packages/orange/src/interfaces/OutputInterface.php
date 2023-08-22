@@ -6,9 +6,9 @@ namespace dmyers\orange\interfaces;
 
 interface OutputInterface
 {
-    const HTML = 'text/html';
-    const JSON = 'application/json';
-    const JSONOPTIONS = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT;
+    public const HTML = 'text/html';
+    public const JSON = 'application/json';
+    public const JSONOPTIONS = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT;
 
     public function flush(): self;
     public function set(string $html): self;
@@ -31,7 +31,7 @@ interface OutputInterface
     public function getResponseCode(): int;
     public function sendResponseCode(): self;
 
-    public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = NULL, bool $httponly = NULL, string $samesite = NULL): self;
+    public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = null, bool $httponly = null, string $samesite = null): self;
     public function flushCookies(): self;
 
     public function flushAll(): self;

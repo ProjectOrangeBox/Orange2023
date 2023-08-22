@@ -39,7 +39,7 @@ class Container implements ContainerInterface
     public function setServices(array $serviceArray): self
     {
         $container = $this->getInstance();
-        
+
         foreach ($serviceArray as $serviceName => $option) {
             $container->set($serviceName, $option);
         }

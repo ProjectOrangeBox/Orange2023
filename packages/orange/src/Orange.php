@@ -9,7 +9,7 @@ use dmyers\orange\interfaces\ContainerInterface;
 
 define('NOVALUE', '__#NOVALUE#__');
 
-require __DIR__.'/helpers.php';
+require __DIR__ . '/helpers.php';
 
 /**
  * bootstrap http application
@@ -79,7 +79,7 @@ if (!function_exists('bootstrap')) {
         }
 
         define('DEBUG', $config['debug'] ?? fetchEnv('DEBUG', false));
-        define('ENVIRONMENT', $config['environment'] ?? fetchEnv('ENVIRONMENT','production'));
+        define('ENVIRONMENT', $config['environment'] ?? fetchEnv('ENVIRONMENT', 'production'));
 
         if (file_exists($config['config folder'] . '/constants.php')) {
             require_once($config['config folder'] . '/constants.php');

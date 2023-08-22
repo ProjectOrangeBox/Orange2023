@@ -16,7 +16,7 @@ class Input implements InputInterface
     protected bool $isHttps = false;
     protected string $ipAddress = '';
     protected array $config = [];
-    protected array $_server = [];
+    protected array $serverCopy = [];
 
     public function __construct(array $config)
     {
@@ -36,7 +36,9 @@ class Input implements InputInterface
 
     public function requestUri(): string
     {
-        return $this->_server['request_uri'] ?? '';
+        $path = parse_url($this->serverCopy['request_uri'], PHP_URL_PATH);
+
+        return ($path !== false) ? $path : '';
     }
 
     public function uriSegement(int $int): string
@@ -106,14 +108,23 @@ class Input implements InputInterface
         return $this->pick('cookie', $name, $default);
     }
 
+    /**
+     * Get a copy of ONLY the input
+     */
     public function copy(): array
     {
         return $this->input;
     }
 
+    /**
+     * replace the input
+     */
     public function replace(array $input): self
     {
-        foreach ($this->config['valid input keys'] as $key) {
+        // default input keys
+        $inputKeys = ($this->config['valid input keys']) ?? ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'];
+
+        foreach ($inputKeys as $key) {
             $this->input[$key] = [];
 
             if (isset($input[$key])) {
@@ -126,7 +137,7 @@ class Input implements InputInterface
 
                     // save a copy for internal logic
                     if ($key == 'server') {
-                        $this->_server = array_change_key_case($input[$key], CASE_LOWER);
+                        $this->serverCopy = array_change_key_case($input[$key], CASE_LOWER);
                     }
 
                     $this->input[$key] = $this->cleanKeys($input[$key]);
@@ -135,9 +146,9 @@ class Input implements InputInterface
         }
 
         // setup the request type based on a few things
-        $isAjax = (!empty($this->_server['http_x_requested_with']) && strtolower($this->_server['http_x_requested_with']) == 'xmlhttprequest');
-        $isJson = (!empty($this->_server['http_accept']) && strpos(strtolower($this->_server['http_accept']), 'application/json') !== false);
-        
+        $isAjax = (!empty($this->serverCopy['http_x_requested_with']) && strtolower($this->serverCopy['http_x_requested_with']) == 'xmlhttprequest');
+        $isJson = (!empty($this->serverCopy['http_accept']) && strpos(strtolower($this->serverCopy['http_accept']), 'application/json') !== false);
+
         // 2 different checks
         $isCli1 = (!empty($input['PHP_SAPI']) && $input['PHP_SAPI'] === 'CLI');
         $isCli2 = (!empty($input['STDIN']) && $input['STDIN'] === true);
@@ -147,21 +158,21 @@ class Input implements InputInterface
 
         if ($isAjax || $isJson) {
             $this->requestType = 'ajax';
-            $this->requestMethod = $this->_server['request_method'] ?? '';
+            $this->requestMethod = $this->serverCopy['request_method'] ?? '';
         } elseif ($isCli) {
             $this->requestType = 'cli';
             $this->requestMethod = 'cli';
         } else {
             $this->requestType = 'html';
-            $this->requestMethod = $this->_server['request_method'] ?? '';
+            $this->requestMethod = $this->serverCopy['request_method'] ?? '';
         }
 
         // is this https
-        if (!empty($this->_server['https']) && $this->_server['https'] !== 'off') {
+        if (!empty($this->serverCopy['https']) && $this->serverCopy['https'] !== 'off') {
             $this->isHttps = true;
-        } elseif (isset($this->_server['http_x_forwarded_proto']) && $this->_server['http_x_forwarded_proto'] === 'https') {
+        } elseif (isset($this->serverCopy['http_x_forwarded_proto']) && $this->serverCopy['http_x_forwarded_proto'] === 'https') {
             $this->isHttps = true;
-        } elseif (!empty($this->_server['http_front_end_https']) && $this->_server['http_front_end_https'] !== 'off') {
+        } elseif (!empty($this->serverCopy['http_front_end_https']) && $this->serverCopy['http_front_end_https'] !== 'off') {
             $this->isHttps = true;
         } else {
             $this->isHttps = false;
@@ -198,7 +209,9 @@ class Input implements InputInterface
 
     protected function cleanKey(string $key): string
     {
-        switch (strtolower((string)$this->config['convert keys to'])) {
+        $case = ($this->config['convert keys to']) ?? 'lowercase';
+
+        switch (strtolower($case)) {
             case 'lowercase':
                 $key = strtolower($key);
                 break;

@@ -6,15 +6,15 @@ namespace dmyers\orange\interfaces;
 
 interface LogInterface
 {
-    const EMERGENCY = 1;
-    const ALERT = 2;
-    const CRITICAL = 4;
-    const ERROR = 8;
-    const WARNING = 16;
-    const NOTICE = 32;
-    const INFO = 64;
-    const DEBUG = 128;
-    const ALL = 255;
+    public const EMERGENCY = 1;
+    public const ALERT = 2;
+    public const CRITICAL = 4;
+    public const ERROR = 8;
+    public const WARNING = 16;
+    public const NOTICE = 32;
+    public const INFO = 64;
+    public const DEBUG = 128;
+    public const ALL = 255;
 
     public function changeThreshold(int $threshold): self;
     public function getThreshold(): int;

@@ -6,11 +6,11 @@ namespace dmyers\orange\interfaces;
 
 interface EventInterface
 {
-    const PRIORITY_LOWEST = 10;
-    const PRIORITY_LOW = 20;
-    const PRIORITY_NORMAL = 50;
-    const PRIORITY_HIGH = 80;
-    const PRIORITY_HIGHEST = 90;
+    public const PRIORITY_LOWEST = 10;
+    public const PRIORITY_LOW = 20;
+    public const PRIORITY_NORMAL = 50;
+    public const PRIORITY_HIGH = 80;
+    public const PRIORITY_HIGHEST = 90;
 
     public function register($trigger, $callable, int $priority = self::PRIORITY_NORMAL): int;
     public function registerMultiple(array $multiple, int $priority = self::PRIORITY_NORMAL): array;

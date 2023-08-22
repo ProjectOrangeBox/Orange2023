@@ -12,17 +12,14 @@ class model extends ModelAbstract
 
     public function getUser(int $id)
     {
-        return $this->_getById($id);
+        return $this->getById($id);
     }
 
     public function getUserDetailed(int $id)
     {
         $record = [];
 
-        $dbc = $this
-            ->_joinInner('join', 'main.id', 'join.parent_id')
-            ->_where('main.id', $id)
-            ->_select('main.id, first_name, last_name, join.id as jid, child_name');
+        $dbc = $this->sql->select('main.id, first_name, last_name, join.id as jid, child_name')->where('main.id','=',$id)->innerJoin('join', 'main.id', 'join.parent_id')->run()->rows();
 
         if ($dbc) {
             foreach ($dbc as $record) {

@@ -254,7 +254,7 @@ class Console implements ConsoleInterface
         return $this;
     }
 
-    public function list(array $list, array $options = []): Self
+    public function list(array $list, array $options = []): self
     {
         foreach ($list as $key => $value) {
             $this->echo(str_replace(['%key%', '%value%'], [$key, $value], $this->listFormat));

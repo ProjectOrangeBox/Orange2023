@@ -19,12 +19,12 @@ interface ConsoleInterface
     public function clear(): self;
     public function linefeed(int $times = 1): self;
 
-    public function table(array $table,array $options = []): self;
+    public function table(array $table, array $options = []): self;
     public function list(array $list, array $options = []): self;
 
     public function getLine(string $prompt = null): string;
     public function getLineOneOf(string $prompt = null, array $options): string;
-    
+
     public function get(string $prompt = null): string;
     public function getOneOf(string $prompt = null, array $options): string;
 

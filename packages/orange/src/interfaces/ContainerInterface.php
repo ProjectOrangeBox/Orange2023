@@ -8,9 +8,9 @@ use Closure;
 
 interface ContainerInterface
 {
-    const CLOSURE = 1;
-    const ALIAS = 2;
-    const VALUE = 3;
+    public const CLOSURE = 1;
+    public const ALIAS = 2;
+    public const VALUE = 3;
 
     public static function getService(string $name): mixed;
     public static function getServiceIfExists(string $name): mixed;

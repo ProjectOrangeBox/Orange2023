@@ -186,14 +186,14 @@ class Event implements EventInterface
             //   $var = 'Hello ' . $var. ' how are you?';
             // }
             //
-            $eventId = $this->_registerClosureEvent($trigger, $callable, $priority);
+            $eventId = $this->registerClosureEvent($trigger, $callable, $priority);
         } elseif (is_array($callable) && count($callable) == 2) {
             //
             // register a class & method
             //
             // [\app\libraries\Middleware::class,'before']
 
-            $eventId = $this->_registerClosureEvent($trigger, function (&...$arguments) use ($callable) {
+            $eventId = $this->registerClosureEvent($trigger, function (&...$arguments) use ($callable) {
                 list($className, $methodName) = $callable;
 
                 return (new $className())->$methodName(...$arguments);
@@ -205,7 +205,7 @@ class Event implements EventInterface
         return $eventId;
     }
 
-    protected function _registerClosureEvent(string $trigger, $callable, int $priority): int
+    protected function registerClosureEvent(string $trigger, $callable, int $priority): int
     {
         $eventId = \intval((string)$priority . (string)\hrtime(true));
 

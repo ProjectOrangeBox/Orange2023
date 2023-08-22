@@ -18,7 +18,7 @@ final class ModelTest extends unitTestHelper
         require_once __DIR__ . '/support/model.php';
 
         // instance of Model Abstract Class
-        $this->instance = new model($this->pdo, []);
+        $this->instance = new model([],$this->pdo);
     }
 
     protected function tearDown(): void

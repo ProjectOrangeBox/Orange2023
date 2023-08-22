@@ -13,11 +13,11 @@ use dmyers\orange\exceptions\FolderNotWritable;
 
 /**
  * This should be extended by viewer classes
- * 
+ *
  * The default view.php is a simple PHP based view rendering engine
- * 
+ *
  * other could be for example handlebars, markdown, twig, mailmerge
- * 
+ *
  */
 abstract class ViewerAbstract implements ViewerInterface
 {
