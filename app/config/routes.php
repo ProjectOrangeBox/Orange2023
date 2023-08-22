@@ -15,6 +15,11 @@ return [
         ['method' => 'patch',   'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'patch'],  'name' => 'restPatch'],
         ['method' => 'options', 'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'options'],'name' => 'restOptions'],
 
+        ['method' => '*', 'url' => '/missing',  'callback' => [\app\controllers\MainController::class, 'missing'],  'name' => 'missing'],
+        ['method' => '*', 'url' => '/redirect', 'callback' => [\app\controllers\MainController::class, 'redirect'], 'name' => 'redirect'],
+        ['method' => '*', 'url' => '/error',    'callback' => [\app\controllers\MainController::class, 'error'],    'name' => 'error'],
+
+
         /* 404 catch all */
         ['method' => '*', 'url' => '(.*)', 'callback' => [\app\controllers\FourohfourController::class, 'index'], 'name'=> 'fourohfour'],
 

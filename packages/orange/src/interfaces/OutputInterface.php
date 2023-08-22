@@ -14,7 +14,7 @@ interface OutputInterface
     public function set(string $html): self;
     public function append(string $html): self;
     public function get(): string;
-    public function send(): void;
+    public function send(bool $exit = false): void;
 
     public function contentType(string $contentType): self;
     public function getContentType(): string;

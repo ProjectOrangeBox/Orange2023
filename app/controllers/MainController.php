@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
+use dmyers\orange\Container;
+use app\controllers\BaseController;
+
 class MainController extends BaseController
 {
     public function index()
@@ -19,5 +22,17 @@ class MainController extends BaseController
         $this->data['name'] = 'Johnny Appleseed';
 
         return $this->view->render('index');
+    }
+
+    public function missing(){
+        $this->output->flushAll()->responseCode(404)->send(true);
+    }
+
+    public function redirect(){
+        $this->output->redirect('/');
+    }
+
+    public function error(){
+        $this->output->flushAll()->responseCode(500)->send(true);
     }
 }
