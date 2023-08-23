@@ -1,3 +1,3 @@
 #!/bin/sh
 
-../../../vendor/bin/phpunit --prepend prepend.php --colors --testdox --bootstrap bootstrap.php --testdox-html results.html ../unitTests/
+../../../vendor/bin/phpunit --colors --testdox --prepend prepend.php --bootstrap bootstrap.php --testdox-html results.html ../unitTests/

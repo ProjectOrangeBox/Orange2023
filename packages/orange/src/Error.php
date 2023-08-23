@@ -16,7 +16,7 @@ class Error implements ErrorInterface
 {
     private static ErrorInterface $instance;
     protected OutputInterface $output;
-    protected LogInterface $log;
+    protected ?LogInterface $log = null;
     protected ViewerInterface $viewer;
 
     protected array $config = [];
@@ -31,7 +31,7 @@ class Error implements ErrorInterface
         $this->config = $config;
         $this->viewer = $viewer;
         $this->output = $output;
-        $this->log = $log ?? new Log([]);
+        $this->log = $log;
 
         // clears all variables
         // set the request type

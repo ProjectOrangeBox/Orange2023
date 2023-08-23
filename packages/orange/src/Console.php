@@ -95,6 +95,11 @@ class Console implements ConsoleInterface
     protected string $lf = "\n";
     protected bool $color = true;
 
+    protected array $argv = [];
+    protected int $argc = 0;
+    protected int $verbose = 1;
+
+
     // unit testing
     protected bool $simulate = false;
     protected string $stdin = '';
@@ -121,6 +126,9 @@ class Console implements ConsoleInterface
         }
 
         $this->input = $input;
+
+        $this->argv = $this->input->server('argv',[]);
+        $this->argc = $this->input->server('argc',0);
     }
 
     public static function getInstance(array $config, InputInterface $input): self
@@ -130,6 +138,33 @@ class Console implements ConsoleInterface
         }
 
         return self::$instance;
+    }
+
+    // handle verbose
+    public function verbose(int $level): self
+    {
+        $this->verbose = $level;
+
+        return $this;
+    }
+
+    public function getVerboseLevel(): self
+    {
+        $level = 0;
+
+        for ($vlevel = 1; $vlevel <= 4; $vlevel++) {
+            if ($this->getArgumentExists('-' . str_repeat('v', $vlevel))) {
+                $level = $vlevel;
+                break;
+            }
+        }
+
+        return $this->verbose($level);
+    }
+
+    public function ifVerbose(int $level): bool
+    {
+        return ($this->verbose >= $level);
     }
 
     /* sending output */
@@ -326,7 +361,7 @@ class Console implements ConsoleInterface
 
     public function minimumArguments(int $num, string $error = null): self
     {
-        if ($this->input->server('argc') < ($num + 1)) {
+        if ($this->argc < ($num + 1)) {
             if (!$error) {
                 $error = 'Please provide ' . $num . ' arguments';
             }
@@ -337,9 +372,24 @@ class Console implements ConsoleInterface
         return $this;
     }
 
+    public function getArgumentExists(string $match): bool
+    {
+        $found = false;
+
+        foreach ($this->argv as $arg) {
+            if ($arg == $match) {
+                $found = true;
+
+                break;
+            }
+        }
+
+        return $found;
+    }
+
     public function getArgument(int $num, string $error = null): string
     {
-        $argv = $this->input->server('argv');
+        $argv = $this->argv;
 
         if (!isset($argv[$num])) {
             if (!$error) {
@@ -356,8 +406,8 @@ class Console implements ConsoleInterface
     {
         $last = '';
 
-        if ($this->input->server('argc') > 0) {
-            $argv = $this->input->server('argv');
+        if ($this->argc > 0) {
+            $argv = $this->argv;
 
             $last = end($argv);
         }
@@ -371,7 +421,7 @@ class Console implements ConsoleInterface
             $error = 'Could not locate a option for ' . $match;
         }
 
-        $argv = $this->input->server('argv');
+        $argv = $this->argv;
 
         foreach ($argv as $key => $value) {
             if ($value == $match) {
@@ -402,7 +452,7 @@ class Console implements ConsoleInterface
 
         foreach ($tags as $tag) {
             // no color remove tag
-            $colorsEscaped = (!$this->color) ? '' : $tag[0];
+            $colorsEscaped = (!$this->color) ? $tag[0] : '';
 
             if (!$this->simulate && $this->color) {
                 // apply color escape codes
@@ -468,10 +518,14 @@ class Console implements ConsoleInterface
             }
         } else {
             if ($handle == 'STDERR') {
-                fwrite(\STDERR, $string);
+                if ($this->verbose > 0) {
+                    fwrite(\STDERR, $string);
+                }
                 $this->stderr .= $string;
             } else {
-                fwrite(\STDOUT, $string);
+                if ($this->verbose > 0) {
+                    fwrite(\STDOUT, $string);
+                }
                 $this->stdout .= $string;
             }
         }

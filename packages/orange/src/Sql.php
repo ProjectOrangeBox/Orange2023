@@ -13,10 +13,13 @@ use PDOStatement;
  * $sql->select('name,age')->from('foo')->wherePrimary(1)->build();
  *
  * $sql->update()->table('foo')->set(['name'=>'jake'])->wherePrimary(1)->build();
+ * $sql->update('foo')->set(['name'=>'jake'])->wherePrimary(1)->build();
  *
  * $sql->insert()->into('foo')->set(['name'=>'jake'])->build();
+ * $sql->insert('foo')->set(['name'=>'jake'])->build();
  *
  * $sql->delete()->from('table')->wherePrimary(1)->build();
+ * $sql->delete('table')->wherePrimary(1)->build();
  *
  */
 
@@ -284,31 +287,31 @@ class Sql
         return $this;
     }
 
-    public function update(): self
+    public function update(string $tablename = ''): self
     {
         $this->reset();
 
         $this->method = 'update';
 
-        return $this;
+        return $this->setTableName($tablename);
     }
 
-    public function insert(): self
+    public function insert(string $tablename = ''): self
     {
         $this->reset();
 
         $this->method = 'insert';
 
-        return $this;
+        return $this->setTableName($tablename);
     }
 
-    public function delete(): self
+    public function delete(string $tablename = ''): self
     {
         $this->reset();
 
         $this->method = 'delete';
 
-        return $this;
+        return $this->setTableName($tablename);
     }
 
     public function escapeTableColumn(string $input): string
@@ -320,8 +323,11 @@ class Sql
         } elseif (strpos($input, ' ') !== false) {
             list($a, $b) = explode(' ', $input, 2);
             $output = $this->escapeTableColumn($a) . ' AS ' . $this->escapeTableColumn($b);
-        } elseif (preg_match('/(?<table>.*)\.(?<column>.*)/i', $input, $matches, 0, 0)) {
-            $output = '`' . trim($matches['table']) . '`.`' . trim($matches['column']) . '`';
+        } elseif (strpos($input, '.') !== false) {
+            // separate on spaces trim and add ` marks. then rejoin on .
+            $output = implode('.', array_map(function ($s) {
+                return '`'.trim($s).'`';
+            }, explode('.', $input)));
         } else {
             $output = '`' . trim($input) . '`';
         }
@@ -514,11 +520,7 @@ class Sql
 
     public function into(string $tablename = ''): self
     {
-        if ($tablename !== '') {
-            $this->tablename = $tablename;
-        }
-
-        return $this;
+        return $this->setTableName($tablename);
     }
 
     public function getInto(): string
@@ -528,11 +530,7 @@ class Sql
 
     public function from(string $tablename = ''): self
     {
-        if ($tablename !== '') {
-            $this->tablename = $tablename;
-        }
-
-        return $this;
+        return $this->setTableName($tablename);
     }
 
     public function getFrom(): string
@@ -542,11 +540,7 @@ class Sql
 
     public function table(string $tablename = ''): self
     {
-        if ($tablename !== '') {
-            $this->tablename = $tablename;
-        }
-
-        return $this;
+        return $this->setTableName($tablename);
     }
 
     public function getTable(): string
@@ -615,5 +609,14 @@ class Sql
         } else {
             $this->PDOStatement->setFetchMode($this->defaultFetchType);
         }
+    }
+
+    public function setTableName(string $tablename): self
+    {
+        if ($tablename !== '') {
+            $this->tablename = $tablename;
+        }
+
+        return $this;
     }
 }

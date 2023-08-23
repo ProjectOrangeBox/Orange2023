@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
-use dmyers\orange\Container;
 use app\controllers\BaseController;
 
 class MainController extends BaseController
