@@ -74,14 +74,13 @@ class Console implements ConsoleInterface
         'bright white bg'   => 107,
         'bright default bg' => 109,
 
+        'primary'           => 36,
+        'secondary'         => 33,
 
-        'primary'       => 36,
-        'secondary'     => 33,
-
-        'success'       => 32,
-        'danger'        => '37,41',
-        'warning'       => '30,43',
-        'info'          => '30,44',
+        'success'           => 32,
+        'danger'            => 91,
+        'warning'           => 93,
+        'info'              => 94,
     ];
 
     protected array $icons = [
@@ -98,7 +97,6 @@ class Console implements ConsoleInterface
     protected array $argv = [];
     protected int $argc = 0;
     protected int $verbose = 1;
-
 
     // unit testing
     protected bool $simulate = false;
@@ -127,8 +125,8 @@ class Console implements ConsoleInterface
 
         $this->input = $input;
 
-        $this->argv = $this->input->server('argv',[]);
-        $this->argc = $this->input->server('argc',0);
+        $this->argv = $this->input->server('argv', []);
+        $this->argc = $this->input->server('argc', 0);
     }
 
     public static function getInstance(array $config, InputInterface $input): self
@@ -169,34 +167,46 @@ class Console implements ConsoleInterface
 
     /* sending output */
 
-    public function echo(string $string, bool $linefeed = true): self
+    public function echo(string $string, int $level = 1, bool $linefeed = true, string $stream = 'STDOUT'): self
     {
-        return $this->write('STDOUT', $this->formatOutput($string, $linefeed));
+        $this->write($stream, $this->formatOutput($string, $linefeed), $level);
+
+        return $this;
     }
 
-    public function error(string $string, bool $linefeed = true): self
+    public function error(string $string, int $level = 1, bool $linefeed = true): self
     {
-        return $this->write('STDERR', $this->formatOutput('<danger>' . $this->getIcon('danger') . $string, $linefeed));
+        return $this->echo('<danger>' . $this->getIcon('danger') . $string, $level, $linefeed, 'STDERR');
     }
 
-    public function success(string $string, bool $linefeed = true): self
+    public function success(string $string, int $level = 1, bool $linefeed = true): self
     {
-        return $this->write('STDOUT', $this->formatOutput('<success>' . $this->getIcon('success') . $string, $linefeed));
+        return $this->echo('<success>' . $this->getIcon('success') . $string, $level, $linefeed);
     }
 
-    public function info(string $string, bool $linefeed = true): self
+    public function info(string $string, int $level = 1, bool $linefeed = true): self
     {
-        return $this->write('STDOUT', $this->formatOutput('<info>' . $this->getIcon('info') . $string, $linefeed));
+        return $this->echo('<info>' . $this->getIcon('info') . $string, $level, $linefeed);
     }
 
-    public function warning(string $string, bool $linefeed = true): self
+    public function warning(string $string, int $level = 1, bool $linefeed = true): self
     {
-        return $this->write('STDOUT', $this->formatOutput('<warning>' . $this->getIcon('warning') . $string, $linefeed));
+        return $this->echo('<warning>' . $this->getIcon('warning') . $string, $level, $linefeed);
     }
 
-    public function stop(string $string, bool $linefeed = true): void
+    public function primary(string $string, int $level = 1, bool $linefeed = true): self
     {
-        $this->error($string, $linefeed);
+        return $this->echo('<primary>' . $string, $level, $linefeed);
+    }
+
+    public function secondary(string $string, int $level = 1, bool $linefeed = true): self
+    {
+        return $this->echo('<secondary>' . $string, $level, $linefeed);
+    }
+
+    public function stop(string $string, int $level = 1, bool $linefeed = true): void
+    {
+        $this->error($string, $level, $linefeed);
 
         if ($this->simulate) {
             throw new ExitException('exit(1)');
@@ -206,33 +216,35 @@ class Console implements ConsoleInterface
     }
 
     /* misc */
-    public function bell(int $times = 1): self
+    public function bell(int $times = 1, int $level = 1): self
     {
-        return $this->write('STDOUT', str_repeat(chr(7), $times));
+        return $this->write('STDOUT', str_repeat(chr(7), $times), $level);
     }
 
-    public function line(int $length = null, string $char = '-'): self
+    public function line(int $length = null, string $char = '-', int $level = 1): self
     {
         $times = ($length) ?? (int)$this->system('tput cols');
 
         $times = (int)floor($times / strlen($char));
 
-        return $this->write('STDOUT', str_repeat($char, $times) .  $this->lf);
+        return $this->write('STDOUT', str_repeat($char, $times) .  $this->lf, $level);
     }
 
-    public function clear(): self
+    public function clear(int $level = 1): self
     {
-        $this->system('clear');
+        if ($this->ifVerbose($level)) {
+            $this->system('clear');
+        }
 
         return $this;
     }
 
-    public function linefeed(int $times = 1): self
+    public function linefeed(int $times = 1, int $level = 1): self
     {
-        return $this->write('STDOUT', str_repeat($this->lf, $times));
+        return $this->write('STDOUT', str_repeat($this->lf, $times), $level);
     }
 
-    public function table(array $table, array $options = []): self
+    public function table(array $table, array $options = [], int $level = 1): self
     {
         // get max column size
         $columnsMaxWidth = [];
@@ -289,7 +301,7 @@ class Console implements ConsoleInterface
         return $this;
     }
 
-    public function list(array $list, array $options = []): self
+    public function list(array $list, array $options = [], int $level = 1): self
     {
         foreach ($list as $key => $value) {
             $this->echo(str_replace(['%key%', '%value%'], [$key, $value], $this->listFormat));
@@ -508,7 +520,7 @@ class Console implements ConsoleInterface
         return $icon;
     }
 
-    protected function write(string $handle, string $string): self
+    protected function write(string $handle, string $string, int $level = 1): self
     {
         if ($this->simulate) {
             if ($handle == 'STDERR') {
@@ -518,12 +530,12 @@ class Console implements ConsoleInterface
             }
         } else {
             if ($handle == 'STDERR') {
-                if ($this->verbose > 0) {
+                if ($this->verbose >= $level) {
                     fwrite(\STDERR, $string);
                 }
                 $this->stderr .= $string;
             } else {
-                if ($this->verbose > 0) {
+                if ($this->verbose >= $level) {
                     fwrite(\STDOUT, $string);
                 }
                 $this->stdout .= $string;
