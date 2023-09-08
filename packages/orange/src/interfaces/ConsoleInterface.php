@@ -8,15 +8,6 @@ interface ConsoleInterface
 {
     public function echo(string $string, int $level = 1, bool $linefeed = true, string $stream = 'STDOUT'): self;
 
-    public function success(string $string, int $level = 1, bool $linefeed = true): self;
-    public function info(string $string, int $level = 1,  bool $linefeed = true): self;
-    public function warning(string $string, int $level = 1,  bool $linefeed = true): self;
-    public function error(string $string, int $level = 1,  bool $linefeed = true): self;
-    public function stop(string $string, int $level = 1,  bool $linefeed = true): void;
-
-    public function primary(string $string, int $level = 1,  bool $linefeed = true): self;
-    public function secondary(string $string, int $level = 1,  bool $linefeed = true): self;
-
     public function bell(int $times = 1, int $level = 1): self;
     public function line(int $length = null, string $char = '─', int $level = 1): self;
     public function clear(int $level = 1): self;
@@ -36,7 +27,12 @@ interface ConsoleInterface
     public function getLastArgument(): string;
     public function getArgumentByOption(string $match, string $error = null): string;
 
+    // set
     public function verbose(int $level): self;
-    public function getVerboseLevel(): self;
+
+    // get
+    public function getVerboseLevel(): int;
+
+    // test
     public function ifVerbose(int $level): bool;
 }

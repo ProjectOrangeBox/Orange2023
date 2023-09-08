@@ -16,16 +16,26 @@ class Config extends ArrayObject implements ConfigInterface
 
     public function __construct(array $config)
     {
+        // every matching config file array is merged over the last using "array_replace_recursive"
+        // "Replaces elements from passed arrays into the first array recursively"
+
+        // first the default config arrays are loaded
         if (!isset($config['skip defaults']) || $config['skip defaults'] == false) {
             // orange default configurations folder
             $this->addPath(__DIR__ . '/config');
         }
 
+        // then anything else sent in
         if (isset($config['config folder'])) {
             // default folder
             $this->addPath($config['config folder']);
         }
 
+        if (isset($config['config folders'])) {
+            $this->addPaths($config['config folders']);
+        }
+
+        // finally environmental config arrays are merged over everything else
         if (isset($config['config folder']) && isset($config['environment'])) {
             // add the environmental folders
             $this->addPath($config['config folder'] . '/' . $config['environment']);
@@ -44,9 +54,20 @@ class Config extends ArrayObject implements ConfigInterface
     public function addPath(string $absolutePath, bool $prepend = false): self
     {
         if ($prepend) {
+            // add to the begninng of the search array
             array_unshift($this->searchPaths, $absolutePath);
         } else {
+            // add to the end of the search array
             $this->searchPaths[] = $absolutePath;
+        }
+
+        return $this;
+    }
+
+    public function addPaths(array $paths, bool $prepend = false): self
+    {
+        foreach ($paths as $path) {
+            $this->addPath($path, $prepend);
         }
 
         return $this;
@@ -54,6 +75,9 @@ class Config extends ArrayObject implements ConfigInterface
 
     /* magic methods */
 
+    /**
+     * return entire config file array or empty if not found
+     */
     public function __get(string $filename): array
     {
         $name = $this->normalizeName($filename);
@@ -65,33 +89,55 @@ class Config extends ArrayObject implements ConfigInterface
         return $this->storage[$name];
     }
 
-    public function __set(string $filename, array $value): void
+    /**
+     * set the entire config array
+     *
+     * this is Stateless!
+     */
+    public function __set(string $filename, array $array): void
     {
-        $this->storage[$this->normalizeName($filename)] = $value;
+        $this->storage[$this->normalizeName($filename)] = $array;
     }
 
-    public function get(string $filename, mixed $key = '__#NOVALUE#__'): mixed
+    public function get(string $filename, string $key = '__#NOVALUE#__', mixed $default = null): mixed
     {
+        // get entire config file array
         $value = $this->__get($filename);
 
+        // if key is no value return the entire array
+        // else just the single matching key if it exists
         if ($key !== '__#NOVALUE#__') {
-            $value = isset($value[$key]) ? $value[$key] : null;
+            $value = $value[$key] ?? $default;
         }
 
         return $value;
     }
 
-    public function set(string $filename, mixed $key, mixed $value = '__#NOVALUE#__'): void
+    public function set(string $filename, mixed $key = '__#NOVALUE#__', mixed $value = '__#NOVALUE#__'): void
     {
         if ($value !== '__#NOVALUE#__') {
-            $config = $this->__get($filename);
+            // get the entire array
+            $configArray = $this->__get($filename);
 
-            $config[$key] = $value;
+            // set the value;
+            $configArray[$key] = $value;
 
-            $value = $config;
+            // now value is the entire array
+            $value = $configArray;
         }
 
         $this->__set($filename, $value);
+    }
+
+    /**
+     * if you are caching the entire config array on a production system for example
+     * use this to inject the entire storage array
+     */
+    public function replace(array $storage): self
+    {
+        $this->storage = $storage;
+
+        return $this;
     }
 
     /**
@@ -115,6 +161,7 @@ class Config extends ArrayObject implements ConfigInterface
                     throw new InvalidConfigurationValue('"' . str_replace(__ROOT__, '', $absolutePath) . '" did not return an array.');
                 }
 
+                // merge (with replace) over the last
                 $config = array_replace_recursive($config, $loadedConfig);
             }
         }

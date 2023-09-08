@@ -13,6 +13,16 @@ use dmyers\orange\exceptions\invalidConfigurationValue;
 
 class Log implements LogInterface
 {
+    public const NONE = 0;
+    public const EMERGENCY  = 1;
+    public const ALERT = 2;
+    public const CRITICAL = 4;
+    public const ERROR = 8;
+    public const WARNING = 16;
+    public const NOTICE = 32;
+    public const INFO = 64;
+    public const DEBUG = 128;
+
     private static LogInterface $instance;
     protected array $config;
     // monolog instance or this class ie. handle myself
@@ -83,14 +93,18 @@ class Log implements LogInterface
         return $this->enabled;
     }
 
+    public function write(int $level, string $message): void
+    {
+        $this->__call($this->convert2($level), [0 => $message]);
+    }
+
     public function __call($name, $arguments)
     {
         if ($this->handler == $this) {
             // convert to int
-            $level = $this->convert2($name, true);
-
-            $this->internalWrite($level, $arguments[0]);
+            $this->internalWrite($this->convert2($name, true), $arguments[0]);
         } else {
+            // pass to attached handler (usually monolog)
             $method = strtolower($name);
 
             $this->handler->$method($arguments[0]);

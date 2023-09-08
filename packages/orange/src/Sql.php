@@ -326,7 +326,7 @@ class Sql
         } elseif (strpos($input, '.') !== false) {
             // separate on spaces trim and add ` marks. then rejoin on .
             $output = implode('.', array_map(function ($s) {
-                return '`'.trim($s).'`';
+                return '`' . trim($s) . '`';
             }, explode('.', $input)));
         } else {
             $output = '`' . trim($input) . '`';

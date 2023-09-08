@@ -19,7 +19,7 @@ abstract class BaseController
     protected ViewerInterface $view;
     protected DataInterface $data;
 
-    protected string $outputType = '';
+    protected string $contentType = '';
 
     public function __construct(ContainerInterface $container)
     {
@@ -29,8 +29,8 @@ abstract class BaseController
         $this->view = $container->getService('view');
         $this->data = $container->getService('data');
 
-        if (!empty($this->outputType)) {
-            $this->output->contentType($this->outputType);
+        if (!empty($this->contentType)) {
+            $this->output->contentType($this->contentType);
         }
 
     }

@@ -1,8 +1,18 @@
 <?php
 
-use dmyers\orange\Container;
+declare(strict_types=1);
+
 use dmyers\orange\exceptions\ConfigFileNotFound;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
+use dmyers\orange\interfaces\ContainerInterface;
+
+// if you provide your own container override this
+if (!function_exists('container')) {
+    function container(): ContainerInterface
+    {
+        return dmyers\orange\Container::getInstance();
+    }
+}
 
 if (!function_exists('mergeDefaultConfig')) {
     /**
@@ -27,12 +37,13 @@ if (!function_exists('mergeDefaultConfig')) {
     }
 }
 
-
 // override as needed
 if (!function_exists('logMsg')) {
     function logMsg(mixed $level, mixed $msg = null): void
     {
-        if ($logger = Container::getServiceIfExists('log')) {
+        $container = container();
+
+        if ($logger = $container::getServiceIfExists('log')) {
             $method = $logger->convert2($level);
             $logger->$method($msg);
         }
@@ -158,7 +169,7 @@ if (!function_exists('orangeErrorHandler')) {
 if (!function_exists('_lowleveldeath')) {
     function _lowleveldeath(string $text, int $errorCode = 500): void
     {
-        $container = Container::getInstance();
+        $container = container();
 
         if ($container) {
             if ($container->has('error')) {
@@ -212,5 +223,17 @@ if (!function_exists('getDotNotation')) {
         }
 
         return $input;
+    }
+}
+
+if (!function_exists('config')) {
+    function config(string $filename, string $key, mixed $default = null)
+    {
+        // throws error if service missing
+        $config = container()::getService('config');
+
+        $value = $config->get($filename, $key);
+
+        return ($value === null) ? $default : $value;
     }
 }

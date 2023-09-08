@@ -21,21 +21,54 @@ use dmyers\orange\exceptions\FolderNotWritable;
  */
 abstract class ViewerAbstract implements ViewerInterface
 {
+    protected static ViewerInterface $instance;
     protected DataInterface $data;
     protected array $config = [];
     protected array $viewPaths = [];
+    protected array $loadedViews = [];
+    protected array $aliasesViews = [];
     protected string $extension = '.php';
     protected string $foundView = '';
     protected string $tempFolder = '';
     protected bool $debug = false;
     protected array $plugins = [];
+    protected array $loadedPlugins = [];
     protected array $delimiters = [];
     protected string $l_delim = '';
     protected string $r_delim = '';
 
+    public function __construct(array $config, ?DataInterface $data = null)
+    {
+        $this->config = $config;
+        $this->data = $data;
+
+        if (isset($config['temp folder'])) {
+            $this->tempFolder = rtrim($config['temp folder'], '/');
+        }
+
+        $this->debug = $config['debug'] ?? $this->debug;
+        $this->extension = $config['extension'] ?? $this->extension;
+        $this->aliasesViews = $config['aliases view'] ?? $this->aliasesViews;
+
+        if (isset($config['delimiters'])) {
+            $this->delimiters = [$config['delimiters'][0], $config['delimiters'][1]];
+
+            $this->l_delim = $this->delimiters[0];
+            $this->r_delim = $this->delimiters[1];
+        }
+
+        if (isset($config['view paths'])) {
+            $this->addPaths($config['view paths']);
+        }
+
+        if (isset($config['plugins'])) {
+            $this->addPlugins($config['plugins']);
+        }
+    }
+
     public function render(string $view, array $data = []): string
     {
-        $view = (isset($this->config['view aliases'][$view])) ? $this->config['view aliases'][$view] : $view;
+        $view = (isset($this->aliasesViews[$view])) ? $this->aliasesViews[$view] : $view;
 
         return $this->generate($this->findView($view), $data);
     }
@@ -80,6 +113,13 @@ abstract class ViewerAbstract implements ViewerInterface
         return $this;
     }
 
+    public function setViews(array $views): self
+    {
+        $this->loadedViews = $views;
+
+        return $this;
+    }
+
     public function addPlugin(string $name, mixed $args): self
     {
         $this->plugins[$name] = $args;
@@ -94,6 +134,49 @@ abstract class ViewerAbstract implements ViewerInterface
         }
 
         return $this;
+    }
+
+    public function setPlugins(array $plugins): self
+    {
+        $this->loadedPlugins = $plugins;
+
+        return $this;
+    }
+
+    public function findView(string $view): string
+    {
+        if (!isset($this->loadedViews[$view])) {
+            foreach ($this->viewPaths as $path) {
+                $fullpath = rtrim($path, '/') . '/' . ltrim($view, '/') . $this->extension;
+
+                if (file_exists($fullpath)) {
+                    $this->loadedViews[$view] = $fullpath;
+
+                    break;
+                }
+            }
+
+            // was it loaded?
+            if (!isset($this->loadedViews[$view])) {
+                throw new ViewNotFound('View "' . $view . '" Extension "' . $this->extension . '" Not Found.');
+            }
+        }
+
+        return $this->loadedViews[$view];
+    }
+
+    public function viewExists(string $view): bool
+    {
+        try {
+            $this->findView($view);
+
+            // if it didn't throw an exception it exists
+            $exists = true;
+        } catch (Throwable $e) {
+            $exists = false;
+        }
+
+        return $exists;
     }
 
     /* protected */
@@ -121,62 +204,6 @@ abstract class ViewerAbstract implements ViewerInterface
 
         // capture cache and return
         return ob_get_clean();
-    }
-
-    protected function findView(string $view): string
-    {
-        if (!$this->viewExists($view)) {
-            throw new ViewNotFound('View "' . $view . '" Extension "' . $this->extension . '" Not Found.');
-        }
-
-        return $this->foundView;
-    }
-
-    protected function viewExists(string $view): bool
-    {
-        $this->foundView = '';
-
-        foreach ($this->viewPaths as $path) {
-            $file = $path . '/' . ltrim($view, '/') . $this->extension;
-
-            if (\file_exists($file)) {
-                $this->foundView = $file;
-
-                break;
-            }
-        }
-
-        return !empty($this->foundView);
-    }
-
-    protected function setConfiguration(): void
-    {
-        if (isset($this->config['temp folder'])) {
-            $this->tempFolder = rtrim($this->config['temp folder'], '/');
-        }
-
-        if (isset($this->config['debug'])) {
-            $this->debug = $this->config['debug'];
-        }
-
-        if (isset($this->config['extension'])) {
-            $this->extension = $this->config['extension'];
-        }
-
-        if (isset($this->config['delimiters'])) {
-            $this->delimiters = [$this->config['delimiters'][0], $this->config['delimiters'][1]];
-
-            $this->l_delim = $this->delimiters[0];
-            $this->r_delim = $this->delimiters[1];
-        }
-
-        if (isset($this->config['view paths'])) {
-            $this->addPaths($this->config['view paths']);
-        }
-
-        if (isset($this->config['plugins'])) {
-            $this->addPlugins($this->config['plugins']);
-        }
     }
 
     public function __debugInfo(): array

@@ -15,12 +15,13 @@ class MainController extends BaseController
             'about' => 'About Bottle Washing',
             'position' => 'Head Bottle Washer',
             'h1' => 'Hello World!',
+            'cash' => '19.95',
         ]);
 
         $this->data['around'] = 'AROUND THE WEB';
         $this->data['name'] = 'Johnny Appleseed';
 
-        return $this->view->render('index');
+        return $this->view->render('main/index');
     }
 
     public function missing(){

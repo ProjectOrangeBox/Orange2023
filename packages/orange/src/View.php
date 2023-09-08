@@ -10,16 +10,9 @@ use dmyers\orange\interfaces\ViewerInterface;
 
 class View extends ViewerAbstract implements ViewerInterface
 {
-    private static ViewerInterface $instance;
+    // use all the default methods in viewer abstract
 
-    public function __construct(array $config, ?DataInterface $data = null)
-    {
-        $this->config = $config;
-        $this->data = $data;
-
-        $this->setConfiguration();
-    }
-
+    // new instance of view
     public static function getInstance(array $config, ?DataInterface $data = null): self
     {
         if (!isset(self::$instance)) {

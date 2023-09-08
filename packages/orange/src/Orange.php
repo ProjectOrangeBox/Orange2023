@@ -9,7 +9,7 @@ use dmyers\orange\interfaces\ContainerInterface;
 
 define('NOVALUE', '__#NOVALUE#__');
 
-require __DIR__ . '/helpers.php';
+require __DIR__ . '/helpers/helpers.php';
 
 /**
  * bootstrap http application
@@ -133,7 +133,7 @@ if (!function_exists('bootstrap')) {
             throw new InvalidValue('Services config file "' . $config['services'] . '" did not return an array.');
         }
 
-        $container = Container::getInstance();
+        $container = container();
 
         // setup the container
         $container->setServices($services);

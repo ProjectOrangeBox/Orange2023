@@ -8,12 +8,12 @@ use dmyers\orange\exceptions\ExitException;
 use dmyers\orange\interfaces\InputInterface;
 use dmyers\orange\interfaces\ConsoleInterface;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
+use Exception;
 
 class Console implements ConsoleInterface
 {
     private static $instance;
     protected array $config = [];
-    protected InputInterface $input;
 
     protected $ANSICodes = [
         'off'               => 0,
@@ -74,29 +74,30 @@ class Console implements ConsoleInterface
         'bright white bg'   => 107,
         'bright default bg' => 109,
 
-        'primary'           => 36,
-        'secondary'         => 33,
-
-        'success'           => 32,
-        'danger'            => 91,
-        'warning'           => 93,
-        'info'              => 94,
+        // custom
+        'primary' => 36,
+        'secondary' => 33,
     ];
 
-    protected array $icons = [
-        'success' => '✔',
-        'danger' => '✘',
-        'warning' => '❖',
-        'info' => '➜',
+    protected array $named = [
+        'primary'   => ['icon' => '', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<cyan>', 'stop' => false],
+        'secondary' => ['icon' => '', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<yellow>', 'stop' => false],
+        'success'   => ['icon' => '✔', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<green>', 'stop' => false],
+        'danger'    => ['icon' => '✘', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
+        'warning'   => ['icon' => '❖', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<bright yellow>', 'stop' => false],
+        'info'      => ['icon' => '➜', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<bright blue>', 'stop' => false],
+        'stop'      => ['icon' => '✘', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => true],
+        'error'     => ['icon' => '✘', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
     ];
 
-    protected string $listFormat = '<off>[<primary>%key%<off>] %value%';
+    protected string $listFormat = '<off>[<cyan>%key%<off>] %value%';
     protected string $lf = "\n";
     protected bool $color = true;
 
     protected array $argv = [];
     protected int $argc = 0;
-    protected int $verbose = 1;
+    protected int $verboseLevel = 1;
+    protected bool $verboseSet = false;
 
     // unit testing
     protected bool $simulate = false;
@@ -111,8 +112,6 @@ class Console implements ConsoleInterface
 
         $this->lf = $this->config['Linefeed Character'] ?? $this->lf;
 
-        $this->icons = $this->config['icons'] ?? $this->icons;
-
         $this->simulate = $this->config['simulate'] ?? $this->simulate;
 
         $this->listFormat = $this->config['List Format'] ?? $this->listFormat;
@@ -123,10 +122,10 @@ class Console implements ConsoleInterface
             $this->ANSICodes = array_replace($this->ANSICodes, $this->config['ANSI Codes']);
         }
 
-        $this->input = $input;
+        $this->named = $this->config['named'] ?? $this->named;
 
-        $this->argv = $this->input->server('argv', []);
-        $this->argc = $this->input->server('argc', 0);
+        $this->argv = $input->server('argv', []);
+        $this->argc = $input->server('argc', 0);
     }
 
     public static function getInstance(array $config, InputInterface $input): self
@@ -138,81 +137,121 @@ class Console implements ConsoleInterface
         return self::$instance;
     }
 
-    // handle verbose
+    /**
+     * set verbose level
+     */
     public function verbose(int $level): self
     {
-        $this->verbose = $level;
+        $this->verboseSet = true;
+
+        $this->verboseLevel = $level;
 
         return $this;
     }
 
-    public function getVerboseLevel(): self
+    /**
+     * auto detect the verbose level
+     *
+     * supports up to 4 levels
+     */
+    public function getVerboseLevel(): int
     {
-        $level = 0;
+        // was it set or already read?
+        if (!$this->verboseSet) {
+            $level = 0;
 
-        for ($vlevel = 1; $vlevel <= 4; $vlevel++) {
-            if ($this->getArgumentExists('-' . str_repeat('v', $vlevel))) {
-                $level = $vlevel;
-                break;
+            for ($vlevel = 1; $vlevel <= 4; $vlevel++) {
+                if ($this->getArgumentExists('-' . str_repeat('v', $vlevel))) {
+                    $this->verboseSet = true;
+                    $level = $vlevel;
+                    break;
+                }
             }
+
+            // set it
+            $this->verbose($level);
         }
 
-        return $this->verbose($level);
+        return $this->verboseLevel;
     }
 
+    /**
+     * test against the verbose level
+     */
     public function ifVerbose(int $level): bool
     {
-        return ($this->verbose >= $level);
+        return ($level <= $this->verboseLevel);
     }
 
-    /* sending output */
-
-    public function echo(string $string, int $level = 1, bool $linefeed = true, string $stream = 'STDOUT'): self
+    /**
+     * send output to stream
+     *
+     * @param string $string
+     * @param int $level
+     * @param bool $linefeed
+     * @param string $stream
+     * @return Console
+     * @throws InvalidConfigurationValue
+     * @throws ExitException
+     */
+    public function echo(string $string, int $level = 1, bool $linefeed = true, string $stream = 'STDOUT', bool $stop = false): self
     {
         $this->write($stream, $this->formatOutput($string, $linefeed), $level);
 
+        if ($stop) {
+            if ($this->simulate) {
+                throw new ExitException('exit(1)');
+            }
+
+            exit(1);
+        }
+
         return $this;
     }
 
-    public function error(string $string, int $level = 1, bool $linefeed = true): self
+    /**
+     * handle the named methods
+     */
+    public function __call($name, $arguments)
     {
-        return $this->echo('<danger>' . $this->getIcon('danger') . $string, $level, $linefeed, 'STDERR');
-    }
-
-    public function success(string $string, int $level = 1, bool $linefeed = true): self
-    {
-        return $this->echo('<success>' . $this->getIcon('success') . $string, $level, $linefeed);
-    }
-
-    public function info(string $string, int $level = 1, bool $linefeed = true): self
-    {
-        return $this->echo('<info>' . $this->getIcon('info') . $string, $level, $linefeed);
-    }
-
-    public function warning(string $string, int $level = 1, bool $linefeed = true): self
-    {
-        return $this->echo('<warning>' . $this->getIcon('warning') . $string, $level, $linefeed);
-    }
-
-    public function primary(string $string, int $level = 1, bool $linefeed = true): self
-    {
-        return $this->echo('<primary>' . $string, $level, $linefeed);
-    }
-
-    public function secondary(string $string, int $level = 1, bool $linefeed = true): self
-    {
-        return $this->echo('<secondary>' . $string, $level, $linefeed);
-    }
-
-    public function stop(string $string, int $level = 1, bool $linefeed = true): void
-    {
-        $this->error($string, $level, $linefeed);
-
-        if ($this->simulate) {
-            throw new ExitException('exit(1)');
+        if (!isset($this->named[$name])) {
+            throw new Exception('Unknown Method "' . $name . '".');
         }
 
-        exit(1);
+        $match = $this->named[$name];
+
+        $icon = (empty($match['icon'])) ? '' : $match['icon'] . ' ';
+        $text = $this->validateArgument($arguments, 0, '', 'is_string');
+        $verboseLevel = $this->validateArgument($arguments, 1, $match['verbose'], 'is_int');
+        $lineFeed = $this->validateArgument($arguments, 2, true, 'is_bool');
+        $stream = $this->validateArgument($arguments, 3, $match['stream'], 'is_string');
+        $stop = $this->validateArgument($arguments, 4, $match['stop'], 'is_bool');
+
+        return $this->echo($match['color'] . $icon . $text, $verboseLevel, $lineFeed, $stream, $stop);
+    }
+
+    protected function validateArgument($arguments, $index, $default, $function)
+    {
+        $typeMap = [
+            'is_string' => 'string',
+            'is_int' => 'integer',
+            'is_float' => 'floating',
+            'is_bool' => 'boolean'
+        ];
+
+        $type = $typeMap[$function];
+
+        if (!isset($arguments[$index])) {
+            $return = $default;
+        } else {
+            if (!$function($arguments[$index])) {
+                throw new Exception('Argument ' . ($index + 1) . ' must be ' . $type . '.');
+            }
+
+            $return = $arguments[$index];
+        }
+
+        return $return;
     }
 
     /* misc */
@@ -454,38 +493,52 @@ class Console implements ConsoleInterface
 
     protected function formatOutput(string $string, bool $linefeed = true): string
     {
-        // quick find and replace for all linefeeds
-        $string = str_replace('<lf>', $this->lf, $string);
+        $string = $this->stripTags($string);
 
-        $enabled = false;
+        $turnOff = '';
 
         // find all the <tags>
         preg_match_all('/<([^>]*)>/i', $string, $tags, PREG_SET_ORDER, 0);
 
         foreach ($tags as $tag) {
-            // no color remove tag
-            $colorsEscaped = (!$this->color) ? $tag[0] : '';
+            $colorsEscaped = '';
 
-            if (!$this->simulate && $this->color) {
-                // apply color escape codes
-                if (!isset($this->ANSICodes[$tag[1]])) {
-                    $this->stop('Could not find tag "' . $tag[1] . '"');
-                }
+            // apply color escape codes
+            if (!isset($this->ANSICodes[$tag[1]])) {
+                $this->stop('Could not find tag "' . $tag[1] . '"');
+            }
 
-                foreach (explode(',', (string)$this->ANSICodes[$tag[1]]) as $colorEscapeCode) {
-                    $colorsEscaped .= "\033[" . $colorEscapeCode . "m";
-                    $enabled = true;
-                }
+            foreach (explode(',', (string)$this->ANSICodes[$tag[1]]) as $colorEscapeCode) {
+                $colorsEscaped .= "\033[" . $colorEscapeCode . "m";
             }
 
             $string = str_replace($tag[0], $colorsEscaped, $string);
-        }
 
-        $turnOff = ($enabled) ? "\033[" . $this->ANSICodes['off'] . "m" : '';
+            $turnOff = "\033[" . $this->ANSICodes['off'] . "m";
+        }
 
         $lf = ($linefeed) ? $this->lf : '';
 
         return $string . $turnOff . $lf;
+    }
+
+    /**
+     * strip all tags if we are in no color mode
+     */
+    protected function stripTags(string $string): string
+    {
+        // quick find and replace for all linefeeds
+        $string = str_replace('<lf>', $this->lf, $string);
+
+        if (!$this->color) {
+            preg_match_all('/<([^>]*)>/i', $string, $tags, PREG_SET_ORDER, 0);
+
+            foreach ($tags as $tag) {
+                $string = str_replace($tag[0], '', $string);
+            }
+        }
+
+        return $string;
     }
 
     protected function oneOf(string $input, array $oneOf, string $error = null): bool
@@ -507,35 +560,26 @@ class Console implements ConsoleInterface
         return $success;
     }
 
-    protected function getIcon(string $name): string
+    protected function write(string $stream, string $string, int $level = 1): self
     {
-        $icon = '';
-
-        if (isset($this->icons[$name]) && !empty($this->icons[$name])) {
-            $icon = $this->icons[$name] . ' ';
-        } else {
-            throw new InvalidConfigurationValue('Icon "' . $name . '" not found.');
+        if (!in_array($stream, ['STDOUT', 'STDERR'])) {
+            throw new Exception('Stream must be STDOUT or STDERR. "' . $stream . '" sent in.');
         }
 
-        return $icon;
-    }
-
-    protected function write(string $handle, string $string, int $level = 1): self
-    {
         if ($this->simulate) {
-            if ($handle == 'STDERR') {
+            if ($stream == 'STDERR') {
                 $this->stderr .= $string;
             } else {
                 $this->stdout .= $string;
             }
         } else {
-            if ($handle == 'STDERR') {
-                if ($this->verbose >= $level) {
+            if ($stream == 'STDERR') {
+                if ($this->verboseLevel >= $level) {
                     fwrite(\STDERR, $string);
                 }
                 $this->stderr .= $string;
             } else {
-                if ($this->verbose >= $level) {
+                if ($this->verboseLevel >= $level) {
                     fwrite(\STDOUT, $string);
                 }
                 $this->stdout .= $string;

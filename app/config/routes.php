@@ -19,6 +19,8 @@ return [
         ['method' => '*', 'url' => '/redirect', 'callback' => [\app\controllers\MainController::class, 'redirect'], 'name' => 'redirect'],
         ['method' => '*', 'url' => '/error',    'callback' => [\app\controllers\MainController::class, 'error'],    'name' => 'error'],
 
+        ['method' => 'get', 'url' => '/form',    'callback' => [\app\controllers\FormController::class, 'index']],
+        ['method' => 'post', 'url' => '/form',    'callback' => [\app\controllers\FormController::class, 'submit']],
 
         /* 404 catch all */
         ['method' => '*', 'url' => '(.*)', 'callback' => [\app\controllers\FourohfourController::class, 'index'], 'name'=> 'fourohfour'],

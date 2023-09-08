@@ -17,8 +17,8 @@ $console = $container->console;
 
 $console->line();
 
-$console->echo('<primary>This is a primary test');
-$console->echo('<secondary>This is a secondary test');
+$console->primary('This is a primary test');
+$console->secondary('This is a secondary test');
 
 $console->line();
 
@@ -59,10 +59,10 @@ $console->table($table);
 
 $name = $console->getLine('What is your name?');
 
-$console->echo('<bright blue>Hello <secondary>' . $name);
+$console->echo('<bright blue>Hello <magenta>' . $name);
 
 $console->list([1=>'red',2=>'blue',3=>'green']);
 
 $selection = $console->getOneOf(null, [1,2,3]);
 
-$console->echo('<primary>You selected <secondary>' . $selection);
+$console->primary('You selected <magenta>' . $selection);

@@ -14,20 +14,24 @@ final class ConsoleTest extends unitTestHelper
     protected function setUp(): void
     {
         $this->instance = new Console([
-            'simulate' => true,
-            'color' => true,
-            'Linefeed Character' => 'EOL',
+            'simulate' => true, // capture all output & system commands
+            'color' => false, // strip all color from output
+            'Linefeed Character' => 'EOL', // use this for the line feed character
             'List Format' => '<off>[<primary>%key%<off>] %value%',
-            'icons' => [
-                'success' => '@',
-                'danger' => '#',
-                'warning' => '$',
-                'info' => '*',
-            ],
+            'named' => [
+                'primary'   => ['icon' => '', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<cyan>', 'stop' => false],
+                'secondary' => ['icon' => '', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<yellow>', 'stop' => false],
+                'success'   => ['icon' => '@', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<green>', 'stop' => false],
+                'danger'    => ['icon' => '#', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
+                'warning'   => ['icon' => '$', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<bright yellow>', 'stop' => false],
+                'info'      => ['icon' => '*', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<bright blue>', 'stop' => false],
+                'stop'      => ['icon' => 'X', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => true],
+                'error'     => ['icon' => '#', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
+            ]
         ], new Input([
             'server' => [
                 'argc' => 4,
-                'argv' => ['thisscript', 'abc', '-color', 'red'],
+                'argv' => ['thisscript', 'abc', '-vv', '-color', 'red'],
             ],
             'convert keys to' => 'lowercase',
             'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
@@ -50,22 +54,44 @@ final class ConsoleTest extends unitTestHelper
 
     public function testEcho2(): void
     {
-        $this->instance->echo('This is a test', false);
+        $this->instance->echo('This is a test', 1, false);
 
         $this->assertEquals('This is a test', $this->getPrivatePublic('stdout'));
     }
 
     public function testEcho3(): void
     {
-        $this->instance->echo('<primary>This is a <blink>test', false);
+        $this->instance->echo('<primary>This is a <blink>test', 1, false);
 
-        $this->assertEquals('<primary>This is a <blink>test', $this->getPrivatePublic('stdout'));
+        $this->assertEquals('This is a test', $this->getPrivatePublic('stdout'));
+    }
+
+    public function testGetVerboseLevel(): void
+    {
+        $this->assertEquals(2, $this->instance->getVerboseLevel());
+
+        $this->assertTrue($this->instance->ifVerbose(1));
+        $this->assertTrue($this->instance->ifVerbose(2));
+        $this->assertFalse($this->instance->ifVerbose(3));
+        $this->assertFalse($this->instance->ifVerbose(4));
+    }
+
+    public function testSetVerboseLevel(): void
+    {
+        $this->instance->verbose(4);
+
+        $this->assertEquals(4, $this->instance->getVerboseLevel());
+
+        $this->assertTrue($this->instance->ifVerbose(1));
+        $this->assertTrue($this->instance->ifVerbose(2));
+        $this->assertTrue($this->instance->ifVerbose(3));
+        $this->assertTrue($this->instance->ifVerbose(4));
     }
 
     public function testErrorNoColor(): void
     {
-        $this->setPrivatePublic('color',false);
-     
+        $this->setPrivatePublic('color', false);
+
         $this->instance->error('Danger, Will Robinson!');
 
         $this->assertEquals('# Danger, Will Robinson!EOL', $this->getPrivatePublic('stderr'));
@@ -75,28 +101,28 @@ final class ConsoleTest extends unitTestHelper
     {
         $this->instance->error('Danger, Will Robinson!');
 
-        $this->assertEquals('<danger># Danger, Will Robinson!EOL', $this->getPrivatePublic('stderr'));
+        $this->assertEquals('# Danger, Will Robinson!EOL', $this->getPrivatePublic('stderr'));
     }
 
     public function testSuccess(): void
     {
         $this->instance->success('Task Success!');
 
-        $this->assertEquals('<success>@ Task Success!EOL', $this->getPrivatePublic('stdout'));
+        $this->assertEquals('@ Task Success!EOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testInfo(): void
     {
         $this->instance->info('Important Information!');
 
-        $this->assertEquals('<info>* Important Information!EOL', $this->getPrivatePublic('stdout'));
+        $this->assertEquals('* Important Information!EOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testWarning(): void
     {
         $this->instance->warning('Warning! System Overload!');
 
-        $this->assertEquals('<warning>$ Warning! System Overload!EOL', $this->getPrivatePublic('stdout'));
+        $this->assertEquals('$ Warning! System Overload!EOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testStop(): void
@@ -181,7 +207,7 @@ final class ConsoleTest extends unitTestHelper
     {
         $this->assertInstanceOf(ConsoleInterface::class, $this->instance->list([1 => 'red', 2 => 'blue', 3 => 'green']));
 
-        $this->assertEquals('<off>[<primary>1<off>] redEOL<off>[<primary>2<off>] blueEOL<off>[<primary>3<off>] greenEOL', $this->getPrivatePublic('stdout'));
+        $this->assertEquals('[1] redEOL[2] blueEOL[3] greenEOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testGetLine(): void
@@ -233,13 +259,14 @@ final class ConsoleTest extends unitTestHelper
     public function testGetArgument(): void
     {
         $this->assertEquals('abc', $this->instance->getArgument(1));
-        $this->assertEquals('-color', $this->instance->getArgument(2));
-        $this->assertEquals('red', $this->instance->getArgument(3));
+        $this->assertEquals('-vv', $this->instance->getArgument(2));
+        $this->assertEquals('-color', $this->instance->getArgument(3));
+        $this->assertEquals('red', $this->instance->getArgument(4));
 
         $this->expectException(ExitException::class);
         $this->expectExceptionMessage('exit(1)');
 
-        $this->instance->getArgument(4);
+        $this->instance->getArgument(5);
     }
 
     public function testGetLastArgument(): void

@@ -8,7 +8,7 @@ use app\controllers\BaseController;
 
 class RestController extends BaseController
 {
-    protected string $outputType = 'json';
+    protected string $contentType = 'json';
     
     public function get()
     {
