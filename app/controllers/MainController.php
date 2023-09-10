@@ -21,7 +21,7 @@ class MainController extends BaseController
         $this->data['around'] = 'AROUND THE WEB';
         $this->data['name'] = 'Johnny Appleseed';
 
-        return $this->view->render('main/index');
+        return $this->view->render('index');
     }
 
     public function missing(){
