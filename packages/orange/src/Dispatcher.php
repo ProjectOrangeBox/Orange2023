@@ -52,6 +52,7 @@ class Dispatcher implements DispatcherInterface
 
                 foreach ($reflection->getConstructor()->getParameters() as $param) {
                     $serviceName = (string)$param->getName();
+                    
                     $services[] = $this->container->$serviceName;
                 }
 
@@ -63,9 +64,11 @@ class Dispatcher implements DispatcherInterface
             throw new ControllerClassNotFound($controllerClass);
         }
 
+        // if they didn't return anything set output to an empty string
         if ($output === null) {
             $output = '';
         } elseif (!is_string($output)) {
+            // they returned something other than a string which is what the method and the output service expects so throw an error
             throw new InvalidValue('Controller "' . $controllerClass . '" method "' . $method . '" did not return a string.');
         }
 
