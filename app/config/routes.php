@@ -22,6 +22,9 @@ return [
         ['method' => 'get', 'url' => '/form',    'callback' => [\app\controllers\FormController::class, 'index']],
         ['method' => 'post', 'url' => '/form',    'callback' => [\app\controllers\FormController::class, 'submit']],
 
+        ['method' => 'get', 'url' => '/inject', 'callback' => [\app\controllers\InjectController::class, 'index'],'name' => 'injection'],
+
+
         /* 404 catch all */
         ['method' => '*', 'url' => '(.*)', 'callback' => [\app\controllers\FourohfourController::class, 'index'], 'name'=> 'fourohfour'],
 

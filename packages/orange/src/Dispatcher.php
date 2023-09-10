@@ -45,7 +45,17 @@ class Dispatcher implements DispatcherInterface
                     return urldecode($value);
                 }, $routeMatched['argv']);
 
-                $output = (new $controllerClass($this->container))->$method(...$matches);
+                // auto inject into controller construct services
+                $services = [];
+
+                $reflection = new \ReflectionClass($controllerClass);
+
+                foreach ($reflection->getConstructor()->getParameters() as $param) {
+                    $serviceName = (string)$param->getName();
+                    $services[] = $this->container->$serviceName;
+                }
+
+                $output = (new $controllerClass(...$services))->$method(...$matches);
             } else {
                 throw new MethodNotFound($method);
             }
