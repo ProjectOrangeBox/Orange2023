@@ -12,16 +12,11 @@ use dmyers\orange\interfaces\ViewerInterface;
 
 abstract class BaseController
 {
-    protected OutputInterface $output;
-    protected InputInterface $input;
-    protected ConfigInterface $config;
-    protected ViewerInterface $view;
-    protected DataInterface $data;
-
     protected string $contentType = '';
 
     // auto injection based on variable name is service name
-    public function __construct(OutputInterface $output, InputInterface $input, ConfigInterface $config, ViewerInterface $view, DataInterface $data)
+    // PHP 8: Constructor property promotion
+    public function __construct(public OutputInterface $output,public InputInterface $input, public ConfigInterface $config,public  ViewerInterface $view, public DataInterface $data)
     {
         $this->output = $output;
         $this->input = $input;
