@@ -50,10 +50,12 @@ class Dispatcher implements DispatcherInterface
 
                 $reflection = new \ReflectionClass($controllerClass);
 
-                foreach ($reflection->getConstructor()->getParameters() as $param) {
-                    $serviceName = (string)$param->getName();
-                    
-                    $services[] = $this->container->$serviceName;
+                if ($reflection->getConstructor()) {
+                    foreach ($reflection->getConstructor()->getParameters() as $param) {
+                        $serviceName = (string)$param->getName();
+
+                        $services[] = $this->container->$serviceName;
+                    }
                 }
 
                 $output = (new $controllerClass(...$services))->$method(...$matches);
