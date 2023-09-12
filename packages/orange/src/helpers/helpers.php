@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use dmyers\orange\exceptions\ConfigFileNotFound;
+use dmyers\orange\exceptions\FileNotFound;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 use dmyers\orange\interfaces\ContainerInterface;
 
@@ -39,13 +40,16 @@ if (!function_exists('mergeDefaultConfig')) {
 
 // override as needed
 if (!function_exists('logMsg')) {
-    function logMsg(mixed $level, mixed $msg = null): void
+    function logMsg(mixed $level, string $msg): void
     {
-        $container = container();
+        if (function_exists('container')) {
+            $container = container();
 
-        if ($logger = $container::getServiceIfExists('log')) {
-            $method = $logger->convert2($level);
-            $logger->$method($msg);
+            // don't throw an error if it's not available
+            if ($log = $container::getServiceIfExists('log')) {
+                $levelAsInt = $log->convert2($level, true);
+                $log->write($levelAsInt, $msg);
+            }
         }
     }
 }
@@ -57,36 +61,37 @@ if (!function_exists('mergeEnv')) {
     function mergeEnv(string $absEnvFilePath): void
     {
         if (!file_exists($absEnvFilePath)) {
-            die('.env file missing at "' . $absEnvFilePath . '".');
+            throw new FileNotFound('.env file missing at "' . $absEnvFilePath . '".');
         }
 
         $env = parse_ini_file($absEnvFilePath, true, INI_SCANNER_TYPED);
 
         if (!is_array($env)) {
-            die('ini file error "' . $absEnvFilePath . '" did not return an array.');
+            throw new FileNotFound('ini file error "' . $absEnvFilePath . '" did not return an array.');
         }
 
-        $_ENV = array_replace_recursive($_ENV, $env);
+        appEnv(array_replace_recursive(appEnv(), $env));
     }
 }
 
 /**
  * fetchEnv with required default
- * This is safer than just $_ENV[]
+ * use this function instead of plain old $_ENV
+ * this allows easier mocking
  */
 if (!function_exists('fetchEnv')) {
     function fetchEnv(string $key, $default = '__#NOVALUE#__') /* mixed */
     {
-        $searchArray = $_ENV;
+        $searchArray = appEnv();
 
         if (strpos($key, '.') !== false) {
             list($arg1, $arg2) = explode('.', $key, 2);
 
-            if (!isset($_ENV[$arg1])) {
+            if (!isset($searchArray[$arg1])) {
                 throw new InvalidConfigurationValue('No env value found for "' . $arg1 . '".');
             }
 
-            $searchArray = $_ENV[$arg1];
+            $searchArray = $searchArray[$arg1];
             $key = $arg2;
         }
 
@@ -100,12 +105,31 @@ if (!function_exists('fetchEnv')) {
     }
 }
 
+if (!function_exists('appEnv')) {
+    function appEnv(array $replace = null): array
+    {
+        static $env = null;
+
+        if ($env === null) {
+            $env = $_ENV;
+        }
+
+        if ($replace !== null) {
+            $env = $replace;
+        }
+
+        return $env;
+    }
+}
+
 /**
  * great for local cache files
  */
 if (!function_exists('file_put_contents_atomic')) {
     function file_put_contents_atomic(string $filePath, string $content, int $flags = 0, $context = null): int|false
     {
+        // multiple exits
+
         $tempFilePath = $filePath . \hrtime(true);
         $strlen = strlen($content);
 
@@ -169,9 +193,9 @@ if (!function_exists('orangeErrorHandler')) {
 if (!function_exists('_lowleveldeath')) {
     function _lowleveldeath(string $text, int $errorCode = 500): void
     {
-        $container = container();
+        if (function_exists('container')) {
+            $container = container();
 
-        if ($container) {
             if ($container->has('error')) {
                 $container->error->reset()->showError($text, $errorCode);
             }
@@ -230,10 +254,6 @@ if (!function_exists('config')) {
     function config(string $filename, string $key, mixed $default = null)
     {
         // throws error if service missing
-        $config = container()::getService('config');
-
-        $value = $config->get($filename, $key);
-
-        return ($value === null) ? $default : $value;
+        return container()::getService('config')->get($filename, $key, $default);
     }
 }

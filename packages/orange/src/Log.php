@@ -45,7 +45,7 @@ class Log implements LogInterface
 
     public function __construct(array $config)
     {
-        $this->config = $config;
+        $this->config = mergeDefaultConfig($config, __DIR__ . '/config/log.php');
 
         $this->psrLevelsInt = array_flip($this->psrLevels);
 
@@ -61,7 +61,7 @@ class Log implements LogInterface
             // throws exception
             $this->isFileWritable($this->config['filepath']);
 
-            $this->changeThreshold($config['threshold']);
+            $this->changeThreshold($this->config['threshold']);
         }
     }
 
@@ -101,7 +101,11 @@ class Log implements LogInterface
     public function __call($name, $arguments)
     {
         if ($this->handler == $this) {
-            // convert to int
+            // convert method name to int
+            if (!is_string($arguments[0])) {
+                throw new InvalidValue($arguments[0]);
+            }
+
             $this->internalWrite($this->convert2($name, true), $arguments[0]);
         } else {
             // pass to attached handler (usually monolog)
@@ -113,24 +117,26 @@ class Log implements LogInterface
 
     public function convert2(int|string $input, bool $asInt = false): mixed
     {
-        $method = '';
+        // psrLevels / string->int
+        // psrLevelsInt / int->string
 
         if (is_string($input)) {
-            if (isset($this->psrLevels[strtoupper($input)])) {
-                $method = $this->psrLevels[strtoupper($input)];
+            if (!isset($this->psrLevels[strtoupper($input)])) {
+                throw new InvalidValue('Unknown message log level "' . $input . '".');
             }
-        } elseif (is_int($input)) {
-            if (isset($this->psrLevelsInt[$input])) {
-                $method = strtolower($this->psrLevelsInt[$input]);
-            }
-        }
 
-        if ($method == '') {
-            throw new InvalidValue('Unknown message log level "' . $input . '".');
+            $method = strtoupper($input);
+        } else {
+            // integer
+            if (!isset($this->psrLevelsInt[$input])) {
+                throw new InvalidValue('Unknown message log level "' . $input . '".');
+            }
+
+            $method = $this->psrLevelsInt[$input];
         }
 
         // always converted to string "method"
-        return ($asInt) ? $this->psrLevels[strtoupper($input)] : $method;
+        return ($asInt) ? $this->psrLevels[$method] : $method;
     }
 
     protected function internalWrite(int $level, string $message): void
@@ -143,7 +149,11 @@ class Log implements LogInterface
                 $isNewFile = true;
             }
 
-            $write .= date('Y-m-d H:i:s') . ' ' . $this->psrLevelsInt[$level] . ' ' . $message . PHP_EOL;
+            $write .= str_replace(
+                ['%timestamp','%level','%message'],
+                [date($this->config['timestamp format']),$this->psrLevelsInt[$level],$message],
+                $this->config['line format']
+            );
 
             // Not atomic but we need append
             file_put_contents($this->config['filepath'], $write, FILE_APPEND | LOCK_EX);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
-use dmyers\orange\stubs\Log;
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\interfaces\LogInterface;
 use dmyers\orange\exceptions\MethodNotFound;
@@ -28,7 +27,8 @@ class Error implements ErrorInterface
 
     public function __construct(array $config, ViewerInterface $viewer, OutputInterface $output, ?LogInterface $log = null)
     {
-        $this->config = $config;
+        $this->config = mergeDefaultConfig($config, __DIR__ . '/config/error.php');
+
         $this->viewer = $viewer;
         $this->output = $output;
         $this->log = $log;
@@ -39,7 +39,7 @@ class Error implements ErrorInterface
         $this->reset();
 
         // add error view paths to viewer after other view paths
-        $this->viewer->addPaths($config['view paths']);
+        $this->viewer->addPaths($this->config['view paths']);
 
         // local orange views folder (last)
         $this->viewer->addPath(__DIR__ . '/views');

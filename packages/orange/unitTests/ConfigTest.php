@@ -11,9 +11,7 @@ final class ConfigTest extends unitTestHelper
 
     protected function setUp(): void
     {
-        $this->instance = new Config([
-            'skip defaults' => true,
-        ]);
+        $this->instance = new Config([]);
     }
 
     // Tests

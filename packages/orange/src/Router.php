@@ -20,6 +20,17 @@ class Router implements RouterInterface
 
     public function __construct(array $config)
     {
+        // load the default configs
+        $defaultConfig = require __DIR__ . '/config/routes.php';
+
+        // If the routes where sent in then use them and don't merge the defaults
+        if (isset($config['routes'])) {
+            unset($defaultConfig['routes']);
+        }
+
+        // merge config over default config
+        $config = array_replace_recursive($defaultConfig, $config);
+
         if ($config['site'] == null) {
             throw new ConfigNotFound('Route config "site" in routes.php can not be empty.');
         }

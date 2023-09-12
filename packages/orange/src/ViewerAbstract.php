@@ -39,30 +39,31 @@ abstract class ViewerAbstract implements ViewerInterface
 
     public function __construct(array $config, ?DataInterface $data = null)
     {
-        $this->config = $config;
+        $this->config = mergeDefaultConfig($config, __DIR__ . '/config/view.php');
+
         $this->data = $data;
 
-        if (isset($config['temp folder'])) {
-            $this->tempFolder = rtrim($config['temp folder'], '/');
+        if (isset($this->config['temp folder'])) {
+            $this->tempFolder = rtrim($this->config['temp folder'], '/');
         }
 
-        $this->debug = $config['debug'] ?? $this->debug;
-        $this->extension = $config['extension'] ?? $this->extension;
-        $this->aliasesViews = $config['aliases view'] ?? $this->aliasesViews;
+        $this->debug = $this->config['debug'] ?? $this->debug;
+        $this->extension = $this->config['extension'] ?? $this->extension;
+        $this->aliasesViews = $this->config['aliases view'] ?? $this->aliasesViews;
 
-        if (isset($config['delimiters'])) {
-            $this->delimiters = [$config['delimiters'][0], $config['delimiters'][1]];
+        if (isset($this->config['delimiters'])) {
+            $this->delimiters = [$this->config['delimiters'][0], $this->config['delimiters'][1]];
 
             $this->l_delim = $this->delimiters[0];
             $this->r_delim = $this->delimiters[1];
         }
 
-        if (isset($config['view paths'])) {
-            $this->addPaths($config['view paths']);
+        if (isset($this->config['view paths'])) {
+            $this->addPaths($this->config['view paths']);
         }
 
-        if (isset($config['plugins'])) {
-            $this->addPlugins($config['plugins']);
+        if (isset($this->config['plugins'])) {
+            $this->addPlugins($this->config['plugins']);
         }
     }
 

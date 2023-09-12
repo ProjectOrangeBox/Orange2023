@@ -108,7 +108,7 @@ class Console implements ConsoleInterface
 
     public function __construct(array $config, InputInterface $input)
     {
-        $this->config = $config;
+        $this->config = mergeDefaultConfig($config, __DIR__ . '/config/console.php');
 
         $this->lf = $this->config['Linefeed Character'] ?? $this->lf;
 

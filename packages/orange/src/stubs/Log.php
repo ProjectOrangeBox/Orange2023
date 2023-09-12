@@ -48,6 +48,10 @@ class Log implements LogInterface
         return 0;
     }
 
+    public function write(int $level, string $message): void
+    {
+    }
+
     public function __call($name, $arguments)
     {
     }

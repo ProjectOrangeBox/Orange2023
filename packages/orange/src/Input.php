@@ -20,7 +20,7 @@ class Input implements InputInterface
 
     public function __construct(array $config)
     {
-        $this->config = $config;
+        $this->config = mergeDefaultConfig($config, __DIR__ . '/config/input.php');
 
         $this->replace($config);
     }

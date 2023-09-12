@@ -27,11 +27,12 @@ class Output implements OutputInterface
 
     public function __construct(array $config)
     {
-        $this->config = $config;
-        $this->contentType = $config['contentType'];
-        $this->charSet = $config['charSet'];
-        $this->simulate = $config['simulate'];
-        $this->showAlreadySentError = $config['show already sent error'];
+        $this->config = mergeDefaultConfig($config, __DIR__ . '/config/output.php');
+
+        $this->contentType = $this->config['contentType'];
+        $this->charSet = $this->config['charSet'];
+        $this->simulate = $this->config['simulate'];
+        $this->showAlreadySentError = $this->config['show already sent error'];
         $this->popularContentTypes = require __DIR__ . '/config/mimes.php';
 
         $this->header('Content-Type: ' . $this->contentType . '; charset=' . $this->charSet, 'Content-Type');

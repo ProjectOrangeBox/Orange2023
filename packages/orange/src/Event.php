@@ -14,6 +14,8 @@ class Event implements EventInterface
 
     public function __construct(array $config)
     {
+        $config = mergeDefaultConfig($config, __DIR__ . '/config/events.php');
+
         foreach ($config as $trigger => $events) {
             foreach ($events as $options) {
                 // option[0] is either a Closure or a string containing the class name and method separated by :: (double colons)

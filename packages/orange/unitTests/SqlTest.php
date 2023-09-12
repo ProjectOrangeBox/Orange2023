@@ -2,9 +2,6 @@
 
 declare(strict_types=1);
 
-use PDO;
-use PDOStatement;
-use modelRowClass;
 use dmyers\orange\Sql;
 
 final class SqlTest extends unitTestHelper

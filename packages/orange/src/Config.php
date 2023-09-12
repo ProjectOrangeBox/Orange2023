@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace dmyers\orange;
 
 use ArrayObject;
+use dmyers\orange\exceptions\ConfigFileNotFound;
 use dmyers\orange\interfaces\ConfigInterface;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 
@@ -13,32 +14,25 @@ class Config extends ArrayObject implements ConfigInterface
     private static ConfigInterface $instance;
     protected array $storage = [];
     protected array $searchPaths = [];
+    protected bool $throwErrorOnMissingFile = false;
 
     public function __construct(array $config)
     {
         // every matching config file array is merged over the last using "array_replace_recursive"
         // "Replaces elements from passed arrays into the first array recursively"
 
-        // first the default config arrays are loaded
-        if (!isset($config['skip defaults']) || $config['skip defaults'] == false) {
-            // orange default configurations folder
-            $this->addPath(__DIR__ . '/config');
-        }
+        $this->throwErrorOnMissingFile = $config['throw error on missing file'] ?? $this->throwErrorOnMissingFile;
 
-        // then anything else sent in
+        // Setup the default config folder sent in
         if (isset($config['config folder'])) {
             // default folder
             $this->addPath($config['config folder']);
-        }
 
-        if (isset($config['config folders'])) {
-            $this->addPaths($config['config folders']);
-        }
-
-        // finally environmental config arrays are merged over everything else
-        if (isset($config['config folder']) && isset($config['environment'])) {
-            // add the environmental folders
-            $this->addPath($config['config folder'] . '/' . $config['environment']);
+            // setup environmental config folder (merged over the other)
+            if (isset($config['environment'])) {
+                // add the environmental folders
+                $this->addPath($config['config folder'] . '/' . $config['environment']);
+            }
         }
     }
 
@@ -145,6 +139,7 @@ class Config extends ArrayObject implements ConfigInterface
      */
     protected function include(string $filename): array
     {
+        $found = false;
         $config = [];
 
         // first load the system configuration files
@@ -155,6 +150,7 @@ class Config extends ArrayObject implements ConfigInterface
             $absolutePath = rtrim($path, '/') . '/' . trim($filename, '/') . '.php';
 
             if (\file_exists($absolutePath)) {
+                $found = true;
                 $loadedConfig = include $absolutePath;
 
                 if (!is_array($loadedConfig)) {
@@ -164,6 +160,10 @@ class Config extends ArrayObject implements ConfigInterface
                 // merge (with replace) over the last
                 $config = array_replace_recursive($config, $loadedConfig);
             }
+        }
+
+        if (!$found && $this->throwErrorOnMissingFile) {
+            throw new ConfigFileNotFound($filename);
         }
 
         return $config;

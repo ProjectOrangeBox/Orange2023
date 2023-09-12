@@ -83,11 +83,11 @@ final class LogTest extends unitTestHelper
 
     public function testConvert2(): void
     {
-        $this->assertEquals('none', $this->instance->convert2(0));
-        $this->assertEquals('emergency', $this->instance->convert2(1));
+        $this->assertEquals('NONE', $this->instance->convert2(0));
+        $this->assertEquals('EMERGENCY', $this->instance->convert2(1));
 
-        $this->assertEquals(0, $this->instance->convert2('none'));
-        $this->assertEquals(1, $this->instance->convert2('emergency'));
+        $this->assertEquals(0, $this->instance->convert2('none', true));
+        $this->assertEquals(1, $this->instance->convert2('emergency', true));
     }
 
     public function testConvert2Exception(): void
