@@ -13,7 +13,7 @@ final class HelpersTest extends unitTestHelper
 
     protected function setUp(): void
     {
-        require __DIR__ . '/../src/helpers/helpers.php';
+        require __DIR__ . '/../src/helpers.php';
     }
 
     protected function tearDown(): void

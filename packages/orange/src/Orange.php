@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use dmyers\orange\Container;
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\exceptions\ConfigFileNotFound;
 use dmyers\orange\interfaces\ContainerInterface;
 
 define('NOVALUE', '__#NOVALUE#__');
 
-require __DIR__ . '/helpers/helpers.php';
+// orange "required" helpers
+require __DIR__ . '/helpers.php';
 
 /**
  * bootstrap http application
@@ -18,15 +18,22 @@ if (!function_exists('http')) {
     /**
      * required:
      *
-     * 'config folder' the absolute path to where the configuration files are stored
-     * 'environment' the current environment (different for each system and usually set using fetchEnv('ENVIRONMENT')
-     * 'debug' the current debug level true or false fetchEnv('DEBUG', false)
      * 'services' the absolute path to the services config file. usually /app/config/services.php
+     * 'config folder' the absolute path to where the configuration files are stored
      *
+     * Optional:
+     * 'environment' the current environment (different for each system and usually set using fetchEnv('ENVIRONMENT') to get it from the .env
+     *      default 'production'
+     * 'debug' the current debug level true or false usually set using fetchEnv('DEBUG', false) to get it from the .env
+     *      default false;
+     * 
+     * 'timezone' PHP valid timezone identifier, like UTC, Africa/Lagos, Asia/Hong_Kong, or Europe/Lisbon.
+     *      default 'UTC'
+     * 
      */
     function http(array $config): ContainerInterface
     {
-        // call bootstrap function
+        // call bootstrap function which returns a container
         $container = bootstrap($config);
 
         // call event
@@ -78,18 +85,20 @@ if (!function_exists('bootstrap')) {
             date_default_timezone_set('UTC');
         }
 
-        define('DEBUG', $config['debug'] ?? fetchEnv('DEBUG', false));
-        define('ENVIRONMENT', $config['environment'] ?? fetchEnv('ENVIRONMENT', 'production'));
+        define('DEBUG', $config['debug'] ?? false);
+        define('ENVIRONMENT', $config['environment'] ?? 'production');
 
+        // load user constants if present
         if (file_exists($config['config folder'] . '/constants.php')) {
             require_once($config['config folder'] . '/constants.php');
         }
 
+        // load the environmental constants if present
         if (file_exists($config['config folder'] . '/' . ENVIRONMENT . '/constants.php')) {
             require_once($config['config folder'] . '/' . ENVIRONMENT . '/constants.php');
         }
 
-        // set to a known state
+        // set umask to a known state
         umask(0000);
 
         switch (ENVIRONMENT) {
@@ -133,12 +142,20 @@ if (!function_exists('bootstrap')) {
             throw new InvalidValue('Services config file "' . $config['services'] . '" did not return an array.');
         }
 
+        // use the container() function to instantiate the container
+        // this way overriding this global function allows us to override 
+        // the generation of the main container with something else
+        // as long as it implements the container interface
         $container = container();
+
+        if (!$container instanceof ContainerInterface) {
+            throw new InvalidValue('container() did not return a class using the container interface.');
+        }
 
         // setup the container
         $container->setServices($services);
 
-        // save bootstrapping config
+        // save bootstrapping config for the config service
         $container->set('$config', $config);
 
         // return the container we just made
