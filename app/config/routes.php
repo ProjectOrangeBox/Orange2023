@@ -22,7 +22,7 @@ return [
         ['method' => 'get', 'url' => '/form',    'callback' => [\app\controllers\FormController::class, 'index']],
         ['method' => 'post', 'url' => '/form',    'callback' => [\app\controllers\FormController::class, 'submit']],
 
-        ['method' => 'get', 'url' => '/inject', 'callback' => [\app\controllers\InjectController::class, 'index'],'name' => 'injection'],
+        ['method' => 'get', 'url' => '/model', 'callback' => [\app\controllers\ModelController::class, 'index']],
 
 
         /* 404 catch all */

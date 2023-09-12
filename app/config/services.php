@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use app\models\personModel;
 use dmyers\orange\Log;
 use dmyers\orange\Data;
 use dmyers\orange\View;
@@ -77,6 +78,13 @@ return [
         // stored in the .env file specific to each server (not commited to GIT)
         return new PDO('mysql:host=' . fetchEnv('db.host') . ';dbname=' . fetchEnv('db.database'), fetchEnv('db.username'), fetchEnv('db.password'), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     },
+
+    // sample model
+
+    'model.person' => function(ContainerInterface $container) {
+        return personModel::getInstance([], $container->pdo);
+    },
+
 
     // you can use anything for a service name
     // model.foo or $value

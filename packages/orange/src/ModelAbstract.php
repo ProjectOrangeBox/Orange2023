@@ -8,13 +8,15 @@ use PDO;
 
 abstract class ModelAbstract
 {
+    private static $instance;
+    
     protected PDO $pdo;
     protected array $config = [];
     protected Sql $sql;
 
     // required in extending class
     protected string $tablename = '';
-    protected string $primaryColumn = '';
+    protected string $primaryColumn = 'id';
 
     protected int $defaultFetchType = PDO::FETCH_ASSOC;
     protected string $fetchClass = '';
@@ -33,6 +35,17 @@ abstract class ModelAbstract
             'fetchClass' => $config['fetchClass'] ?? $this->fetchClass,
             'throwException' => $config['throwException'] ?? $this->throwException,
         ], $pdo);
+    }
+
+    public static function getInstance(array $config, PDO $pdo): self
+    {
+        if (!isset(self::$instance)) {
+            $extendingClass = get_called_class();
+
+            self::$instance = new $extendingClass($config, $pdo);
+        }
+
+        return self::$instance;
     }
 
     protected function getById($id, string $columns = '*', int $fetchMode = -1): mixed
