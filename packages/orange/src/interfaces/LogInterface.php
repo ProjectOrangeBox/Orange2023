@@ -6,7 +6,8 @@ namespace dmyers\orange\interfaces;
 
 interface LogInterface
 {
-    public const EMERGENCY = 1;
+    public const NONE = 0;
+    public const EMERGENCY  = 1;
     public const ALERT = 2;
     public const CRITICAL = 4;
     public const ERROR = 8;

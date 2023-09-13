@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
-use dmyers\orange\exceptions\Output as ExceptionsOutput;
+use dmyers\orange\exceptions\Output as OutputException;
 use dmyers\orange\interfaces\OutputInterface;
+use dmyers\orange\exceptions\Output as ExceptionsOutput;
 
 class Output implements OutputInterface
 {
     private static OutputInterface $instance;
 
+    // default to http status code ok
     protected int $code = 200;
     protected string $contentType = '';
     protected string $charSet = '';
@@ -23,17 +25,36 @@ class Output implements OutputInterface
     protected bool $showAlreadySentError = false;
     protected array $cookies = [];
     protected array $sentCookies = [];
-    protected array $popularContentTypes = [];
+    protected array $mimes = [];
+    protected array $statusCodesInt = [];
+    protected array $statusCodes = [];
+    protected array $statusCodesNormalized = [];
 
     public function __construct(array $config)
     {
         $this->config = mergeDefaultConfig($config, __DIR__ . '/config/output.php');
 
+        // handle mimes merging
+        $mimes = require __DIR__ . '/config/mimes.php';
+
+        $this->config['mimes'] = (isset($this->config['mimes'])) ? array_replace_recursive($this->config['mimes'], $mimes) : $mimes;
+
+        $this->mimes = $this->config['mimes'];
+
+        // handle http status code merging
+        $statusCodesInt = require __DIR__ . '/config/statusCodes.php';
+
+        $this->config['status codes'] = (isset($this->config['status codes'])) ? array_replace_recursive($this->config['status codes'], $statusCodesInt) : $statusCodesInt;
+
+        $this->statusCodesInt = $this->config['status codes'];
+
+        $this->statusCodes = array_flip($this->statusCodesInt);
+        $this->statusCodesNormalized = array_change_key_case($this->statusCodes, CASE_LOWER);
+
         $this->contentType = $this->config['contentType'];
         $this->charSet = $this->config['charSet'];
         $this->simulate = $this->config['simulate'];
         $this->showAlreadySentError = $this->config['show already sent error'];
-        $this->popularContentTypes = require __DIR__ . '/config/mimes.php';
 
         $this->header('Content-Type: ' . $this->contentType . '; charset=' . $this->charSet, 'Content-Type');
     }
@@ -75,9 +96,9 @@ class Output implements OutputInterface
 
     public function contentType(string $contentType): self
     {
-        // if they send in the shorthand content type convert to proper content type
-        if (isset($this->popularContentTypes[$contentType])) {
-            $contentType = $this->popularContentTypes[$contentType];
+        // if they send in the shorthand content type convert it to a proper content type
+        if (isset($this->mimes[$contentType])) {
+            $contentType = $this->mimes[$contentType];
         }
 
         $this->contentType = $contentType;
@@ -160,9 +181,25 @@ class Output implements OutputInterface
         return $this->charSet;
     }
 
-    public function responseCode(int $code): self
+    public function responseCode(int|string $code): self
     {
-        if ($this->sentCode != 0 && $this->showAlreadySentError) {
+        if (is_string($code)) {
+            $code = strtolower($code);
+
+            if (!isset($this->statusCodesNormalized[$code])) {
+                throw new OutputException('Unknown HTTP Status Code ' . $code);
+            } else {
+                $code = $this->statusCodesNormalized[$code];
+            }
+        }
+
+        // test the integer
+        if (!isset($this->statusCodesInt[$code])) {
+            throw new OutputException('Unknown HTTP Status Code '.(string)$code);
+        }
+
+        // code is valid integer
+        if ($this->showAlreadySentError) {
             throw new ExceptionsOutput('Response Code Already Sent.');
         }
 
@@ -296,7 +333,7 @@ class Output implements OutputInterface
             'output' => $this->output,
             'sent cookies' => $this->sentCookies,
             'cookies' => $this->cookies,
-            'popular content types' => $this->popularContentTypes,
+            'popular content types' => $this->mimes,
         ];
     }
 }

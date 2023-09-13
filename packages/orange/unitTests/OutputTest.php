@@ -70,6 +70,13 @@ final class OutputTest extends unitTestHelper
         $this->assertEquals('text/html', $this->instance->getContentType());
     }
 
+    public function testGetContentTypeShortHand(): void
+    {
+        $this->instance->contentType('dot');
+
+        $this->assertEquals('text/vnd.graphviz', $this->instance->getContentType());
+    }
+
     public function testHeader(): void
     {
         $this->instance->header('HTTP/1.1 404 Not Found');
@@ -115,11 +122,34 @@ final class OutputTest extends unitTestHelper
         $this->assertEquals('utf-8', $this->instance->getCharSet());
     }
 
-    public function testResponseCode(): void
+    public function testResponseCodeInt(): void
     {
         $this->instance->responseCode(500);
 
         $this->assertEquals(500, $this->instance->getResponseCode());
+    }
+
+    public function testResponseCodeString(): void
+    {
+        $this->instance->responseCode('Bad Gateway');
+
+        $this->assertEquals(502, $this->instance->getResponseCode());
+    }
+
+    public function testResponseCodeInvalid(): void
+    {
+        $this->expectException(ExceptionsOutput::class);
+        $this->expectExceptionMessage('Unknown HTTP Status Code foobar');
+
+        $this->instance->responseCode('foobar');
+    }
+
+    public function testResponseCodeInvalidInt(): void
+    {
+        $this->expectException(ExceptionsOutput::class);
+        $this->expectExceptionMessage('Unknown HTTP Status Code 666');
+
+        $this->instance->responseCode(666);
     }
 
     public function testGetResponseCode(): void
@@ -154,10 +184,10 @@ final class OutputTest extends unitTestHelper
     public function testRedirect(): void
     {
         ob_start();
-        $this->instance->redirect('http://www.example.com', 123, false);
+        $this->instance->redirect('http://www.example.com', 308, false);
         $output = ob_get_clean();
 
-        $this->assertEquals(123,  $this->getPrivatePublic('sentCode'));
+        $this->assertEquals(308,  $this->getPrivatePublic('sentCode'));
         $this->assertContains('Location: http://www.example.com',  $this->getPrivatePublic('sentHeaders'));
         $this->assertEquals('', $output);
     }

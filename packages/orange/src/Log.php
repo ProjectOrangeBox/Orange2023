@@ -13,33 +13,23 @@ use dmyers\orange\exceptions\invalidConfigurationValue;
 
 class Log implements LogInterface
 {
-    public const NONE = 0;
-    public const EMERGENCY  = 1;
-    public const ALERT = 2;
-    public const CRITICAL = 4;
-    public const ERROR = 8;
-    public const WARNING = 16;
-    public const NOTICE = 32;
-    public const INFO = 64;
-    public const DEBUG = 128;
-
     private static LogInterface $instance;
     protected array $config = [];
     // monolog instance or this class ie. handle myself
     protected $handler = null;
     protected bool $enabled = false;
-    protected int $threshold = 0;
+    protected int $threshold = self::NONE;
 
     protected array $psrLevels = [
-        'NONE'      => 0,
-        'EMERGENCY' => 1,
-        'ALERT'     => 2,
-        'CRITICAL'  => 4,
-        'ERROR'     => 8,
-        'WARNING'   => 16,
-        'NOTICE'    => 32,
-        'INFO'      => 64,
-        'DEBUG'     => 128,
+        'NONE'      => self::NONE,
+        'EMERGENCY' => self::EMERGENCY,
+        'ALERT'     => self::ALERT,
+        'CRITICAL'  => self::CRITICAL,
+        'ERROR'     => self::ERROR,
+        'WARNING'   => self::WARNING,
+        'NOTICE'    => self::NOTICE,
+        'INFO'      => self::INFO,
+        'DEBUG'     => self::DEBUG,
     ];
     protected array $psrLevelsInt = [];
 
