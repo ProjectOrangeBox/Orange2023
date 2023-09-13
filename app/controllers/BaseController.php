@@ -13,6 +13,7 @@ use dmyers\orange\interfaces\ViewerInterface;
 abstract class BaseController
 {
     protected string $contentType = '';
+    protected string $prependViewPath = '';
 
     // auto injection based on variable name is service name
     // PHP 8: Constructor property promotion
@@ -28,5 +29,8 @@ abstract class BaseController
             $this->output->contentType($this->contentType);
         }
 
+        if (!empty($this->prependViewPath)) {
+            $this->view->addPath($this->prependViewPath, true);
+        }
     }
 }

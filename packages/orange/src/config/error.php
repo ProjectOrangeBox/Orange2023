@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'view paths' => [],
+    'default views' => null,
     'types' => [
         'cli' => [
             'subfolder' => 'cli',

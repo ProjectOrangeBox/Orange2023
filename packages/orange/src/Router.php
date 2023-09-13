@@ -17,6 +17,7 @@ class Router implements RouterInterface
     protected bool $isHttps;
     protected array $routes = [];
     protected array $matched = [];
+    protected array $config = [];
 
     public function __construct(array $config)
     {
@@ -29,16 +30,16 @@ class Router implements RouterInterface
         }
 
         // merge config over default config
-        $config = array_replace_recursive($defaultConfig, $config);
+        $this->config = array_replace_recursive($defaultConfig, $config);
 
-        if ($config['site'] == null) {
+        if ($this->config['site'] == null) {
             throw new ConfigNotFound('Route config "site" in routes.php can not be empty.');
         }
 
-        $this->siteUrl = $config['site'];
-        $this->isHttps = $config['isHttps'];
+        $this->siteUrl = $this->config['site'];
+        $this->isHttps = $this->config['isHttps'];
 
-        $this->routes = $config['routes'];
+        $this->routes = $this->config['routes'];
 
         $this->matched = [
             'request method' => null,
@@ -188,6 +189,7 @@ class Router implements RouterInterface
             'isHttps' => $this->isHttps,
             'routes' => $this->routes,
             'matched' => $this->matched,
+            'config' => $this->config,
         ];
     }
 }

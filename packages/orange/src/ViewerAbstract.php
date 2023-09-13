@@ -125,9 +125,13 @@ abstract class ViewerAbstract implements ViewerInterface
         return $this;
     }
 
-    public function setViews(array $views): self
+    /**
+     * if you are caching the entire array on a production system for example
+     * use this to inject the entire array
+     */
+    public function setViews(array $loadedViews): self
     {
-        $this->loadedViews = $views;
+        $this->loadedViews = $loadedViews;
 
         return $this;
     }
@@ -148,9 +152,13 @@ abstract class ViewerAbstract implements ViewerInterface
         return $this;
     }
 
-    public function setPlugins(array $plugins): self
+    /**
+     * if you are caching the entire array on a production system for example
+     * use this to inject the entire array
+     */
+    public function setPlugins(array $loadedPlugins): self
     {
-        $this->loadedPlugins = $plugins;
+        $this->loadedPlugins = $loadedPlugins;
 
         return $this;
     }
@@ -222,15 +230,18 @@ abstract class ViewerAbstract implements ViewerInterface
     {
         return [
             'config' => $this->config,
-            'viewPaths' => $this->viewPaths,
+            'view paths' => $this->viewPaths,
+            'loaded views' => $this->loadedViews,
+            'aliases views' => $this->aliasesViews,
             'extension' => $this->extension,
-            'foundView' => $this->foundView,
-            'tempFolder' => $this->tempFolder,
+            'found view' => $this->foundView,
+            'temp folder' => $this->tempFolder,
             'debug' => $this->debug,
             'plugins' => $this->plugins,
             'delimiters' => $this->delimiters,
             'l_delim' => $this->l_delim,
             'r_delim' => $this->r_delim,
+            'loaded plugins' => $this->loadedPlugins,
         ];
     }
 

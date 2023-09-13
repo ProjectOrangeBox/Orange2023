@@ -291,9 +291,12 @@ class Output implements OutputInterface
             'headers' => $this->headers,
             'sent headers' => $this->sentHeaders,
             'sent code' => $this->sentCode,
+            'simulate' => $this->simulate,
+            'show already sent error' => $this->showAlreadySentError,
             'output' => $this->output,
             'sent cookies' => $this->sentCookies,
             'cookies' => $this->cookies,
+            'popular content types' => $this->popularContentTypes,
         ];
     }
 }

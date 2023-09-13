@@ -27,15 +27,6 @@ use dmyers\orange\interfaces\ContainerInterface;
 use dmyers\orange\interfaces\DispatcherInterface;
 
 return [
-    'error' => function (ContainerInterface $container): ErrorInterface {
-        // get out our config so we can append something onto it
-        $config = $container->config->error;
-
-        // get from input the request type
-        $config['request type'] = $container->input->requestType();
-
-        return Error::getInstance($config, $container->phpview, $container->output, $container->log);
-    },
     'log' => function (ContainerInterface $container): LogInterface {
         return Log::getInstance($container->config->log);
     },
@@ -72,6 +63,16 @@ return [
     },
     'data' => function (ContainerInterface $container) {
         return Data::getInstance();
+    },
+
+    'error' => function (ContainerInterface $container): ErrorInterface {
+        // get out our config so we can append something onto it
+        $config = $container->config->error;
+
+        // get from input the request type
+        $config['request type'] = $container->input->requestType();
+
+        return Error::getInstance($config, $container->phpview, $container->output, $container->log);
     },
 
     'pdo' => function (ContainerInterface $container) {

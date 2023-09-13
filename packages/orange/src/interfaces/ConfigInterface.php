@@ -16,5 +16,5 @@ interface ConfigInterface
     public function set(string $filename, mixed $key = '__#NOVALUE#__', mixed $value = '__#NOVALUE#__'): void;
 
     // inject entire storage array (good if using a caching system)
-    public function replace(array $storage): self;
+    public function setStorage(array $storage): self;
 }

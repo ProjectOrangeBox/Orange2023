@@ -6,33 +6,33 @@ declare(strict_types=1);
 define('__ROOT__', realpath(__DIR__ . '/../../../'));
 chdir(__ROOT__);
 
-require_once __ROOT__ . '/vendor/autoload.php';
-
-mergeEnv(__ROOT__ . '/.env');
-
-/* send config into application */
-$container = cli(include __ROOT__ . '/app/config/config.php');
+$argc = $_SERVER['argc'];
+$argv = $_SERVER['argv'];
 
 echo PHP_EOL;
-var_dump($container->view);
-echo PHP_EOL;
-die();
 
-$views = [];
-
-foreach ($viewPaths as $path) {
-    $found = globr($path . '/*.php');
-
-    foreach ($found as $absPath) {
-        $segs = explode('/views/', $absPath);
-
-        echo $segs[1].PHP_EOL;
-
-        $views[substr($segs[1], 0, -4)] = $absPath;
-    }
+if ($argc != 2) {
+    die('Please provide view folder relative to ' . __ROOT__ . PHP_EOL . PHP_EOL);
 }
 
-var_export($views);
+$path = __ROOT__ . '/' . trim($argv[1]);
+
+if (!is_dir($path)) {
+    die('Can not locate ' . $path . PHP_EOL);
+}
+
+$found = globr($path . '/*.php');
+
+foreach ($found as $absPath) {
+    $name = substr($absPath, strlen($path) + 1);
+    $key = substr($name, 0, -4);
+
+    $views[$key] = $absPath;
+}
+
+echo '$views = ' . var_export($views, true) . ';' . PHP_EOL . PHP_EOL;
+
+/* functions */
 
 function globr($pattern, $flags = 0)
 {

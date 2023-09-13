@@ -60,13 +60,14 @@ class Sql
     public function __construct(array $config, PDO $pdo)
     {
         $this->pdo = $pdo;
+        $this->config = $config;
 
-        $this->primaryColumn = $config['primaryColumn'] ?? $this->primaryColumn;
-        $this->tablename = $config['tablename'] ?? $this->tablename;
-        $this->defaultFetchType = $config['defaultFetchType'] ?? $this->defaultFetchType;
-        $this->fetchClass = $config['fetchClass'] ?? $this->fetchClass;
-        $this->throwException = $config['ThrowException'] ?? $this->throwException;
-        $this->errorFormat = $config['errorFormat'] ?? $this->errorFormat;
+        $this->primaryColumn = $this->config['primaryColumn'] ?? $this->primaryColumn;
+        $this->tablename = $this->config['tablename'] ?? $this->tablename;
+        $this->defaultFetchType = $this->config['defaultFetchType'] ?? $this->defaultFetchType;
+        $this->fetchClass = $this->config['fetchClass'] ?? $this->fetchClass;
+        $this->throwException = $this->config['ThrowException'] ?? $this->throwException;
+        $this->errorFormat = $this->config['errorFormat'] ?? $this->errorFormat;
 
         $this->reset();
     }

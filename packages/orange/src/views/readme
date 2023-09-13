@@ -1,0 +1,4 @@
+these are the views for default error handling
+
+override these in your application view folder with the same folder and file name structure.
+

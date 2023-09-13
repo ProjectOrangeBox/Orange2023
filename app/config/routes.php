@@ -24,6 +24,8 @@ return [
 
         ['method' => 'get', 'url' => '/model', 'callback' => [\app\controllers\ModelController::class, 'index']],
 
+        ['method' => 'get', 'url' => '/modulea', 'callback' => [\example\modulea\controllers\MainController::class, 'index']],
+        ['method' => 'get', 'url' => '/moduleb', 'callback' => [\example\moduleb\controllers\MainController::class, 'index']],
 
         /* 404 catch all */
         ['method' => '*', 'url' => '(.*)', 'callback' => [\app\controllers\FourohfourController::class, 'index'], 'name'=> 'fourohfour'],

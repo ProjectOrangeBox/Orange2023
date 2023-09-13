@@ -12,26 +12,29 @@ use dmyers\orange\exceptions\InvalidConfigurationValue;
 class Config extends ArrayObject implements ConfigInterface
 {
     private static ConfigInterface $instance;
+    protected array $config = [];
     protected array $storage = [];
     protected array $searchPaths = [];
     protected bool $throwErrorOnMissingFile = false;
 
     public function __construct(array $config)
     {
+        $this->config = $config;
+
         // every matching config file array is merged over the last using "array_replace_recursive"
         // "Replaces elements from passed arrays into the first array recursively"
 
-        $this->throwErrorOnMissingFile = $config['throw error on missing file'] ?? $this->throwErrorOnMissingFile;
+        $this->throwErrorOnMissingFile = $this->config['throw error on missing file'] ?? $this->throwErrorOnMissingFile;
 
         // Setup the default config folder sent in
-        if (isset($config['config folder'])) {
+        if (isset($this->config['config folder'])) {
             // default folder
-            $this->addPath($config['config folder']);
+            $this->addPath($this->config['config folder']);
 
             // setup environmental config folder (merged over the other)
-            if (isset($config['environment'])) {
+            if (isset($this->config['environment'])) {
                 // add the environmental folders
-                $this->addPath($config['config folder'] . '/' . $config['environment']);
+                $this->addPath($this->config['config folder'] . '/' . $config['environment']);
             }
         }
     }
@@ -127,7 +130,7 @@ class Config extends ArrayObject implements ConfigInterface
      * if you are caching the entire config array on a production system for example
      * use this to inject the entire storage array
      */
-    public function replace(array $storage): self
+    public function setStorage(array $storage): self
     {
         $this->storage = $storage;
 
@@ -177,8 +180,10 @@ class Config extends ArrayObject implements ConfigInterface
     public function __debugInfo(): array
     {
         return [
+            'config' => $this->config,
             'storage' => $this->storage,
-            'searchPaths' => $this->searchPaths
+            'searchPaths' => $this->searchPaths,
+            'throwErrorOnMissingFile' => $this->throwErrorOnMissingFile,
         ];
     }
 }

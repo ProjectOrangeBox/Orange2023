@@ -14,16 +14,17 @@ use dmyers\orange\interfaces\ViewerInterface;
 class Error implements ErrorInterface
 {
     private static ErrorInterface $instance;
+
+    protected ViewerInterface $viewer;
     protected OutputInterface $output;
     protected ?LogInterface $log = null;
-    protected ViewerInterface $viewer;
 
     protected array $config = [];
     protected array $errors = [];
     protected array $duplicates = [];
     protected string $requestType = '';
     protected array $requestConfig = [];
-    protected string $key;
+    protected string $key = '';
 
     public function __construct(array $config, ViewerInterface $viewer, OutputInterface $output, ?LogInterface $log = null)
     {
@@ -38,11 +39,10 @@ class Error implements ErrorInterface
         // set the default key
         $this->reset();
 
-        // add error view paths to viewer after other view paths
-        $this->viewer->addPaths($this->config['view paths']);
+        $defaultViews = $this->config['default views'] ?? __DIR__ . '/views';
 
         // local orange views folder (last)
-        $this->viewer->addPath(__DIR__ . '/views');
+        $this->viewer->addPath($defaultViews);
     }
 
     public static function getInstance(array $config, ViewerInterface $viewer, OutputInterface $output, ?LogInterface $log = null): self
@@ -192,7 +192,7 @@ class Error implements ErrorInterface
         }
 
         if ($this->log) {
-            $this->log->error(\json_encode($data));
+            $this->log->write(LOG::ERROR,\json_encode($data));
         }
 
         // send with exit
@@ -223,6 +223,7 @@ class Error implements ErrorInterface
             'requestType' => $this->requestType,
             'requestConfig' => $this->requestConfig,
             'viewer' => $this->viewer,
+            'key' => $this->key,
         ];
     }
 }

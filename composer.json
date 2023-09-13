@@ -14,7 +14,9 @@
             "peel\\asset\\": "packages/peel/asset/src",
             "peel\\flashmsg\\": "packages/peel/flashmsg/src",
             "peel\\slash\\": "packages/peel/slash/src",
-            "peel\\validate\\": "packages/peel/validate/src"
+            "peel\\validate\\": "packages/peel/validate/src",
+            "example\\modulea\\": "modulea",
+            "example\\moduleb\\": "moduleb"
         },
         "files": [
             "packages/orange/src/Orange.php"

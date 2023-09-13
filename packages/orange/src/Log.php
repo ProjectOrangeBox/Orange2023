@@ -24,7 +24,7 @@ class Log implements LogInterface
     public const DEBUG = 128;
 
     private static LogInterface $instance;
-    protected array $config;
+    protected array $config = [];
     // monolog instance or this class ie. handle myself
     protected $handler = null;
     protected bool $enabled = false;
@@ -174,7 +174,7 @@ class Log implements LogInterface
             'psrLevelsInt' => $this->psrLevelsInt,
         ];
     }
-
+    
     protected function isFileWritable(string $file): bool
     {
         // check we can write in the directory

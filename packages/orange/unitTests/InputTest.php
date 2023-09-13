@@ -215,8 +215,6 @@ final class InputTest extends unitTestHelper
             'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
         ]);
 
-        $debug = $this->instance->__debugInfo();
-
         $this->assertEquals([
             'name[]' => 'Johnny Appleseed',
             'namehere' => 9,

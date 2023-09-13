@@ -17,9 +17,7 @@ final class ErrorTest extends unitTestHelper
     protected function setUp(): void
     {
         $errorConfig = [
-            'view paths' => [
-                __DIR__ . '/support/views/errors',
-            ],
+            'default views' => __DIR__ . '/support/views/errors',
             'types' => [
                 'cli' => [
                     'subfolder' => '/cli',

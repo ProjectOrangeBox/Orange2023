@@ -11,12 +11,13 @@ class Event implements EventInterface
 {
     private static EventInterface $instance;
     protected array $events = [];
+    protected array $config = [];
 
     public function __construct(array $config)
     {
-        $config = mergeDefaultConfig($config, __DIR__ . '/config/events.php');
+        $this->config = mergeDefaultConfig($config, __DIR__ . '/config/events.php');
 
-        foreach ($config as $trigger => $events) {
+        foreach ($this->config as $trigger => $events) {
             foreach ($events as $options) {
                 // option[0] is either a Closure or a string containing the class name and method separated by :: (double colons)
                 $this->registerEvent($trigger, $options[0], $options[1] ?? self::PRIORITY_NORMAL);
@@ -156,8 +157,10 @@ class Event implements EventInterface
     {
         $debug = [];
 
+        $debug['config'] = $this->config;
+
         foreach (array_keys($this->events) as $trigger) {
-            $debug[$trigger] = $this->listeners($trigger);
+            $debug['triggers'][$trigger] = $this->listeners($trigger);
         }
 
         return $debug;

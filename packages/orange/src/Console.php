@@ -99,7 +99,7 @@ class Console implements ConsoleInterface
     protected int $verboseLevel = 1;
     protected bool $verboseSet = false;
 
-    // unit testing
+    // unit testing storage
     protected bool $simulate = false;
     protected string $stdin = '';
     protected string $stderr = '';
@@ -566,24 +566,16 @@ class Console implements ConsoleInterface
             throw new Exception('Stream must be STDOUT or STDERR. "' . $stream . '" sent in.');
         }
 
-        if ($this->simulate) {
-            if ($stream == 'STDERR') {
-                $this->stderr .= $string;
-            } else {
-                $this->stdout .= $string;
+        if ($stream == 'STDERR') {
+            if ($this->verboseLevel >= $level && !$this->simulate) {
+                fwrite(\STDERR, $string);
             }
+            $this->stderr .= $string;
         } else {
-            if ($stream == 'STDERR') {
-                if ($this->verboseLevel >= $level) {
-                    fwrite(\STDERR, $string);
-                }
-                $this->stderr .= $string;
-            } else {
-                if ($this->verboseLevel >= $level) {
-                    fwrite(\STDOUT, $string);
-                }
-                $this->stdout .= $string;
+            if ($this->verboseLevel >= $level && !$this->simulate) {
+                fwrite(\STDOUT, $string);
             }
+            $this->stdout .= $string;
         }
 
         return $this;
