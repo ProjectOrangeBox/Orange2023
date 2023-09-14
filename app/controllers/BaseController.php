@@ -10,6 +10,9 @@ use dmyers\orange\interfaces\ConfigInterface;
 use dmyers\orange\interfaces\OutputInterface;
 use dmyers\orange\interfaces\ViewerInterface;
 
+/**
+ * this is a user controller that others can extend it is not nessesary but it's nice to put commonly used code here
+ */
 abstract class BaseController
 {
     protected string $contentType = '';

@@ -195,7 +195,7 @@ class Output implements OutputInterface
 
         // test the integer
         if (!isset($this->statusCodesInt[$code])) {
-            throw new OutputException('Unknown HTTP Status Code '.(string)$code);
+            throw new OutputException('Unknown HTTP Status Code ' . (string)$code);
         }
 
         // code is valid integer

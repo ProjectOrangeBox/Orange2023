@@ -26,6 +26,18 @@ use dmyers\orange\interfaces\ConsoleInterface;
 use dmyers\orange\interfaces\ContainerInterface;
 use dmyers\orange\interfaces\DispatcherInterface;
 
+/**
+ * By placing the services inside a closure they are not created UNTIL they are called
+ * This way you don't need to:
+ * 1. connect to 1 or more databases if you don't need a database connection
+ * 2. Setup a session if you don't need a session
+ * 3. instantiate any class until it's needed
+ * 4. allow easier mocking for testing
+ * 5. allow easier overriding of any class as long as it follows the same interface
+ * 6. create service alias if for example you use the same database connection on development but different ones on production
+ * 
+ * This saves resources and make faster applications
+ */
 return [
     'log' => function (ContainerInterface $container): LogInterface {
         return Log::getInstance($container->config->log);

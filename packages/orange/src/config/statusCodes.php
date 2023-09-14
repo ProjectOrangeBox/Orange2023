@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Content from http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
  *
@@ -39,6 +37,8 @@ declare(strict_types=1);
  *  526 => 'Invalid SSL Certificate', // Cloudflare
  *  527 => 'Railgun Error', // Cloudflare
  */
+
+declare(strict_types=1);
 
 return [
     100 => 'Continue',

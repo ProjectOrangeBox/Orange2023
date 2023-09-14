@@ -9,7 +9,7 @@ use PDO;
 abstract class ModelAbstract
 {
     private static $instance;
-    
+
     protected PDO $pdo;
     protected array $config = [];
     protected Sql $sql;

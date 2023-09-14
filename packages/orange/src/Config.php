@@ -31,18 +31,19 @@ class Config extends ArrayObject implements ConfigInterface
             // default folder
             $this->addPath($this->config['config folder']);
 
-            // setup environmental config folder (merged over the other)
+            // setup environmental config folder
+            // this path is searched after the default and any matching config files
+            // are merged over the defaults making the configuration array environmental specific
             if (isset($this->config['environment'])) {
-                // add the environmental folders
                 $this->addPath($this->config['config folder'] . '/' . $config['environment']);
             }
         }
     }
 
-    public static function getInstance(array $searchPaths): self
+    public static function getInstance(array $config): self
     {
         if (!isset(self::$instance)) {
-            self::$instance = new self($searchPaths);
+            self::$instance = new self($config);
         }
 
         return self::$instance;
@@ -61,10 +62,10 @@ class Config extends ArrayObject implements ConfigInterface
         return $this;
     }
 
-    public function addPaths(array $paths, bool $prepend = false): self
+    public function addPaths(array $absolutePaths, bool $prepend = false): self
     {
-        foreach ($paths as $path) {
-            $this->addPath($path, $prepend);
+        foreach ($absolutePaths as $absolutePath) {
+            $this->addPath($absolutePath, $prepend);
         }
 
         return $this;

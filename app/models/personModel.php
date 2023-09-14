@@ -6,6 +6,9 @@ namespace app\models;
 
 use dmyers\orange\ModelAbstract;
 
+/**
+ * Super Simple Model Example
+ */
 class personModel extends ModelAbstract {
     protected string $tablename = 'people';
     protected string $primaryColumn = 'id';

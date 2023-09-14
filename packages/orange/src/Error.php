@@ -192,7 +192,7 @@ class Error implements ErrorInterface
         }
 
         if ($this->log) {
-            $this->log->write(LOG::ERROR,\json_encode($data));
+            $this->log->write(LOG::ERROR, \json_encode($data));
         }
 
         // send with exit

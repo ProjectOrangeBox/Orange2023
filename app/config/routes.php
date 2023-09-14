@@ -2,8 +2,21 @@
 
 declare(strict_types=1);
 
+// a route name is used with the getUrl(...) method
+// all routes can have a name but it not required
+// Names make it so you can use getUrl(...) to return a url to that route
+// if the route changes here you don't need to update all of your code because getUrl(...) handles that automatically
+// if you redirect to the path named "foobar" and the "foobar" url changes the route automatically changes
+
+// '*' matchers on all http methods
+// 'get' matches only on the get method
+// ['get','post'] matches on both get and post method
 return [
-    'site' => 'lemon.dvl.to',
+    // require setting a site url this is used when creating URL for:
+    // getUrl(...)
+    // siteUrl(...)
+    'site' => 'example.local',
+    // all of the routes need to be in this array
     'routes' => [
         /* home page */
         ['method' => '*', 'url' => '/', 'callback' => [\app\controllers\MainController::class, 'index'], 'name' => 'home'],

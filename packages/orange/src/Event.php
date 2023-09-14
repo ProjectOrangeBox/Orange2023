@@ -7,6 +7,31 @@ namespace dmyers\orange;
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\interfaces\EventInterface;
 
+/**
+ * 
+ * Example
+ * 
+ * return [
+ *   'before.router' => [
+ *       [\app\libraries\OutputCors::class . '::handleCrossOriginResourceSharing', Event::PRIORITY_HIGHEST],
+ *       [\app\libraries\Middleware::class . '::beforeRouter'],
+ *   ],
+ *   'before.controller' => [
+ *       [\app\libraries\Middleware::class . '::beforeController'],
+ *   ],
+ *   'after.controller' => [
+ *       [\app\libraries\Middleware::class . '::afterController'],
+ *   ],
+ *   'after.output' => [
+ *       [\app\libraries\Middleware::class . '::afterOutput'],
+ *   ],
+ *   'some.bogus_Event' => [
+ *       ['\app\bogus\class::bogus_method', Event::PRIORITY_LOWEST],
+ *   ],
+ * ];
+ *
+ */
+
 class Event implements EventInterface
 {
     private static EventInterface $instance;
@@ -20,6 +45,7 @@ class Event implements EventInterface
         foreach ($this->config as $trigger => $events) {
             foreach ($events as $options) {
                 // option[0] is either a Closure or a string containing the class name and method separated by :: (double colons)
+                // option[1] is either empty or a PRIORITY (see interface)
                 $this->registerEvent($trigger, $options[0], $options[1] ?? self::PRIORITY_NORMAL);
             }
         }

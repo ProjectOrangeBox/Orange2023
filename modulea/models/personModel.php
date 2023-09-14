@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\models;
+namespace example\modulea\models;
 
 use dmyers\orange\ModelAbstract;
 

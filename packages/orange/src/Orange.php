@@ -26,10 +26,10 @@ if (!function_exists('http')) {
      *      default 'production'
      * 'debug' the current debug level true or false usually set using fetchEnv('DEBUG', false) to get it from the .env
      *      default false;
-     * 
+     *
      * 'timezone' PHP valid timezone identifier, like UTC, Africa/Lagos, Asia/Hong_Kong, or Europe/Lisbon.
      *      default 'UTC'
-     * 
+     *
      */
     function http(array $config): ContainerInterface
     {
@@ -143,7 +143,7 @@ if (!function_exists('bootstrap')) {
         }
 
         // use the container() function to instantiate the container
-        // this way overriding this global function allows us to override 
+        // this way overriding this global function allows us to override
         // the generation of the main container with something else
         // as long as it implements the container interface
         $container = container();

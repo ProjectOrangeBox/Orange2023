@@ -12,8 +12,8 @@ use PDOStatement;
 /**
  * Basic SQL abstraction layer
  * Not meant to be a ORM or replace doing complex Query's in your models
- * 
- * 
+ *
+ *
  * $sql->select('name,age')->from('foo')->wherePrimary(1)->build();
  *
  * $sql->update()->table('foo')->set(['name'=>'jake'])->wherePrimary(1)->build();

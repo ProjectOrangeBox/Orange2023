@@ -164,7 +164,7 @@ class Log implements LogInterface
             'psrLevelsInt' => $this->psrLevelsInt,
         ];
     }
-    
+
     protected function isFileWritable(string $file): bool
     {
         // check we can write in the directory
