@@ -16,7 +16,7 @@ return [
     're key filter' => '@[^a-z0-9 \[\]\-_]+@',
     'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
 
-    // for cli detection
+    // for cli detection override config if needed
     'PHP_SAPI' => strtoupper(PHP_SAPI),
     'STDIN' => defined('STDIN'),
 ];

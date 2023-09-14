@@ -14,9 +14,12 @@ use dmyers\orange\exceptions\FolderNotWritable;
 /**
  * This should be extended by viewer classes
  *
- * The default view.php is a simple PHP based view rendering engine
+ * The default View.php is a simple PHP based view rendering engine
  *
  * other could be for example handlebars, markdown, twig, mailmerge
+ * but as long as they follow the ViewerInterface
+ * all of the methods stay the same to use a view
+ * this has also been made very generic to try and support multiple view engines
  *
  */
 abstract class ViewerAbstract implements ViewerInterface
@@ -29,6 +32,7 @@ abstract class ViewerAbstract implements ViewerInterface
     protected array $aliasesViews = [];
     protected string $extension = '.php';
     protected string $foundView = '';
+    // defaults to sys_get_temp_dir() unless provided via config
     protected string $tempFolder = '';
     protected bool $debug = false;
     protected array $plugins = [];
@@ -87,7 +91,9 @@ abstract class ViewerAbstract implements ViewerInterface
 
     public function renderString(string $string, array $data = []): string
     {
-        $tempFile = $this->tempFolder . '/' . md5($string) . $this->extension;
+        $hash = md5($string);
+        
+        $tempFile = $this->tempFolder . '/' . substr($hash,0,6). '/'. $hash . $this->extension;
 
         if (!\file_exists($tempFile) || $this->debug === true) {
             // throws error
@@ -252,6 +258,7 @@ abstract class ViewerAbstract implements ViewerInterface
 
         if (!file_exists($dir)) {
             try {
+                // directory, permissions, recursive
                 mkdir($dir, 0777, true);
             } catch (Throwable $e) {
                 throw new FolderNotWritable($dir);

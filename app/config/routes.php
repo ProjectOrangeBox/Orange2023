@@ -26,23 +26,27 @@ return [
         ['method' => 'put',     'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'put'],    'name' => 'restPut'],
         ['method' => 'delete',  'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'delete'], 'name' => 'restDelete'],
         ['method' => 'patch',   'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'patch'],  'name' => 'restPatch'],
-        ['method' => 'options', 'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'options'],'name' => 'restOptions'],
+        ['method' => 'options', 'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'options'], 'name' => 'restOptions'],
 
-        ['method' => '*', 'url' => '/missing',  'callback' => [\app\controllers\MainController::class, 'missing'],  'name' => 'missing'],
+        ['method' => '*', 'url' => '/missing', 'callback' => [\app\controllers\MainController::class, 'missing'],  'name' => 'missing'],
         ['method' => '*', 'url' => '/redirect', 'callback' => [\app\controllers\MainController::class, 'redirect'], 'name' => 'redirect'],
-        ['method' => '*', 'url' => '/error',    'callback' => [\app\controllers\MainController::class, 'error'],    'name' => 'error'],
+        ['method' => '*', 'url' => '/error', 'callback' => [\app\controllers\MainController::class, 'error'],    'name' => 'error'],
 
-        ['method' => 'get', 'url' => '/form',    'callback' => [\app\controllers\FormController::class, 'index']],
-        ['method' => 'post', 'url' => '/form',    'callback' => [\app\controllers\FormController::class, 'submit']],
+        ['method' => 'get', 'url' => '/form', 'callback' => [\app\controllers\FormController::class, 'index']],
+        ['method' => 'post', 'url' => '/form', 'callback' => [\app\controllers\FormController::class, 'submit']],
 
         ['method' => 'get', 'url' => '/model', 'callback' => [\app\controllers\ModelController::class, 'index']],
 
+        // example of using modules one named A and another named b
+        // these can be treated like individual applications 
         ['method' => 'get', 'url' => '/modulea', 'callback' => [\example\modulea\controllers\MainController::class, 'index']],
         ['method' => 'get', 'url' => '/moduleb', 'callback' => [\example\moduleb\controllers\MainController::class, 'index']],
 
         /* 404 catch all */
-        ['method' => '*', 'url' => '(.*)', 'callback' => [\app\controllers\FourohfourController::class, 'index'], 'name'=> 'fourohfour'],
+        ['method' => '*', 'url' => '(.*)', 'callback' => [\app\controllers\FourohfourController::class, 'index'], 'name' => 'fourohfour'],
 
+        // these are used to get paths router::getUrl(...)
+        // then if you need to change a path you simply need to change it here and not in mutiple files
         ['name' => 'assets', 'url' => '/assets'],
         ['name' => 'product', 'url' => '/product/([a-z]+)/(\d+)'],
         ['name' => 'javascript', 'url' => '/assets/js'],

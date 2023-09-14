@@ -15,6 +15,9 @@ if (!function_exists('container')) {
     }
 }
 
+/**
+ * This is used to merge a config file which returns an array with a variable which contains an array
+ */
 if (!function_exists('mergeDefaultConfig')) {
     /**
      * Used to load default config
@@ -38,7 +41,12 @@ if (!function_exists('mergeDefaultConfig')) {
     }
 }
 
-// override as needed
+/**
+ * Easy Access to logging
+ * works only if logging service exists
+ * 
+ * override as needed
+ */
 if (!function_exists('logMsg')) {
     function logMsg(mixed $level, string $msg): void
     {
@@ -55,7 +63,9 @@ if (!function_exists('logMsg')) {
 }
 
 /**
- * Merge our .env
+ * merge a file based .env file with the system based $_ENV
+ * 
+ * This is stored in appEnv() for easy mocking
  */
 if (!function_exists('mergeEnv')) {
     function mergeEnv(string $absEnvFilePath): void
@@ -78,6 +88,8 @@ if (!function_exists('mergeEnv')) {
  * fetchEnv with required default
  * use this function instead of plain old $_ENV
  * this allows easier mocking
+ * and provides a default if the env value doesn't exist
+ * a default should always be set for security
  */
 if (!function_exists('fetchEnv')) {
     function fetchEnv(string $key, $default = '__#NOVALUE#__') /* mixed */
@@ -105,6 +117,9 @@ if (!function_exists('fetchEnv')) {
     }
 }
 
+/**
+ * mockable unified env storage
+ */
 if (!function_exists('appEnv')) {
     function appEnv(array $replace = null): array
     {
@@ -123,7 +138,8 @@ if (!function_exists('appEnv')) {
 }
 
 /**
- * great for local cache files
+ * Great for local cache files because the file is written atomically
+ * that way another thread doesn't read a 1/2 written file
  */
 if (!function_exists('file_put_contents_atomic')) {
     function file_put_contents_atomic(string $filePath, string $content, int $flags = 0, $context = null): int|false
@@ -153,6 +169,11 @@ if (!function_exists('file_put_contents_atomic')) {
     }
 }
 
+/**
+ * default exception handler
+ *
+ * override as needed
+ */
 if (!function_exists('orangeExceptionHandler')) {
     function orangeExceptionHandler(Throwable $exception): void
     {
@@ -168,6 +189,11 @@ if (!function_exists('orangeExceptionHandler')) {
     set_exception_handler('orangeExceptionHandler');
 }
 
+/**
+ * default error handler
+ *
+ * override as needed
+ */
 if (!function_exists('orangeErrorHandler')) {
     function orangeErrorHandler($severity, $message, $filepath, $line)
     {
@@ -190,6 +216,10 @@ if (!function_exists('orangeErrorHandler')) {
     set_error_handler('orangeErrorHandler');
 }
 
+/**
+ * low level death
+ * handles throwing a error before error service might be setup
+ */
 if (!function_exists('_lowleveldeath')) {
     function _lowleveldeath(string $text, int $errorCode = 500): void
     {
@@ -214,6 +244,9 @@ if (!function_exists('_lowleveldeath')) {
     }
 }
 
+/**
+ * add the "missing" concat function
+ */
 if (!function_exists('concat')) {
     function concat(): string
     {
@@ -221,6 +254,10 @@ if (!function_exists('concat')) {
     }
 }
 
+/**
+ * provide reading values using dot notation
+ * or really any notation using the last argument into an arrays
+ */
 if (!function_exists('getDotNotation')) {
     function getDotNotation($input, string $dotNotation, $default = null, string $dot = '.')
     {
@@ -250,6 +287,9 @@ if (!function_exists('getDotNotation')) {
     }
 }
 
+/**
+ * wrapper to read a config value
+ */
 if (!function_exists('config')) {
     function config(string $filename, string $key, mixed $default = null)
     {

@@ -8,9 +8,9 @@ use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\interfaces\EventInterface;
 
 /**
- * 
+ *
  * Example
- * 
+ *
  * return [
  *   'before.router' => [
  *       [\app\libraries\OutputCors::class . '::handleCrossOriginResourceSharing', Event::PRIORITY_HIGHEST],
