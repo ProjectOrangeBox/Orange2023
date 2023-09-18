@@ -93,6 +93,7 @@ class Console implements ConsoleInterface
     protected string $listFormat = '<off>[<cyan>%key%<off>] %value%';
     protected string $lf = "\n";
     protected bool $color = true;
+    protected string $bell = '';
 
     protected array $argv = [];
     protected int $argc = 0;
@@ -101,6 +102,7 @@ class Console implements ConsoleInterface
 
     // unit testing storage
     protected bool $simulate = false;
+    protected int $simulatedWidth = 80;
     protected string $stdin = '';
     protected string $stderr = '';
     protected string $stdout = '';
@@ -126,6 +128,8 @@ class Console implements ConsoleInterface
 
         $this->argv = $input->server('argv', []);
         $this->argc = $input->server('argc', 0);
+
+        $this->bell = $this->config['bell'] ?? chr(7);
     }
 
     public static function getInstance(array $config, InputInterface $input): self
@@ -160,6 +164,7 @@ class Console implements ConsoleInterface
         if (!$this->verboseSet) {
             $level = 0;
 
+            // we support up to 4 levels
             for ($vlevel = 1; $vlevel <= 4; $vlevel++) {
                 if ($this->getArgumentExists('-' . str_repeat('v', $vlevel))) {
                     $this->verboseSet = true;
@@ -214,89 +219,115 @@ class Console implements ConsoleInterface
      */
     public function __call($name, $arguments)
     {
+        $rtn = null;
         $verboseLevel = -1;
 
         // convert once
-        $lcName = strtolower($name);
+        $lowercaseMethodName = strtolower($name);
 
         // support level1... and lvl1... to auto set verbose level
-        if (substr($lcName, 0, 3) == 'lvl') {
-            $verboseLevel = (int)substr($lcName, 3, 1);
-            $lcName = substr($lcName, 4);
-        } elseif (substr($lcName, 0, 5) == 'level') {
-            $verboseLevel = (int)substr($lcName, 5, 1);
-            $lcName = substr($lcName, 6);
+        if (substr($lowercaseMethodName, 0, 3) == 'lvl') {
+            $verboseLevel = (int)substr($lowercaseMethodName, 3, 1);
+            $lowercaseMethodName = substr($lowercaseMethodName, 4);
+        } elseif (substr($lowercaseMethodName, 0, 5) == 'level') {
+            $verboseLevel = (int)substr($lowercaseMethodName, 5, 1);
+            $lowercaseMethodName = substr($lowercaseMethodName, 6);
         }
 
-        if (!isset($this->named[$lcName])) {
-            throw new Exception('Unknown Method "' . $name . '".');
+        switch ($lowercaseMethodName) {
+            case 'bell':
+                $times = $this->validateArgument($arguments, 0, 1, 'is_int');
+
+                $rtn = $this->bell((int)$times, $verboseLevel);
+                break;
+            case 'line':
+                $length = $this->validateArgument($arguments, 0, 1, 'is_int');
+                $char = $this->validateArgument($arguments, 1, '-', 'is_string');
+
+                $rtn = $this->line($length, $char, $verboseLevel);
+                break;
+            case 'clear':
+                $rtn = $this->clear($verboseLevel);
+                break;
+            case 'linefeed':
+                $times = $this->validateArgument($arguments, 0, 1, 'is_int');
+
+                $rtn = $this->linefeed((int)$times, $verboseLevel);
+                break;
+            case 'table':
+                $array = $this->validateArgument($arguments, 0, [], 'is_array');
+
+                $rtn = $this->table($array, $verboseLevel);
+                break;
+            case 'line':
+                $array = $this->validateArgument($arguments, 0, [], 'is_array');
+
+                $rtn = $this->list($array, $verboseLevel);
+                break;
+            default:
+                // is this a mapped method?
+                if (!isset($this->named[$lowercaseMethodName])) {
+                    throw new Exception('Unknown Method "' . $name . '".');
+                }
+
+                $match = $this->named[$lowercaseMethodName];
+
+                $icon = (empty($match['icon'])) ? '' : $match['icon'] . ' ';
+                $text = $this->validateArgument($arguments, 0, '', 'is_string');
+
+                // did they set the verbose level with the method name?
+                if ($verboseLevel == -1) {
+                    $verboseLevel = $this->validateArgument($arguments, 1, $match['verbose'], 'is_int');
+                }
+
+                $lineFeed = $this->validateArgument($arguments, 2, true, 'is_bool');
+                $stream = $this->validateArgument($arguments, 3, $match['stream'], 'is_string');
+                $stop = $this->validateArgument($arguments, 4, $match['stop'], 'is_bool');
+
+                $rtn = $this->echo($match['color'] . $icon . $text, $verboseLevel, $lineFeed, $stream, $stop);
         }
 
-        $match = $this->named[$lcName];
-
-        $icon = (empty($match['icon'])) ? '' : $match['icon'] . ' ';
-        $text = $this->validateArgument($arguments, 0, '', 'is_string');
-
-        // did they set the verbose level with the method name?
-        if ($verboseLevel == -1) {
-            $verboseLevel = $this->validateArgument($arguments, 1, $match['verbose'], 'is_int');
-        }
-
-        $lineFeed = $this->validateArgument($arguments, 2, true, 'is_bool');
-        $stream = $this->validateArgument($arguments, 3, $match['stream'], 'is_string');
-        $stop = $this->validateArgument($arguments, 4, $match['stop'], 'is_bool');
-
-        return $this->echo($match['color'] . $icon . $text, $verboseLevel, $lineFeed, $stream, $stop);
-    }
-
-    protected function validateArgument($arguments, $index, $default, $function)
-    {
-        $typeMap = [
-            'is_string' => 'string',
-            'is_int' => 'integer',
-            'is_float' => 'floating',
-            'is_bool' => 'boolean'
-        ];
-
-        $type = $typeMap[$function];
-
-        if (!isset($arguments[$index])) {
-            $return = $default;
-        } else {
-            if (!$function($arguments[$index])) {
-                throw new Exception('Argument ' . ($index + 1) . ' must be ' . $type . '.');
-            }
-
-            $return = $arguments[$index];
-        }
-
-        return $return;
+        return $rtn;
     }
 
     /* misc */
     public function bell(int $times = 1, int $level = 1): self
     {
-        return $this->write('STDOUT', str_repeat(chr(7), $times), $level);
+        if ($this->ifVerbose($level)) {
+            $this->write('STDOUT', str_repeat($this->bell, $times), $level);
+        }
+
+        return $this;
     }
 
     public function line(int $length = null, string $char = '-', int $level = 1): self
     {
-        $times = ($length) ?? (int)$this->system('tput cols');
+        if ($this->ifVerbose($level)) {
+            if ($length || !$this->simulate) {
+                $times = ($length) ?? (int)system('tput cols');
+            } else {
+                // fixed amount in simulate mode
+                $times = $this->simulatedWidth;
+            }
 
-        $times = (int)floor($times / strlen($char));
+            $times = (int)floor($times / strlen($char));
 
-        return $this->write('STDOUT', str_repeat($char, $times) .  $this->lf, $level);
+            $this->write('STDOUT', str_repeat($char, $times) .  $this->lf, $level);
+        }
+
+        return $this;
     }
 
     public function clear(int $level = 1): self
     {
         if ($this->ifVerbose($level)) {
             if ($this->simulate) {
+                // if simulating "clear" the output
                 $this->stderr = '';
                 $this->stdout = '';
+            } else {
+                system('clear');
             }
-
-            $this->system('clear');
         }
 
         return $this;
@@ -307,7 +338,7 @@ class Console implements ConsoleInterface
         return $this->write('STDOUT', str_repeat($this->lf, $times), $level);
     }
 
-    public function table(array $table, array $options = [], int $level = 1): self
+    public function table(array $table, int $level = 1): self
     {
         // get max column size
         $columnsMaxWidth = [];
@@ -364,7 +395,7 @@ class Console implements ConsoleInterface
         return $this;
     }
 
-    public function list(array $list, array $options = [], int $level = 1): self
+    public function list(array $list, int $level = 1): self
     {
         foreach ($list as $key => $value) {
             $this->echo(str_replace(['%key%', '%value%'], [$key, $value], $this->listFormat));
@@ -381,8 +412,8 @@ class Console implements ConsoleInterface
             $this->echo($prompt);
         }
 
-        // specific to testing
-        if (!empty($this->stdin)) {
+        // if in simulate send back std in
+        if ($this->simulate) {
             return $this->stdin;
         }
 
@@ -399,21 +430,25 @@ class Console implements ConsoleInterface
         return $input;
     }
 
-    /* single character (no return needed) */
-
+    /** 
+     * single character (no return needed)
+     * 
+     * This method has a extra exit for simulation mode
+     */
     public function get(string $prompt = null): string
     {
         if ($prompt) {
             $this->echo($prompt);
         }
 
-        // specific to testing
-        if (!empty($this->stdin)) {
+        // if in simulate send back std in
+        if ($this->simulate) {
+            // BAIL NOW - multiple exits
             return $this->stdin;
         }
 
-        // no buffer
-        $this->system("stty -icanon");
+        // setup console no buffer
+        system('stty -icanon');
 
         while ($char = fread(\STDIN, 1)) {
             return $char;
@@ -605,17 +640,29 @@ class Console implements ConsoleInterface
         return $this;
     }
 
-    protected function system($command): string
+    protected function validateArgument($arguments, $index, $default, $function)
     {
-        $results = '';
+        $typeMap = [
+            'is_string' => 'string',
+            'is_int' => 'integer',
+            'is_float' => 'floating',
+            'is_bool' => 'boolean',
+            'is_array' => 'array',
+        ];
 
-        $this->system .= $command;
+        $type = $typeMap[$function];
 
-        if (!$this->simulate) {
-            $results = exec($command);
+        if (!isset($arguments[$index])) {
+            $return = $default;
+        } else {
+            if (!$function($arguments[$index])) {
+                throw new Exception('Argument ' . ($index + 1) . ' must be ' . $type . '.');
+            }
+
+            $return = $arguments[$index];
         }
 
-        return $results;
+        return $return;
     }
 
     /* var_dump / debug */
@@ -625,14 +672,13 @@ class Console implements ConsoleInterface
         return [
             'config' => $this->config,
             'ansicolors' => $this->ANSICodes,
-            'List Format' => $this->listFormat,
+            'list format' => $this->listFormat,
             'lf' => $this->lf,
             'color' => $this->color,
             'simulate' => $this->simulate,
             'stderr' => $this->stderr,
             'stdout' => $this->stdout,
             'stdin' => $this->stdin,
-            'system' => $this->system,
         ];
     }
 }

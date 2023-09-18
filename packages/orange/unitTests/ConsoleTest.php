@@ -15,6 +15,7 @@ final class ConsoleTest extends unitTestHelper
     {
         $this->instance = new Console([
             'simulate' => true, // capture all output & system commands
+            'bell' => '&',
             'color' => false, // strip all color from output
             'Linefeed Character' => 'EOL', // use this for the line feed character
             'List Format' => '<off>[<primary>%key%<off>] %value%',
@@ -163,11 +164,10 @@ final class ConsoleTest extends unitTestHelper
         $this->assertEquals('', $this->getPrivatePublic('stdout'));
     }
 
-    public function testBell(): void
+    public function testBell4(): void
     {
         $this->instance->bell(4);
-
-        $this->assertEquals('%07%07%07%07', urlencode($this->getPrivatePublic('stdout')));
+        $this->assertEquals('&&&&', $this->getPrivatePublic('stdout'));
     }
 
     public function testLine1(): void
@@ -184,12 +184,19 @@ final class ConsoleTest extends unitTestHelper
         $this->assertEquals('--------EOL', $this->getPrivatePublic('stdout'));
     }
 
+    public function testLineLevel(): void
+    {
+        $this->instance->level1Line(8);
+
+        $this->assertEquals('--------EOL', $this->getPrivatePublic('stdout'));
+    }
+
     public function testLine3(): void
     {
+        $this->setPrivatePublic('simulatedWidth', 80);
         $this->instance->line();
 
-        $this->assertEquals('tput cols', $this->getPrivatePublic('system'));
-        $this->assertEquals('EOL', $this->getPrivatePublic('stdout'));
+        $this->assertEquals('--------------------------------------------------------------------------------EOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testLine4(): void
@@ -201,9 +208,11 @@ final class ConsoleTest extends unitTestHelper
 
     public function testClear(): void
     {
-        $this->instance->clear();
+        $this->instance->echo('This is a test');
+        $this->assertEquals('This is a testEOL', $this->getPrivatePublic('stdout'));
 
-        $this->assertEquals('clear', $this->getPrivatePublic('system'));
+        $this->instance->clear();
+        $this->assertEquals('', $this->getPrivatePublic('stdout'));
     }
 
     public function testLinefeed1(): void
