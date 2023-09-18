@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use app\models\personModel;
 use dmyers\orange\Log;
 use dmyers\orange\Data;
 use dmyers\orange\View;
@@ -12,7 +11,9 @@ use dmyers\orange\Input;
 use dmyers\orange\Config;
 use dmyers\orange\Output;
 use dmyers\orange\Router;
+use peel\session\Session;
 use dmyers\orange\Console;
+use app\models\personModel;
 use dmyers\orange\Dispatcher;
 use dmyers\orange\interfaces\LogInterface;
 use dmyers\orange\interfaces\ErrorInterface;
@@ -24,6 +25,7 @@ use dmyers\orange\interfaces\RouterInterface;
 use dmyers\orange\interfaces\ViewerInterface;
 use dmyers\orange\interfaces\ConsoleInterface;
 use dmyers\orange\interfaces\ContainerInterface;
+use Framework\Session\SaveHandlers\FilesHandler;
 use dmyers\orange\interfaces\DispatcherInterface;
 
 /**
@@ -94,10 +96,17 @@ return [
 
     // sample model
 
-    'model.person' => function(ContainerInterface $container) {
+    'model.person' => function (ContainerInterface $container) {
         return personModel::getInstance([], $container->pdo);
     },
 
+    /* orange "peels" from the peel repro */
+
+    'session' => function (ContainerInterface $container) {
+        $config = $container->config->session;
+
+        return Session::getInstance($config['options'], $config['saveHandler']);
+    },
 
     // you can use anything for a service name
     // model.foo or $value
