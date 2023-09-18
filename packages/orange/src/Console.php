@@ -214,15 +214,34 @@ class Console implements ConsoleInterface
      */
     public function __call($name, $arguments)
     {
-        if (!isset($this->named[$name])) {
+        $verboseLevel = -1;
+
+        // convert once
+        $lcName = strtolower($name);
+
+        // support level1... and lvl1... to auto set verbose level
+        if (substr($lcName, 0, 3) == 'lvl') {
+            $verboseLevel = (int)substr($lcName, 3, 1);
+            $lcName = substr($lcName, 4);
+        } elseif (substr($lcName, 0, 5) == 'level') {
+            $verboseLevel = (int)substr($lcName, 5, 1);
+            $lcName = substr($lcName, 6);
+        }
+
+        if (!isset($this->named[$lcName])) {
             throw new Exception('Unknown Method "' . $name . '".');
         }
 
-        $match = $this->named[$name];
+        $match = $this->named[$lcName];
 
         $icon = (empty($match['icon'])) ? '' : $match['icon'] . ' ';
         $text = $this->validateArgument($arguments, 0, '', 'is_string');
-        $verboseLevel = $this->validateArgument($arguments, 1, $match['verbose'], 'is_int');
+
+        // did they set the verbose level with the method name?
+        if ($verboseLevel == -1) {
+            $verboseLevel = $this->validateArgument($arguments, 1, $match['verbose'], 'is_int');
+        }
+
         $lineFeed = $this->validateArgument($arguments, 2, true, 'is_bool');
         $stream = $this->validateArgument($arguments, 3, $match['stream'], 'is_string');
         $stop = $this->validateArgument($arguments, 4, $match['stop'], 'is_bool');
@@ -272,6 +291,11 @@ class Console implements ConsoleInterface
     public function clear(int $level = 1): self
     {
         if ($this->ifVerbose($level)) {
+            if ($this->simulate) {
+                $this->stderr = '';
+                $this->stdout = '';
+            }
+
             $this->system('clear');
         }
 

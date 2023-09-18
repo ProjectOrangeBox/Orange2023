@@ -133,6 +133,36 @@ final class ConsoleTest extends unitTestHelper
         $this->instance->stop('This is a test');
     }
 
+    public function testLevel1Info(): void
+    {
+        $this->instance->level1Info('Important Level 1 Information!');
+        $this->assertEquals('* Important Level 1 Information!EOL', $this->getPrivatePublic('stdout'));
+    }
+
+    public function testLvl1info(): void
+    {
+        $this->instance->lvl1info('Important Lvl 1 Information!');
+        $this->assertEquals('* Important Lvl 1 Information!EOL', $this->getPrivatePublic('stdout'));
+    }
+
+    public function testLevel2error(): void
+    {
+        $this->instance->level2error('Important Level 2 Error!');
+        $this->assertEquals('', $this->getPrivatePublic('stdout'));
+    }
+
+    public function testLvl2Error(): void
+    {
+        $this->instance->lvl2Error('Important Lvl 2 Error!');
+        $this->assertEquals('', $this->getPrivatePublic('stdout'));
+    }
+
+    public function testLvl1Error(): void
+    {
+        $this->instance->Lvl1Error('Important Lvl 1 Error!');
+        $this->assertEquals('', $this->getPrivatePublic('stdout'));
+    }
+
     public function testBell(): void
     {
         $this->instance->bell(4);
