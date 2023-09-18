@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace app\models;
 
+use PDO;
+use app\models\personModelRow;
 use dmyers\orange\ModelAbstract;
 
 /**
@@ -12,6 +14,8 @@ use dmyers\orange\ModelAbstract;
 class personModel extends ModelAbstract {
     protected string $tablename = 'people';
     protected string $primaryColumn = 'id';
+    protected string $fetchClass = personModelRow::class;
+    protected int $defaultFetchType = PDO::FETCH_CLASS;
 
     public function getByName(string $name): mixed
     {

@@ -68,11 +68,19 @@ final class ViewerTest extends unitTestHelper
         $this->assertTrue(isset($this->getPrivatePublic('plugins')['trimmer']));
     }
 
-    public function testRenderViewNotFoundException()
+    public function testRenderViewNotFoundException(): void
     {
         $this->expectException(ViewNotFound::class);
         $this->expectExceptionMessage('View "dummy" Extension ".php" Not Found.');
 
         $this->instance->render('dummy');
+    }
+
+    public function testChangeOption(): void
+    {
+        $this->instance->changeOption('delimiters',['[',']']);
+
+        $this->assertEquals('[',$this->getPrivatePublic('l_delim'));
+        $this->assertEquals(']',$this->getPrivatePublic('r_delim'));
     }
 }

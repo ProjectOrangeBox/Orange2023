@@ -607,8 +607,10 @@ class Sql
     public function setFetchMode(int $fetchMode = -1): void
     {
         // if it's not select it doesn't really matter
-        if ($fetchMode == PDO::FETCH_CLASS && !empty($this->fetchClass)) {
-            $this->PDOStatement->setFetchMode(PDO::FETCH_CLASS, $this->fetchClass);
+        if ($fetchMode == PDO::FETCH_CLASS || $this->defaultFetchType == PDO::FETCH_CLASS) {
+            $class = (!empty($this->fetchClass)) ? $this->fetchClass : null;
+
+            $this->PDOStatement->setFetchMode(PDO::FETCH_CLASS, $class);
         } elseif ($fetchMode != -1) {
             $this->PDOStatement->setFetchMode($fetchMode);
         } else {

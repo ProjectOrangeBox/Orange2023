@@ -10,6 +10,8 @@ use dmyers\orange\interfaces\DataInterface;
 use dmyers\orange\exceptions\FileNotWritable;
 use dmyers\orange\interfaces\ViewerInterface;
 use dmyers\orange\exceptions\FolderNotWritable;
+use dmyers\orange\exceptions\InvalidValue;
+use peel\validate\exceptions\InvalidValue as ExceptionsInvalidValue;
 
 /**
  * This should be extended by viewer classes
@@ -26,14 +28,17 @@ abstract class ViewerAbstract implements ViewerInterface
 {
     protected static ViewerInterface $instance;
     protected DataInterface $data;
+
     protected array $config = [];
     protected array $viewPaths = [];
     protected array $loadedViews = [];
-    protected array $aliasesViews = [];
+    protected array $aliasViews = [];
     protected string $extension = '.php';
     protected string $foundView = '';
+
     // defaults to sys_get_temp_dir() unless provided via config
     protected string $tempFolder = '';
+
     protected bool $debug = false;
     protected array $plugins = [];
     protected array $loadedPlugins = [];
@@ -52,8 +57,8 @@ abstract class ViewerAbstract implements ViewerInterface
         }
 
         $this->debug = $this->config['debug'] ?? $this->debug;
-        $this->extension = $this->config['extension'] ?? $this->extension;
-        $this->aliasesViews = $this->config['aliases view'] ?? $this->aliasesViews;
+        $this->extension = $this->config['extension'] ?? '.' . trim($this->extension, '.');
+        $this->aliasViews = $this->config['alias view'] ?? $this->aliasViews;
 
         if (isset($this->config['delimiters'])) {
             $this->delimiters = [$this->config['delimiters'][0], $this->config['delimiters'][1]];
@@ -82,9 +87,51 @@ abstract class ViewerAbstract implements ViewerInterface
         return self::$instance;
     }
 
+    public function changeOption(string $name, mixed $value): self
+    {
+        switch ($name) {
+            case 'views':
+                $this->loadedViews = $this->validateArgument($value,'is_array');
+                break;
+            case 'plugins':
+                $this->loadedPlugins = $this->validateArgument($value,'is_array');
+                break;
+            case 'debug':
+                $this->debug = $this->validateArgument($value,'is_bool');
+                break;
+            case 'extension':
+                $this->extension = $this->validateArgument($value,'is_string');
+                break;
+            case 'delimiters':
+                $value = $this->validateArgument($value,'is_array');
+
+                $this->delimiters = [$value[0], $value[1]];
+
+                $this->l_delim = $this->delimiters[0];
+                $this->r_delim = $this->delimiters[1];
+                break;
+            case 'view paths':
+                $this->viewPaths = $this->validateArgument($value,'is_array');
+                break;
+            case 'plugin paths':
+                $this->plugins = $this->validateArgument($value,'is_array');
+                break;
+            case 'temp folder':
+                $this->tempFolder = $this->validateArgument($value,'is_string');
+                break;
+            case 'alias views':
+                $this->aliasViews = $this->validateArgument($value,'is_array');
+                break;
+            default:
+                throw new InvalidValue('Unknown value "' . $name . '".');
+        }
+
+        return $this;
+    }
+
     public function render(string $view, array $data = []): string
     {
-        $view = (isset($this->aliasesViews[$view])) ? $this->aliasesViews[$view] : $view;
+        $view = (isset($this->aliasViews[$view])) ? $this->aliasViews[$view] : $view;
 
         return $this->generate($this->findView($view), $data);
     }
@@ -92,8 +139,8 @@ abstract class ViewerAbstract implements ViewerInterface
     public function renderString(string $string, array $data = []): string
     {
         $hash = md5($string);
-        
-        $tempFile = $this->tempFolder . '/' . substr($hash,0,6). '/'. $hash . $this->extension;
+
+        $tempFile = $this->tempFolder . '/' . substr($hash, 0, 6) . '/' . $hash . $this->extension;
 
         if (!\file_exists($tempFile) || $this->debug === true) {
             // throws error
@@ -131,17 +178,6 @@ abstract class ViewerAbstract implements ViewerInterface
         return $this;
     }
 
-    /**
-     * if you are caching the entire array on a production system for example
-     * use this to inject the entire array
-     */
-    public function setViews(array $loadedViews): self
-    {
-        $this->loadedViews = $loadedViews;
-
-        return $this;
-    }
-
     public function addPlugin(string $name, mixed $args): self
     {
         $this->plugins[$name] = $args;
@@ -154,17 +190,6 @@ abstract class ViewerAbstract implements ViewerInterface
         foreach ($plugins as $name => $args) {
             $this->addPlugin($name, $args);
         }
-
-        return $this;
-    }
-
-    /**
-     * if you are caching the entire array on a production system for example
-     * use this to inject the entire array
-     */
-    public function setPlugins(array $loadedPlugins): self
-    {
-        $this->loadedPlugins = $loadedPlugins;
 
         return $this;
     }
@@ -238,7 +263,7 @@ abstract class ViewerAbstract implements ViewerInterface
             'config' => $this->config,
             'view paths' => $this->viewPaths,
             'loaded views' => $this->loadedViews,
-            'aliases views' => $this->aliasesViews,
+            'alias views' => $this->aliasViews,
             'extension' => $this->extension,
             'found view' => $this->foundView,
             'temp folder' => $this->tempFolder,
@@ -270,5 +295,22 @@ abstract class ViewerAbstract implements ViewerInterface
         }
 
         return true;
+    }
+
+    protected function validateArgument($value, $function)
+    {
+        $typeMap = [
+            'is_string' => 'string',
+            'is_int' => 'integer',
+            'is_float' => 'floating',
+            'is_bool' => 'boolean',
+            'is_array' => 'array',
+        ];
+
+        if (!$function($value)) {
+            throw new InvalidValue('Must be a ' . $typeMap[$function] . ' value.');
+        }
+
+        return $value;
     }
 }
