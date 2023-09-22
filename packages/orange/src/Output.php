@@ -4,31 +4,34 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
-use dmyers\orange\exceptions\Output as OutputException;
 use dmyers\orange\interfaces\OutputInterface;
-use dmyers\orange\exceptions\Output as ExceptionsOutput;
+use dmyers\orange\exceptions\Output as OutputException;
 
 class Output implements OutputInterface
 {
     private static OutputInterface $instance;
 
-    // default to http status code ok
-    protected int $code = 200;
-    protected string $contentType = '';
-    protected string $charSet = '';
-    protected array $headers = [];
-    protected string $output = '';
     protected array $config = [];
-    protected array $sentHeaders = [];
-    protected int $sentCode = 0;
-    protected bool $simulate = false;
-    protected bool $showAlreadySentError = false;
-    protected array $cookies = [];
-    protected array $sentCookies = [];
+
     protected array $mimes = [];
+
+    protected string $output = '';
+
+    // default to http status code ok
+    protected int $statusCode = 200;
+    protected bool $statusCodeSent = false;
+
     protected array $statusCodesInt = [];
     protected array $statusCodes = [];
     protected array $statusCodesNormalized = [];
+
+    protected string $contentType = '';
+    protected string $charSet = '';
+    protected array $cookies = [];
+    protected bool $cookiesSent = false;
+
+    protected array $headers = [];
+    protected bool $headersSent = false;
 
     public function __construct(array $config)
     {
@@ -53,8 +56,6 @@ class Output implements OutputInterface
 
         $this->contentType = $this->config['contentType'];
         $this->charSet = $this->config['charSet'];
-        $this->simulate = $this->config['simulate'];
-        $this->showAlreadySentError = $this->config['show already sent error'];
 
         $this->header('Content-Type: ' . $this->contentType . '; charset=' . $this->charSet, 'Content-Type');
     }
@@ -66,6 +67,30 @@ class Output implements OutputInterface
         }
 
         return self::$instance;
+    }
+
+    public function flushAll(): self
+    {
+        return $this->flush()->flushCookies()->flushHeaders();
+    }
+
+    public function send(bool $exit = false): void
+    {
+        // http_response_code - called
+        // header - called
+        $this->sendResponseCode()->sendHeaders()->sendCookies();
+
+        // this should be the only echo
+        echo $this->get();
+
+        if ($exit) {
+            exit(0);
+        }
+    }
+
+    public function redirect(string $url, int $responseCode = 302, bool $exit = true): void
+    {
+        $this->flushAll()->header('Location: ' . $url)->responseCode($responseCode)->send($exit);
     }
 
     public function flush(): self
@@ -115,6 +140,8 @@ class Output implements OutputInterface
 
     public function header(string $header, string $key = null): self
     {
+        $this->alreadySent('Headers', $this->headersSent);
+
         if ($key === null) {
             $segs = explode(':', $header);
             $key = strtolower(trim($segs[0]));
@@ -132,39 +159,24 @@ class Output implements OutputInterface
 
     public function flushHeaders(): self
     {
-        $this->testIfHeadersSent('flushed');
+        $this->alreadySent('Headers', $this->headersSent);
 
         $this->headers = [];
 
         return $this;
     }
 
-    public function flushAll(): self
-    {
-        return $this->flush()->flushCookies()->flushHeaders();
-    }
-
     public function sendHeaders(): self
     {
-        $this->testIfHeadersSent('sent');
+        $this->alreadySent('Headers', $this->headersSent);
 
-        if (empty($this->sentHeaders)) {
-            foreach ($this->getHeaders() as $header) {
-                if (!$this->simulate) {
-                    header($header);
-                }
-                $this->sentHeaders[] = $header;
-            }
+        foreach ($this->getHeaders() as $header) {
+            header($header);
         }
+
+        $this->headersSent = true;
 
         return $this;
-    }
-
-    protected function testIfHeadersSent(string $context): void
-    {
-        if (!empty($this->sentHeaders) && $this->showAlreadySentError) {
-            throw new ExceptionsOutput('Content has already been sent therefore headers cannot be ' . $context . ' at this time.');
-        }
     }
 
     public function charSet(string $charSet): self
@@ -183,6 +195,8 @@ class Output implements OutputInterface
 
     public function responseCode(int|string $code): self
     {
+        $this->alreadySent('Response Code', $this->statusCodeSent);
+
         if (is_string($code)) {
             $code = strtolower($code);
 
@@ -199,58 +213,31 @@ class Output implements OutputInterface
         }
 
         // code is valid integer
-        if ($this->showAlreadySentError) {
-            throw new ExceptionsOutput('Response Code Already Sent.');
-        }
-
-        $this->code = $code;
+        $this->statusCode = $code;
 
         return $this;
     }
 
     public function getResponseCode(): int
     {
-        return $this->code;
+        return $this->statusCode;
     }
 
     public function sendResponseCode(): self
     {
-        if ($this->sentCode != 0) {
-            throw new ExceptionsOutput('Response Code Already Sent.');
-        }
+        $this->alreadySent('Response Code', $this->statusCodeSent);
 
-        if (!$this->simulate) {
-            http_response_code($this->code);
-        }
+        http_response_code($this->statusCode);
 
-        $this->sentCode = $this->code;
+        $this->statusCodeSent = true;
 
         return $this;
     }
 
-    public function send(bool $exit = false): void
-    {
-        // http_response_code - called
-        // header - called
-        $this->sendResponseCode()->sendHeaders()->sendCookies();
-
-        if (!$this->simulate) {
-            // this should be the only echo
-            echo $this->get();
-
-            if ($exit) {
-                exit(0);
-            }
-        }
-    }
-
-    public function redirect(string $url, int $responseCode = 302, bool $exit = true): void
-    {
-        $this->flushAll()->header('Location: ' . $url)->responseCode($responseCode)->send($exit);
-    }
-
     public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = null, bool $httponly = null, string $samesite = null): self
     {
+        $this->alreadySent('Cookies', $this->cookiesSent);
+
         if (is_array($name)) {
             // always leave 'name' in last place, as the loop will break otherwise, due to $$item
             foreach (['value', 'expire', 'domain', 'path', 'prefix', 'secure', 'httponly', 'samesite', 'name'] as $item) {
@@ -300,6 +287,8 @@ class Output implements OutputInterface
 
     public function flushCookies(): self
     {
+        $this->alreadySent('Cookies', $this->cookiesSent);
+
         $this->cookies = [];
 
         return $this;
@@ -307,31 +296,36 @@ class Output implements OutputInterface
 
     public function sendCookies(): self
     {
-        if (!$this->simulate) {
-            foreach ($this->cookies as $record) {
-                setcookie($record['name'], $record['value'], $record['setCookieOptions']);
+        $this->alreadySent('Cookies', $this->cookiesSent);
 
-                $this->sentCookies[$record['name']] = ['name' => $record['name'], 'value' => $record['value'], 'options' => $record['setCookieOptions']];
-            }
+        foreach ($this->cookies as $record) {
+            setcookie($record['name'], $record['value'], $record['setCookieOptions']);
+
+            $this->cookiesSent = true;
         }
 
         return $this;
+    }
+
+    protected function alreadySent(string $blank, bool $test): void
+    {
+        if ($test) {
+            throw new OutputException($blank . ' already sent.');
+        }
     }
 
     public function __debugInfo(): array
     {
         return [
             'config' => $this->config,
-            'code' => $this->code,
+            'code' => $this->statusCode,
             'contentType' => $this->contentType,
             'charSet' => $this->charSet,
             'headers' => $this->headers,
-            'sent headers' => $this->sentHeaders,
-            'sent code' => $this->sentCode,
-            'simulate' => $this->simulate,
-            'show already sent error' => $this->showAlreadySentError,
+            'headers sent' => $this->headersSent,
+            'status code sent' => $this->statusCodeSent,
             'output' => $this->output,
-            'sent cookies' => $this->sentCookies,
+            'cookies sent' => $this->cookiesSent,
             'cookies' => $this->cookies,
             'popular content types' => $this->mimes,
         ];

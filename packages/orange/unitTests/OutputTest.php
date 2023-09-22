@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use dmyers\orange\Output;
-use dmyers\orange\exceptions\Output as ExceptionsOutput;
+use dmyers\orange\exceptions\Output as OutputException;
 
 final class OutputTest extends unitTestHelper
 {
@@ -14,8 +14,6 @@ final class OutputTest extends unitTestHelper
         $this->instance = new Output([
             'contentType' => 'text/html',
             'charSet' => 'utf-8',
-            'show already sent error' => false,
-            'simulate' => true,
             'cookie' => [
                 'domain' => '',
                 'path' => '',
@@ -89,16 +87,13 @@ final class OutputTest extends unitTestHelper
         $this->assertContains('Content-Type: text/html; charset=utf-8', $this->instance->getHeaders());
     }
 
-    /**
-     * @runInSeparateProcess
-     */
     public function testSendHeaders(): void
     {
         $this->instance->header('HTTP/1.1 404 Not Found');
 
         $this->instance->sendHeaders();
 
-        $this->assertContains('HTTP/1.1 404 Not Found', $this->getPrivatePublic('sentHeaders'));
+        $this->assertContains('HTTP/1.1 404 Not Found', $this->getPrivatePublic('headers'));
     }
 
     public function testFlushHeaders(): void
@@ -138,7 +133,7 @@ final class OutputTest extends unitTestHelper
 
     public function testResponseCodeInvalid(): void
     {
-        $this->expectException(ExceptionsOutput::class);
+        $this->expectException(OutputException::class);
         $this->expectExceptionMessage('Unknown HTTP Status Code foobar');
 
         $this->instance->responseCode('foobar');
@@ -146,7 +141,7 @@ final class OutputTest extends unitTestHelper
 
     public function testResponseCodeInvalidInt(): void
     {
-        $this->expectException(ExceptionsOutput::class);
+        $this->expectException(OutputException::class);
         $this->expectExceptionMessage('Unknown HTTP Status Code 666');
 
         $this->instance->responseCode(666);
@@ -161,34 +156,33 @@ final class OutputTest extends unitTestHelper
     {
         $this->instance->sendResponseCode();
 
-        $this->assertEquals(200, $this->getPrivatePublic('sentCode'));
+        $this->assertEquals(200, $this->instance->getResponseCode());
     }
 
-    /**
-     * @runInSeparateProcess
-     */
     public function testSend(): void
     {
-        $this->instance->set('this is the output');
+        $html = '<h1>Hello World!</h1>';
 
+        $this->instance->set($html);
+
+        ob_start();
         $this->instance->send();
+        $output = ob_get_clean();
 
-        $this->assertEquals(200,  $this->getPrivatePublic('sentCode'));
-        $this->assertContains('Content-Type: text/html; charset=utf-8',  $this->getPrivatePublic('sentHeaders'));
-        $this->assertEquals('this is the output', $this->instance->get());
+        $this->assertEquals($html, $output);
+        $this->assertEquals($html, $this->instance->get());
+        $this->assertEquals(200, $this->instance->getResponseCode());
+        $this->assertContains('Content-Type: text/html; charset=utf-8',  $this->getPrivatePublic('headers'));
     }
 
-    /**
-     * @runInSeparateProcess
-     */
     public function testRedirect(): void
     {
         ob_start();
         $this->instance->redirect('http://www.example.com', 308, false);
         $output = ob_get_clean();
 
-        $this->assertEquals(308,  $this->getPrivatePublic('sentCode'));
-        $this->assertContains('Location: http://www.example.com',  $this->getPrivatePublic('sentHeaders'));
+        $this->assertEquals(308,  $this->getPrivatePublic('statusCode'));
+        $this->assertContains('Location: http://www.example.com',  $this->getPrivatePublic('headers'));
         $this->assertEquals('', $output);
     }
 
@@ -209,14 +203,12 @@ final class OutputTest extends unitTestHelper
         $this->instance = new Output([
             'contentType' => 'text/html',
             'charSet' => 'utf-8',
-            'show already sent error' => true,
-            'simulate' => true,
         ]);
 
         $this->instance->sendHeaders();
 
-        $this->expectException(ExceptionsOutput::class);
-        $this->expectExceptionMessage('Content has already been sent therefore headers cannot be flushed at this time.');
+        $this->expectException(OutputException::class);
+        $this->expectExceptionMessage('Headers already sent.');
 
         $this->instance->flushHeaders();
     }
@@ -226,32 +218,27 @@ final class OutputTest extends unitTestHelper
         $this->instance = new Output([
             'contentType' => 'text/html',
             'charSet' => 'utf-8',
-            'show already sent error' => true,
-            'simulate' => true,
         ]);
 
         $this->instance->sendHeaders();
 
-        $this->expectException(ExceptionsOutput::class);
-        $this->expectExceptionMessage('Content has already been sent therefore headers cannot be sent at this time.');
+        $this->expectException(OutputException::class);
+        $this->expectExceptionMessage('Headers already sent.');
 
         $this->instance->sendHeaders();
     }
-
 
     public function testResponseCodeException(): void
     {
         $this->instance = new Output([
             'contentType' => 'text/html',
             'charSet' => 'utf-8',
-            'show already sent error' => true,
-            'simulate' => true,
         ]);
 
         $this->instance->sendResponseCode();
 
-        $this->expectException(ExceptionsOutput::class);
-        $this->expectExceptionMessage('Response Code Already Sent.');
+        $this->expectException(OutputException::class);
+        $this->expectExceptionMessage('Response Code already sent.');
 
         $this->instance->responseCode(404);
     }

@@ -12,7 +12,10 @@ class ModelController extends BaseController
     {
         $personModel = container()->get('model.person');
 
+        // returns personModelRow class for each row
         $this->data['person'] = $personModel->getByName('Johnny Appleseed');
+
+        $this->data['persons'] = $personModel->getAll();
 
         return $this->view->render('model');
     }

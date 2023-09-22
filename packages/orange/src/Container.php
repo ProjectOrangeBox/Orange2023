@@ -26,16 +26,6 @@ class Container implements ContainerInterface
         return self::$instance;
     }
 
-    public static function getService(string $name): mixed
-    {
-        return self::getInstance()->get($name);
-    }
-
-    public static function getServiceIfExists(string $name): mixed
-    {
-        return (self::getInstance()->has($name)) ? self::getInstance()->get($name) : null;
-    }
-
     public function setServices(array $serviceArray): self
     {
         $container = $this->getInstance();

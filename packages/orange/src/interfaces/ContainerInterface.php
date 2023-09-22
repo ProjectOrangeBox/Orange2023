@@ -12,10 +12,10 @@ interface ContainerInterface
     public const ALIAS = 2;
     public const VALUE = 3;
 
-    public static function getService(string $name): mixed;
-    public static function getServiceIfExists(string $name): mixed;
-
     public function setServices(array $serviceArray): self;
+    
+    // just the names
+    public function getServices(): array;
 
     public function __get(string $serviceName): mixed;
     public function get(string $serviceName): mixed;
@@ -27,14 +27,11 @@ interface ContainerInterface
     public function addClosure(string $serviceName, Closure $closure): self;
     public function addValue(string $serviceName, mixed $value): self;
 
-    public function getServices(): array;
-
     public function __isset(string $serviceName): bool;
     public function isset(string $serviceName): bool;
-
     public function has(string $serviceName): bool;
-    public function __unset(string $serviceName): void;
 
+    public function __unset(string $serviceName): void;
     public function unset(string $serviceName): void;
     public function remove(string $serviceName): void;
 

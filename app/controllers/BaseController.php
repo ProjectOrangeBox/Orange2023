@@ -22,12 +22,6 @@ abstract class BaseController
     // PHP 8: Constructor property promotion
     public function __construct(public OutputInterface $output,public InputInterface $input, public ConfigInterface $config,public  ViewerInterface $view, public DataInterface $data)
     {
-        $this->output = $output;
-        $this->input = $input;
-        $this->config = $config;
-        $this->view = $view;
-        $this->data = $data;
-
         if (!empty($this->contentType)) {
             $this->output->contentType($this->contentType);
         }

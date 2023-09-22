@@ -5,7 +5,7 @@ declare(strict_types=1);
 use dmyers\orange\Data;
 use dmyers\orange\View;
 use dmyers\orange\Error;
-use dmyers\orange\Output;
+use dmyers\orange\stubs\Output;
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\exceptions\MethodNotFound;
 
@@ -53,10 +53,9 @@ final class ErrorTest extends unitTestHelper
         $outputConfig = [
             'contentType' => 'text/html',
             'charSet' => 'utf-8',
-            'show already sent error' => false,
-            'simulate' => true,
         ];
 
+        // output stub
         $this->output = new Output($outputConfig);
 
         $this->instance = new Error($errorConfig, new View($viewConfig, new Data([])), $this->output);

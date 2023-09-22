@@ -54,9 +54,8 @@ if (!function_exists('logMsg')) {
             $container = container();
 
             // don't throw an error if it's not available
-            if ($log = $container::getServiceIfExists('log')) {
-                $levelAsInt = $log->convert2($level, true);
-                $log->write($levelAsInt, $msg);
+            if ($container->has('log')) {
+                $container->log->write($container->log->convert2($level, true), $msg);
             }
         }
     }
@@ -294,6 +293,6 @@ if (!function_exists('config')) {
     function config(string $filename, string $key, mixed $default = null)
     {
         // throws error if service missing
-        return container()::getService('config')->get($filename, $key, $default);
+        return container()->get('config')->get($filename, $key, $default);
     }
 }

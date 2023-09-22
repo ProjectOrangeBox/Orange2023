@@ -191,13 +191,33 @@ class Sql
         return $this->PDOStatement;
     }
 
-    public function set(array $array): self
+    public function set(array|string $arg1, mixed $value = null, bool $isRaw = false): self
     {
-        foreach ($array as $column => $value) {
-            $this->columns[$column] = $value;
+        if (is_string($arg1)) {
+            $this->set($arg1, $value);
+        } else {
+            $key = ($isRaw) ? 'raw' : 'column';
+
+            foreach ($arg1 as $column => $value) {
+                if ($value === null) {
+                    $this->columns[] = [
+                        $key => $column
+                    ];
+                } else {
+                    $this->columns[] = [
+                        $key => $column,
+                        'value' => $value
+                    ];
+                }
+            }
         }
 
         return $this;
+    }
+
+    public function setRaw(array|string $arg1, mixed $value = null): self
+    {
+        return $this->set($arg1, $value, true);
     }
 
     public function values(array $array): self
@@ -205,12 +225,37 @@ class Sql
         return $this->set($array);
     }
 
+    public function value(string $name, mixed $value): self
+    {
+        return $this->set($name, $value);
+    }
+
+    public function valuesRaw(array $array): self
+    {
+        return $this->set($array, null, true);
+    }
+
+    public function valueRaw(string $name, mixed $value): self
+    {
+        return $this->set($name, $value, true);
+    }
+
     /**
      * SELECT column1, column2, ... FROM table_name;
      */
     public function getSelectColumns(): string
     {
-        return ' ' . implode(',', array_values($this->columns));
+        $columNames = [];
+
+        foreach ($this->columns as $record) {
+            if (isset($record['raw'])) {
+                $columNames[] = $record['raw'];
+            } else {
+                $columNames[] = $this->escapeTableColumn($record['column']);
+            }
+        }
+
+        return ' ' . implode(',', $columNames);
     }
 
     /**
@@ -218,13 +263,17 @@ class Sql
      */
     public function getInsertColumns(): string
     {
-        $columns = [];
+        $columNames = [];
 
-        foreach (array_keys($this->columns) as $column) {
-            $columns[] = $this->escapeTableColumn($column);
+        foreach ($this->columns as $record) {
+            if (isset($record['raw'])) {
+                $columNames[] = $record['raw'];
+            } else {
+                $columNames[] = $this->escapeTableColumn($record['column']);
+            }
         }
 
-        return ' (' . implode(',', $columns) . ')';
+        return ' (' . implode(',', $columNames) . ')';
     }
 
     /**
@@ -234,10 +283,10 @@ class Sql
     {
         $fieldDetails = [];
 
-        foreach ($this->columns as $column => $value) {
+        foreach ($this->columns as $record) {
             $fieldDetails[] = '?';
 
-            $this->bindValue($value);
+            $this->bindValue($record['value']);
         }
 
         return ' (' . implode(',', $fieldDetails) . ')';
@@ -250,10 +299,14 @@ class Sql
     {
         $fieldDetails = [];
 
-        foreach ($this->columns as $column => $value) {
-            $fieldDetails[] = $this->escapeTableColumn($column) . ' = ?';
+        foreach ($this->columns as $record) {
+            if (isset($record['raw'])) {
+                $fieldDetails[] = $record['raw'] . ' = ?';
+            } else {
+                $fieldDetails[] = $this->escapeTableColumn($record['column']) . ' = ?';
+            }
 
-            $this->bindValue($value);
+            $this->bindValue($record['value']);
         }
 
         return ' SET ' . implode(' , ', $fieldDetails);
@@ -284,9 +337,11 @@ class Sql
         }
 
         foreach ($columns as $column) {
-            $column = (trim($column) == '*') ? '*' : $this->escapeTableColumn($column);
-
-            $this->columns[$column] = $column;
+            if (trim($column) == '*') {
+                $this->columns[] = ['raw' => '*'];
+            } else {
+                $this->columns[] = ['column' => $column];
+            }
         }
 
         return $this;
@@ -340,9 +395,10 @@ class Sql
         return $output;
     }
 
-    public function where(string $column, string $operator, $value = null): self
+    public function where(string $column, $operator, $value = null): self
     {
-        if ($value == null) {
+        if ($value === null) {
+            // if all 3 args not provided then assume it's a equals
             $this->whereEqual($column, $operator);
         } else {
             $this->where[] = ['column' => $column, 'operator' => $operator, 'value' => $value];
@@ -353,28 +409,56 @@ class Sql
 
     public function whereEqual(string $column, $value): self
     {
-        $this->where[] = ['column' => $column, 'operator' => '=', 'value' => $value];
+        $this->where($column, '=', $value);
+
+        return $this;
+    }
+
+    public function whereIsNull(string $column): self
+    {
+        $this->whereColumnRaw($column, 'IS NULL');
+
+        return $this;
+    }
+
+    public function whereIsNotNull(string $column): self
+    {
+        $this->whereColumnRaw($column, 'IS NOT NULL');
 
         return $this;
     }
 
     public function wherePrimary($value): self
     {
-        $this->where[] = ['column' => $this->tablename . '.' . $this->primaryColumn, 'operator' => '=', 'value' => $value];
+        $tablename = substr($this->tablename, strrpos(' '.$this->tablename, ' '));
+        
+        $this->where($tablename . '.' . $this->primaryColumn, '=', $value);
 
         return $this;
     }
 
-    public function and(): self
+    public function and(string $column = null, mixed $value = null): self
     {
-        $this->whereRaw('AND');
+        // if column and value are set it's a join "and"
+        if ($column !== null && $value !== null) {
+            $this->join[] = ['column' => $column, 'value' => $value, 'bool' => 'AND', 'operator' => '='];
+        } else {
+            // if not it's a where "and"
+            $this->whereRaw('AND');
+        }
 
         return $this;
     }
 
-    public function or(): self
+    public function or(string $column = null, mixed $value = null): self
     {
-        $this->whereRaw('OR');
+        // if column and value are set it's a join "or"
+        if ($column !== null && $value !== null) {
+            $this->join[] = ['column' => $column, 'value' => $value, 'bool' => 'OR', 'operator' => '='];
+        } else {
+            // if not it's a where "OR"
+            $this->whereRaw('OR');
+        }
 
         return $this;
     }
@@ -401,15 +485,20 @@ class Sql
     }
 
     /**
-     * whereRaw('`columnname` in (?,?,?,?)',[12,23,45,789]);
-     *
-     * whereRaw('`Price` NOT BETWEEN ? AND ?',[10,20]);
+     * whereColumnRaw('columnname','in (?,?,?,?)',[12,23,45,789]);
+     * whereColumnRaw('foo','IS NULL');
+     * whereColumnRaw('Price','NOT BETWEEN ? AND ?',[10,20]);
      */
+    public function whereColumnRaw(string $column, string $append, $value = null): self
+    {
+        return $this->whereRaw($this->escapeTableColumn($column) . ' ' . $append, $value);
+    }
+
     public function whereRaw(string $raw, $value = null): self
     {
         $where['raw'] = $raw;
 
-        if ($value) {
+        if ($value !== null) {
             $where['value'] = $value;
         }
 
@@ -468,6 +557,16 @@ class Sql
 
     public function orderBy(string $columnName, string $dir = ''): self
     {
+        // some basic shorthand
+        $shorthand = [
+            'd' => 'DESC',
+            'a' => 'ASC',
+            'az' => 'DESC',
+            'za' => 'ASC'
+        ];
+
+        $dir = $shorthand[$dir] ?? strtoupper($dir);
+
         $this->orderBy[$columnName] = $dir;
 
         return $this;
@@ -517,7 +616,13 @@ class Sql
         $sql = [];
 
         foreach ($this->join as $join) {
-            $sql[] = $join['on'] . ' JOIN ' . $this->escapeTableColumn($join['tablename']) . ' ON ' . $this->escapeTableColumn($join['left']) . '=' . $this->escapeTableColumn($join['right']);
+            if (isset($join['on'])) {
+                $sql[] = $join['on'] . ' JOIN ' . $this->escapeTableColumn($join['tablename']) . ' ON ' . $this->escapeTableColumn($join['left']) . '=' . $this->escapeTableColumn($join['right']);
+            } else {
+                $sql[] = $join['bool'] . ' ' . $this->escapeTableColumn($join['column']) . ' ' . $join['operator'] . ' ?';
+
+                $this->bindValue($join['value']);
+            }
         }
 
         return (!empty($sql)) ? ' ' . implode(' ', $sql) : '';

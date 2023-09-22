@@ -22,8 +22,8 @@ final class SqlTest extends unitTestHelper
             'primaryColumn' => 'id',
             'throwException' => false,
             'defaultFetchType' => PDO::FETCH_ASSOC,
-            'fetchClass'=>'',
-            'errorFormat'=>'[%1$s] %2$s',
+            'fetchClass' => '',
+            'errorFormat' => '[%1$s] %2$s',
         ], $this->pdo);
     }
 
@@ -143,18 +143,18 @@ final class SqlTest extends unitTestHelper
     {
         $this->assertInstanceOf(Sql::class, $this->instance->set(['foo' => 'bar']));
 
-        $this->assertEquals([
-            'foo' => 'bar',
-        ], $this->getPrivatePublic('columns'));
+        $this->assertEquals([0 => [
+            'column' => 'foo', 'value' => 'bar'
+        ]], $this->getPrivatePublic('columns'));
     }
 
     public function testValues(): void
     {
         $this->assertInstanceOf(Sql::class, $this->instance->values(['foo' => 'bar']));
 
-        $this->assertEquals([
-            'foo' => 'bar',
-        ], $this->getPrivatePublic('columns'));
+        $this->assertEquals([0 => [
+            'column' => 'foo', 'value' => 'bar'
+        ]], $this->getPrivatePublic('columns'));
     }
 
     public function testGetColumnsSelect(): void
@@ -316,6 +316,21 @@ final class SqlTest extends unitTestHelper
         $this->assertEquals(['Johnny', 'Appleseed'], $this->instance->boundValues());
     }
 
+    public function testGroup2(): void
+    {
+        $this->assertInstanceOf(Sql::class, $this->instance->groupStart());
+        $this->assertInstanceOf(Sql::class, $this->instance->whereEqual('fname', 'Johnny'));
+        $this->assertInstanceOf(Sql::class, $this->instance->or());
+        $this->assertInstanceOf(Sql::class, $this->instance->whereEqual('lname', 'Appleseed'));
+        $this->assertInstanceOf(Sql::class, $this->instance->groupEnd());
+        $this->assertInstanceOf(Sql::class, $this->instance->or());
+        $this->assertInstanceOf(Sql::class, $this->instance->whereEqual('foo', 'bar'));
+
+
+        $this->assertEquals(' WHERE ( `fname` = ? OR `lname` = ? )  OR `foo` = ?', $this->instance->getWhere());
+        $this->assertEquals(['Johnny', 'Appleseed', 'bar'], $this->instance->boundValues());
+    }
+
     public function testWhereRaw1(): void
     {
         $this->assertInstanceOf(Sql::class, $this->instance->whereRaw('`columnname` IN (?,?,?,?)', [12, 23, 45, 789]));
@@ -347,57 +362,73 @@ final class SqlTest extends unitTestHelper
         $this->assertInstanceOf(Sql::class, $this->instance->reset());
 
         $this->assertInstanceOf(Sql::class, $this->instance->OrderBy('first_name', 'asc'));
-        $this->assertEquals(' ORDER BY `first_name` asc', $this->instance->getOrderBy());
+        $this->assertEquals(' ORDER BY `first_name` ASC', $this->instance->getOrderBy());
 
         $this->assertInstanceOf(Sql::class, $this->instance->reset());
 
         $this->assertInstanceOf(Sql::class, $this->instance->OrderBy('first_name', 'asc'));
         $this->assertInstanceOf(Sql::class, $this->instance->OrderBy('last_name', 'desc'));
 
-        $this->assertEquals(' ORDER BY `first_name` asc, `last_name` desc', $this->instance->getOrderBy());
+        $this->assertEquals(' ORDER BY `first_name` ASC, `last_name` DESC', $this->instance->getOrderBy());
 
         $this->assertInstanceOf(Sql::class, $this->instance->reset());
 
         $this->assertInstanceOf(Sql::class, $this->instance->OrderBy('tablename.first_name'));
         $this->assertInstanceOf(Sql::class, $this->instance->OrderBy('last_name', 'desc'));
 
-        $this->assertEquals(' ORDER BY `tablename`.`first_name`, `last_name` desc', $this->instance->getOrderBy());
+        $this->assertEquals(' ORDER BY `tablename`.`first_name`, `last_name` DESC', $this->instance->getOrderBy());
+
+        $this->assertInstanceOf(Sql::class, $this->instance->OrderBy('tablename.first_name'));
+        $this->assertInstanceOf(Sql::class, $this->instance->OrderBy('last_name', 'az'));
+
+        $this->assertEquals(' ORDER BY `tablename`.`first_name`, `last_name` DESC', $this->instance->getOrderBy());
+
+        $this->assertInstanceOf(Sql::class, $this->instance->OrderBy('tablename.first_name'));
+        $this->assertInstanceOf(Sql::class, $this->instance->OrderBy('last_name', 'za'));
+
+        $this->assertEquals(' ORDER BY `tablename`.`first_name`, `last_name` ASC', $this->instance->getOrderBy());
     }
 
     // join(string $joinTable, string $on, string $left, string $right): self
     public function testJoin(): void
     {
-        $this->assertInstanceOf(Sql::class, $this->instance->join('child_table','inner','child_table.parent_id','parent_table.id'));
+        $this->assertInstanceOf(Sql::class, $this->instance->join('child_table', 'inner', 'child_table.parent_id', 'parent_table.id'));
 
         $this->assertEquals(' INNER JOIN `child_table` ON `child_table`.`parent_id`=`parent_table`.`id`', $this->instance->getJoins());
     }
 
     public function testInnerJoin(): void
     {
-        $this->assertInstanceOf(Sql::class, $this->instance->innerJoin('child_table','child_table.parent_id','parent_table.id'));
+        $this->assertInstanceOf(Sql::class, $this->instance->innerJoin('child_table', 'child_table.parent_id', 'parent_table.id'));
 
         $this->assertEquals(' INNER JOIN `child_table` ON `child_table`.`parent_id`=`parent_table`.`id`', $this->instance->getJoins());
     }
 
     public function testLeftJoin(): void
     {
-        $this->assertInstanceOf(Sql::class, $this->instance->leftJoin('child_table','child_table.parent_id','parent_table.id'));
+        $this->assertInstanceOf(Sql::class, $this->instance->leftJoin('child_table', 'child_table.parent_id', 'parent_table.id'));
 
         $this->assertEquals(' LEFT JOIN `child_table` ON `child_table`.`parent_id`=`parent_table`.`id`', $this->instance->getJoins());
     }
 
     public function testRightJoin(): void
     {
-        $this->assertInstanceOf(Sql::class, $this->instance->rightJoin('child_table','child_table.parent_id','parent_table.id'));
+        $this->assertInstanceOf(Sql::class, $this->instance->rightJoin('child_table', 'child_table.parent_id', 'parent_table.id'));
 
         $this->assertEquals(' RIGHT JOIN `child_table` ON `child_table`.`parent_id`=`parent_table`.`id`', $this->instance->getJoins());
+
+        $this->instance->reset();
+
+        $this->assertInstanceOf(Sql::class, $this->instance->rightJoin('child_table as ct', 'ct.parent_id', 'parent_table.id'));
+
+        $this->assertEquals(' RIGHT JOIN `child_table` AS `ct` ON `ct`.`parent_id`=`parent_table`.`id`', $this->instance->getJoins());
     }
 
     public function testJoins(): void
     {
-        $this->assertInstanceOf(Sql::class, $this->instance->innerJoin('child_table as ct','ct.parent_id','parent_table.id'));
-        $this->assertInstanceOf(Sql::class, $this->instance->leftJoin('child_table','child_table.parent_id','parent_table.id'));
-        $this->assertInstanceOf(Sql::class, $this->instance->rightJoin('child_table','child_table.parent_id','parent_table.id'));
+        $this->assertInstanceOf(Sql::class, $this->instance->innerJoin('child_table as ct', 'ct.parent_id', 'parent_table.id'));
+        $this->assertInstanceOf(Sql::class, $this->instance->leftJoin('child_table', 'child_table.parent_id', 'parent_table.id'));
+        $this->assertInstanceOf(Sql::class, $this->instance->rightJoin('child_table', 'child_table.parent_id', 'parent_table.id'));
 
         $this->assertEquals(' INNER JOIN `child_table` AS `ct` ON `ct`.`parent_id`=`parent_table`.`id` LEFT JOIN `child_table` ON `child_table`.`parent_id`=`parent_table`.`id` RIGHT JOIN `child_table` ON `child_table`.`parent_id`=`parent_table`.`id`', $this->instance->getJoins());
     }
@@ -412,12 +443,24 @@ final class SqlTest extends unitTestHelper
     {
         $this->assertInstanceOf(Sql::class, $this->instance->from('myTable'));
         $this->assertEquals(' FROM `myTable`', $this->instance->getFrom());
+
+        $this->assertInstanceOf(Sql::class, $this->instance->from('myTable as mt'));
+        $this->assertEquals(' FROM `myTable` AS `mt`', $this->instance->getFrom());
+
+        $this->assertInstanceOf(Sql::class, $this->instance->from('myTable mt'));
+        $this->assertEquals(' FROM `myTable` AS `mt`', $this->instance->getFrom());
     }
 
     public function testTable(): void
     {
         $this->assertInstanceOf(Sql::class, $this->instance->table('myTable'));
         $this->assertEquals(' `myTable`', $this->instance->getTable());
+
+        $this->assertInstanceOf(Sql::class, $this->instance->table('myTable as mt'));
+        $this->assertEquals(' `myTable` AS `mt`', $this->instance->getTable());
+
+        $this->assertInstanceOf(Sql::class, $this->instance->table('myTable mt'));
+        $this->assertEquals(' `myTable` AS `mt`', $this->instance->getTable());
     }
 
     /**
@@ -444,10 +487,10 @@ final class SqlTest extends unitTestHelper
 
     public function testSetFetchModeAsFetchClass(): void
     {
-        require __DIR__.'/support/modelRowClass.php';
-        
-        $this->setPrivatePublic('fetchClass',modelRowClass::class);
-        
+        require __DIR__ . '/support/modelRowClass.php';
+
+        $this->setPrivatePublic('fetchClass', modelRowClass::class);
+
         $pdoStatement = $this->instance->query('select * from `main` where `id` = ?', [1], PDO::FETCH_CLASS);
 
         $this->assertInstanceOf(PDOStatement::class, $pdoStatement);
@@ -478,4 +521,63 @@ final class SqlTest extends unitTestHelper
         $this->assertEquals($class, $pdoStatement->fetch());
     }
 
+    public function testSelectAll(): void
+    {
+        $sqlQuery = $this->instance->select()->from()->build();
+
+        $this->assertEquals("SELECT * FROM `main`", $sqlQuery);
+    }
+
+    public function testBiggerQuerys(): void
+    {
+        $sqlQuery = $this->instance->select('cow,dog,cat')->from('foobar')->wherePrimary(1)->build();
+
+        $this->assertEquals("SELECT `cow`,`dog`,`cat` FROM `foobar`  WHERE `foobar`.`id` = ?", $sqlQuery);
+
+
+        $sqlQuery = $this->instance->select('cow as c,dog d,cat')->from('foobar')->wherePrimary(1)->build();
+
+        $this->assertEquals("SELECT `cow` AS `c`,`dog` AS `d`,`cat` FROM `foobar`  WHERE `foobar`.`id` = ?", $sqlQuery);
+
+        $sqlQuery = $this->instance->select('f.cow as c,f.dog d,f.cat')->from('foobar f')->wherePrimary(1)->build();
+
+        $this->assertEquals("SELECT `f`.`cow` AS `c`,`f`.`dog` AS `d`,`f`.`cat` FROM `foobar` AS `f`  WHERE `f`.`id` = ?", $sqlQuery);
+
+        $sqlQuery = $this->instance->select('f.cow as c,f.dog d,f.cat')->from('foobar f')->wherePrimary(1)->and()->WhereEqual('moo', 'cow')->build();
+
+        $this->assertEquals("SELECT `f`.`cow` AS `c`,`f`.`dog` AS `d`,`f`.`cat` FROM `foobar` AS `f`  WHERE `f`.`id` = ? AND `moo` = ?", $sqlQuery);
+
+        $sqlQuery = $this->instance->select('f.cow as c,f.dog d,f.cat')->from('foobar f')->innerJoin('table2', 'f.id', 'table2.parent.id')->wherePrimary(1)->and()->WhereEqual('moo', 'cow')->build();
+
+        $this->assertEquals("SELECT `f`.`cow` AS `c`,`f`.`dog` AS `d`,`f`.`cat` FROM `foobar` AS `f`  INNER JOIN `table2` ON `f`.`id`=`table2`.`parent`.`id` WHERE `f`.`id` = ? AND `moo` = ?", $sqlQuery);
+
+
+        $sqlQuery = $this->instance->select('f.cow as c,f.dog d,f.cat')->from('foobar f')->innerJoin('table2', 'f.id', 'table2.parent.id')->and('table2.status', 1)->wherePrimary(1)->and()->WhereEqual('moo', 'cow')->build();
+
+        $this->assertEquals("SELECT `f`.`cow` AS `c`,`f`.`dog` AS `d`,`f`.`cat` FROM `foobar` AS `f`  INNER JOIN `table2` ON `f`.`id`=`table2`.`parent`.`id` AND `table2`.`status` = ? WHERE `f`.`id` = ? AND `moo` = ?", $sqlQuery);
+
+
+        $sqlQuery = $this->instance->select('f.cow as c,f.dog d,f.cat')->from('foobar f')->innerJoin('table2', 'f.id', 'table2.parent.id')->wherePrimary(1)->and()->WhereEqual('moo', 'cow')->limit(100)->build();
+
+        $this->assertEquals("SELECT `f`.`cow` AS `c`,`f`.`dog` AS `d`,`f`.`cat` FROM `foobar` AS `f`  INNER JOIN `table2` ON `f`.`id`=`table2`.`parent`.`id` WHERE `f`.`id` = ? AND `moo` = ? LIMIT 100", $sqlQuery);
+
+
+        $sqlQuery = $this->instance->select('f.cow as c,f.dog d,f.cat')->from('foobar f')->innerJoin('table2', 'f.id', 'table2.parent.id')->wherePrimary(1)->and()->WhereEqual('moo', 'cow')->limit(10, 100)->build();
+
+        $this->assertEquals("SELECT `f`.`cow` AS `c`,`f`.`dog` AS `d`,`f`.`cat` FROM `foobar` AS `f`  INNER JOIN `table2` ON `f`.`id`=`table2`.`parent`.`id` WHERE `f`.`id` = ? AND `moo` = ? LIMIT 10,100", $sqlQuery);
+
+
+        $sqlQuery = $this->instance->select('f.cow as c,f.dog d,f.cat')->from('foobar f')->innerJoin('table2', 'f.id', 'table2.parent.id')->wherePrimary(1)->and()->WhereEqual('moo', 'cow')->limit(10, 100)->orderBy('c', 'desc')->build();
+
+        $this->assertEquals("SELECT `f`.`cow` AS `c`,`f`.`dog` AS `d`,`f`.`cat` FROM `foobar` AS `f`  INNER JOIN `table2` ON `f`.`id`=`table2`.`parent`.`id` WHERE `f`.`id` = ? AND `moo` = ? ORDER BY `c` DESC LIMIT 10,100", $sqlQuery);
+
+
+        $sqlQuery = $this->instance->select('f.cow as c,f.dog d,f.cat')->from('foobar f')->innerJoin('table2', 'f.id', 'table2.parent.id')->groupStart()->wherePrimary(1)->and()->WhereEqual('moo', 'cow')->groupEnd()->or()->Where('d', '=', 123)->limit(10, 100)->orderBy('c', 'desc')->build();
+
+        $this->assertEquals("SELECT `f`.`cow` AS `c`,`f`.`dog` AS `d`,`f`.`cat` FROM `foobar` AS `f`  INNER JOIN `table2` ON `f`.`id`=`table2`.`parent`.`id` WHERE ( `f`.`id` = ? AND `moo` = ? )  OR `d` = ? ORDER BY `c` DESC LIMIT 10,100", $sqlQuery);
+
+        $sqlQuery = $this->instance->select('f.cow as c,f.dog d,f.cat')->from('foobar f')->innerJoin('table2', 'f.id', 'table2.parent.id')->groupStart()->wherePrimary(1)->and()->WhereEqual('moo', 'cow')->groupEnd()->or()->Where('d', '=', 123)->or()->Where('cat', 'yellow')->limit(10, 100)->orderBy('c', 'desc')->build();
+
+        $this->assertEquals("SELECT `f`.`cow` AS `c`,`f`.`dog` AS `d`,`f`.`cat` FROM `foobar` AS `f`  INNER JOIN `table2` ON `f`.`id`=`table2`.`parent`.`id` WHERE ( `f`.`id` = ? AND `moo` = ? )  OR `d` = ? OR `cat` = ? ORDER BY `c` DESC LIMIT 10,100", $sqlQuery);
+    }
 }

@@ -21,4 +21,10 @@ class personModel extends ModelAbstract {
     {
         return $this->sql->select('*')->from($this->tablename)->whereEqual('name',$name)->run()->row();
     }
+
+    public function getAll(string $columns = '*', int $fetchMode = -1): array
+    {
+        return $this->sql->select('*')->from($this->tablename)->run()->rows();
+    }
+
 }

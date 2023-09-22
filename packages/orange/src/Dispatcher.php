@@ -45,7 +45,10 @@ class Dispatcher implements DispatcherInterface
                     return urldecode($value);
                 }, $routeMatched['argv']);
 
-                // auto inject into controller construct services
+                // auto inject into controller __construct services which match the exact variable name
+                // auto injection based on variable name is service name
+                // PHP 8: Constructor property promotion
+                // public function __construct(public OutputInterface $output,public InputInterface $input, public ConfigInterface $config,public  ViewerInterface $view, public DataInterface $data)
                 $services = [];
 
                 $reflection = new \ReflectionClass($controllerClass);
@@ -53,7 +56,6 @@ class Dispatcher implements DispatcherInterface
                 if ($reflection->getConstructor()) {
                     foreach ($reflection->getConstructor()->getParameters() as $param) {
                         $serviceName = (string)$param->getName();
-
                         $services[] = $this->container->$serviceName;
                     }
                 }

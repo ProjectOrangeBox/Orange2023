@@ -89,6 +89,7 @@ abstract class ViewerAbstract implements ViewerInterface
 
     public function changeOption(string $name, mixed $value): self
     {
+        // extended in your view classes as needed then call parent::changeOption(...)
         switch ($name) {
             case 'views':
                 $this->loadedViews = $this->validateArgument($value,'is_array');

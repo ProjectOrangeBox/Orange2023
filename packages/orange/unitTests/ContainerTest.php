@@ -30,23 +30,6 @@ final class ContainerTest extends unitTestHelper
         $this->assertInstanceOf(Container::class, $this->instance->setServices($this->services));
     }
 
-    public function testGetService(): void
-    {
-        $this->instance->setServices($this->services);
-
-        $this->assertEquals('bar', Container::getService('foo'));
-        $this->assertEquals('bar', Container::getService('cat'));
-        $this->assertInstanceOf(stdClass::class, Container::getService('cookie'));
-    }
-
-    public function testGetServiceIfExists(): void
-    {
-        $this->instance->setServices($this->services);
-
-        $this->assertNull(Container::getServiceIfExists('foobar'));
-        $this->assertEquals('bar', Container::getServiceIfExists('foo'));
-    }
-
     public function test__get(): void
     {
         $this->instance->setServices($this->services);
@@ -81,9 +64,14 @@ final class ContainerTest extends unitTestHelper
 
     public function testAddAlias(): void
     {
-        $this->instance->addAlias('sky', 'water');
+        // add water
+        $this->instance->water = 'abc123';
+        
+        // public function addAlias(string $alias, string $serviceName): self
+        $this->instance->addAlias('sky','water');
 
-        $this->assertEquals('blue', $this->instance->sky);
+        // ask for sky
+        $this->assertEquals('abc123', $this->instance->sky);
     }
 
     public function testAddClosure(): void
@@ -111,41 +99,30 @@ final class ContainerTest extends unitTestHelper
         $this->assertEquals('fruit', $this->instance->lunch);
     }
 
-    public function testGetServices(): void
-    {
-        $services = $this->instance->getServices();
-
-        $matches = [
-            0 => 'foo',
-            1 => 'cookie',
-            2 => 'cat',
-            3 => 'food',
-            4 => 'water',
-            5 => 'sky',
-            6 => 'factory',
-            7 => 'lunch',
-        ];
-
-        $this->assertEquals($matches, $services);
-    }
 
     public function test__isset(): void
     {
+        $this->instance->setServices($this->services);
+
         $this->assertTrue(isset($this->instance->foo));
         $this->assertFalse(isset($this->instance->nope));
     }
 
     public function testIsset(): void
     {
+        $this->instance->setServices($this->services);
+
         $this->assertTrue($this->instance->isset('foo'));
         $this->assertFalse($this->instance->isset('nope'));
     }
 
     public function testHas(): void
     {
+        $this->instance->setServices($this->services);
+
         $this->assertTrue($this->instance->has('foo'));
-        $this->assertTrue($this->instance->has('sky'));
-        $this->assertFalse($this->instance->has('nope'));
+        $this->assertTrue($this->instance->has('cookie'));
+        $this->assertFalse($this->instance->has('invalid'));
     }
 
     public function test__unset(): void
