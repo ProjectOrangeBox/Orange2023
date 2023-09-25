@@ -26,7 +26,7 @@ use peel\validate\exceptions\InvalidValue as ExceptionsInvalidValue;
  */
 abstract class ViewerAbstract implements ViewerInterface
 {
-    protected static ViewerInterface $instance;
+    private static ViewerInterface $instance;
     protected DataInterface $data;
 
     protected array $config = [];
@@ -45,6 +45,7 @@ abstract class ViewerAbstract implements ViewerInterface
     protected array $delimiters = [];
     protected string $l_delim = '';
     protected string $r_delim = '';
+    protected bool $allowPhp = false;
 
     public function __construct(array $config, ?DataInterface $data = null)
     {
@@ -59,6 +60,7 @@ abstract class ViewerAbstract implements ViewerInterface
         $this->debug = $this->config['debug'] ?? $this->debug;
         $this->extension = $this->config['extension'] ?? '.' . trim($this->extension, '.');
         $this->aliasViews = $this->config['alias view'] ?? $this->aliasViews;
+        $this->allowPhp = $this->config['allow PHP'] ?? $this->allowPhp;
 
         if (isset($this->config['delimiters'])) {
             $this->delimiters = [$this->config['delimiters'][0], $this->config['delimiters'][1]];
