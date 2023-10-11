@@ -6,17 +6,16 @@
     }],
     "autoload": {
         "psr-4": {
-            "dmyers\\orange\\": "packages/orange/src/",
-            "app\\": "app/",
+            "app\\": "modules/app",
+            "people\\": "modules/people",
+            "dmyers\\orange\\": "packages/orange/src",
             "peel\\cache\\": "packages/peel/cache/src",
             "peel\\console\\": "packages/peel/console/src",
             "peel\\session\\": "packages/peel/session/src",
             "peel\\asset\\": "packages/peel/asset/src",
             "peel\\flashmsg\\": "packages/peel/flashmsg/src",
             "peel\\slash\\": "packages/peel/slash/src",
-            "peel\\validate\\": "packages/peel/validate/src",
-            "example\\modulea\\": "modulea",
-            "example\\moduleb\\": "moduleb"
+            "peel\\validate\\": "packages/peel/validate/src"
         },
         "files": [
             "packages/orange/src/Orange.php"
@@ -37,6 +36,7 @@
         "zordius/lightncandy": "dev-master",
         "catfan/medoo": "^2.1",
         "symfony/console": "^6.3",
-        "league/climate": "^3.8"
+        "league/climate": "^3.8",
+        "robmorgan/phinx": "^0.15.2"
     }
 }

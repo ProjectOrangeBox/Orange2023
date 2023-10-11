@@ -6,17 +6,17 @@ return [
     'default views' => null,
     'types' => [
         'cli' => [
-            'subfolder' => 'cli',
+            'subfolder' => 'errors/cli',
             'mime type' => 'text/plain',
             'charset' => 'utf-8',
         ],
         'ajax' => [
-            'subfolder' => 'ajax',
+            'subfolder' => 'errors/ajax',
             'mime type' => 'application/json',
             'charset' => 'utf-8',
         ],
         'html' => [
-            'subfolder' => 'html',
+            'subfolder' => 'errors/html',
             'mime type' => 'text/html',
             'charset' => 'utf-8',
         ],

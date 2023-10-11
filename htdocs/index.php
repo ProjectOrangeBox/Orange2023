@@ -19,9 +19,9 @@ require_once __ROOT__ . '/vendor/autoload.php';
 mergeEnv(__ROOT__.'/.env');
 
 // user added
-if (file_exists(__ROOT__.'/app/bootstrap.php')) {
-    require_once __ROOT__.'/app/bootstrap.php';
+if (file_exists(__ROOT__.'/bootstrap.php')) {
+    require_once __ROOT__.'/bootstrap.php';
 }
 
 /* send config into application and away we go! */
-http(include __ROOT__ . '/app/config/config.php');
+http(include __ROOT__ . '/config/config.php');

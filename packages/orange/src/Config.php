@@ -21,7 +21,7 @@ class Config extends ArrayObject implements ConfigInterface
     {
         $this->config = $config;
 
-        // every matching config file array is merged over the last using "array_replace_recursive"
+        // Every matching config file array is merged over the last using "array_replace_recursive"
         // "Replaces elements from passed arrays into the first array recursively"
 
         $this->throwErrorOnMissingFile = $this->config['throw error on missing file'] ?? $this->throwErrorOnMissingFile;

@@ -296,3 +296,11 @@ if (!function_exists('config')) {
         return container()->get('config')->get($filename, $key, $default);
     }
 }
+
+/* wrapper for router get url */
+if (!function_exists('getUrl')) {
+    function getUrl(string $searchName, array $arguments = [], bool $appendSiteUrl = false): string
+    {
+        return container()->get('router')->getUrl($searchName, $arguments, $appendSiteUrl);
+    }
+}

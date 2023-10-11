@@ -8,6 +8,7 @@ use PDO;
 use Exception;
 use Throwable;
 use PDOStatement;
+use dmyers\orange\exceptions\SqlBuilderException;
 
 /**
  * Basic SQL abstraction layer
@@ -705,7 +706,7 @@ class Sql
         $this->errorMsg = $e->getMessage();
 
         if ($this->throwException) {
-            throw new Exception($this->errorFormat(), 500);
+            throw new SqlBuilderException($this->errorFormat(), 500);
         }
     }
 
