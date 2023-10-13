@@ -1,0 +1,44 @@
+/* growl style */
+* html .notice-wrap {
+	position: absolute;
+}
+.notice-wrap {
+	position: fixed;
+	top: 8px;
+	right: 8px;
+	width: 33%;
+	z-index: 9999;
+	opacity: 0.95;
+}
+.notice-item {
+	display: block;
+	position: relative;
+	margin: 0 0 6px 0;
+	padding: 12px;
+}
+.notice-item strong {
+	font-size: 115%;
+	line-height: 115%;
+}
+.notice-wrap .notice-item.alert p {
+	margin: 0;
+	padding: 0;
+}
+.notice-wrap .notice-item-wrapper .notice-item.alert.alert-block {
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+.notice-wrap .close {
+	opacity: .5;
+	filter: alpha(opacity=50);
+	line-height: 15px;
+}
+.notice-wrap .close:hover {
+	opacity: 1;
+	filter: alpha(opacity=99);
+}
+@media (max-width: 767px) {
+	.notice-wrap {
+		width: 94% !important;
+	}
+}

@@ -223,20 +223,22 @@ if (!function_exists('_lowleveldeath')) {
     function _lowleveldeath(string $text, int $errorCode = 500): void
     {
         if (function_exists('container')) {
-            $container = container();
-
-            if ($container->has('error')) {
-                $container->error->reset()->showError($text, $errorCode);
+            if (container()->has('error')) {
+                // show exits
+                container()->error->reset()->add(['text' => $text, 'code' => $errorCode])->show('error');
             }
+        }
+
+        // error service not setup
+        if (isset($_SERVER['SERVER_PROTOCOL'])) {
+            header($_SERVER['SERVER_PROTOCOL'] . ' ' . $errorCode . ' Internal Server Error', true, $errorCode);
+        }
+
+        // lower level way to determine if CLI
+        if (php_sapi_name() === 'cli') {
+            echo 'Error: [' . $errorCode . '] ' . PHP_EOL . $text . PHP_EOL;
         } else {
-            // error service not setup
-            if (isset($_SERVER['SERVER_PROTOCOL'])) {
-                header($_SERVER['SERVER_PROTOCOL'] . ' ' . $errorCode . ' Internal Server Error', true, $errorCode);
-            }
-
-            $text = (defined('ENVIRONMENT') && ENVIRONMENT == 'production') ? $text : $errorCode;
-
-            echo '<pre>Error: ' . PHP_EOL . $text . PHP_EOL . '</pre>';
+            echo '<pre>Error: [' . $errorCode . '] ' . PHP_EOL . $text . PHP_EOL . '</pre>';
         }
 
         exit(1);

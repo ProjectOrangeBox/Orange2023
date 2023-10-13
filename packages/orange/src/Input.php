@@ -22,7 +22,7 @@ class Input implements InputInterface
     {
         $this->config = mergeDefaultConfig($config, __DIR__ . '/config/input.php');
 
-        $this->replace($config);
+        $this->replace($this->config);
     }
 
     public static function getInstance(array $config): self

@@ -1,0 +1,108 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+define('__ROOT__', realpath(__DIR__ . '/../'));
+chdir(__ROOT__);
+
+require_once __ROOT__ . '/vendor/autoload.php';
+
+/* send config into application */
+$container = cli(include __ROOT__ . '/config/config.php');
+
+$console = $container->console;
+
+$console->minimumArguments(1, 'Please include the path to the assets you would like to add as your last option.');
+
+$assetFolder = $console->getLastArgument();
+
+$overwrite = $console->getArgumentExists('-o');
+
+$absPath = realpath(__ROOT__ . '/' . trim($assetFolder, '/'));
+
+if ($absPath === false) {
+    $console->stop('Unable to locate "' . $assetFolder . '".');
+}
+
+$console->echo('<primary>Using folder "' . $absPath . '".');
+
+// bin folder copy
+copyR($absPath, __ROOT__, '/bin', $overwrite);
+
+// htdocs copy
+copyR($absPath, __ROOT__, '/htdocs', $overwrite);
+
+// support copy
+copyR($absPath, __ROOT__, '/support', $overwrite);
+
+// config copy and/or merge
+// configs we need to either overwrite OR merge into where the correct comment is
+
+putBetween(__DIR__ . '/exampleCli_.php', 'a', 'b');
+
+function copyR(string $source, string $dest, string $path, bool $overwrite): void
+{
+    global $console;
+
+    $directory = new RecursiveDirectoryIterator($source . $path, FilesystemIterator::SKIP_DOTS);
+    $matches = new RecursiveIteratorIterator($directory);
+
+    foreach ($matches as $file) {
+        $from = $file->getPathname();
+        $to = $dest . str_replace($source, '', $from);
+
+        if (file_exists($to)) {
+            if (!$overwrite) {
+                $console->stop('"' . $to . '" already exists.');
+            } else {
+                $console->warn('Removing "' . $to . '".');
+                unlink($to);
+            }
+        }
+
+        $path = pathinfo($to);
+
+        if (!file_exists($path['dirname'])) {
+            mkdir($path['dirname'], 0777, true);
+        }
+
+        $console->info('Copying "' . $from . '" to "' . $to . '".');
+
+
+        if (!copy($from, $to)) {
+            $console->stop('Could not copy "' . $source . '"  to "' . $to . '".');
+        }
+    }
+}
+
+function hasComment(string $absFilePath, string $comment): bool
+{
+    $found = false;
+    $lines = file($absFilePath);
+
+    foreach ($lines as $line) {
+        if (trim($line) == $comment) {
+            $found = true;
+
+            break;
+        }
+    }
+
+    return $found;
+}
+
+function putBetween(string $absFilePath, string $start, string $end): bool
+{
+    $success = false;
+    $newFile = '';
+    $lines = file($absFilePath);
+
+    foreach ($lines as $line) {
+        $newFile .= $line;
+    }
+
+    var_dump($newFile);
+
+    return $success;
+}

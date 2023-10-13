@@ -19,7 +19,7 @@ return [
     // all of the routes need to be in this array
     'routes' => [
         /* home page */
-        ['method' => '*', 'url' => '/', 'callback' => [\app\controllers\MainController::class, 'index'], 'name' => 'home'],
+        ['method' => '*', 'url' => '/', 'callback' => [\application\welcome\controllers\MainController::class, 'index'], 'name' => 'home'],
 
         ['method' => 'get',     'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'get'],    'name' => 'restGet'],
         ['method' => 'post',    'url' => '/rest', 'callback' => [\app\controllers\RestController::class, 'post'],   'name' => 'restPost'],
@@ -46,7 +46,6 @@ return [
         ['method' => 'post', 'url' => '/people/create', 'callback' => [\people\controllers\MainController::class, 'create'], 'name'=>'people-create-post'],
         ['method' => 'post', 'url' => '/people/update/(\d+)', 'callback' => [\people\controllers\MainController::class, 'update'], 'name'=>'people-update-post'],
         ['method' => 'post', 'url' => '/people/delete/(\d+)', 'callback' => [\people\controllers\MainController::class, 'delete'], 'name'=>'people-delete-post'],
-
 
         ['method' => 'get', 'url' => '/model', 'callback' => [\app\controllers\ModelController::class, 'index']],
 

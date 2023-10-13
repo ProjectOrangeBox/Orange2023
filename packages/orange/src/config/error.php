@@ -3,27 +3,32 @@
 declare(strict_types=1);
 
 return [
-    'default views' => null,
+    // append view folder
+    'add path' => __DIR__ . '/../views',
+
+    // default service setup should override this
+    'request type' => 'html',
+
+    // prefix views with
+    'default root folder' => 'errors',
+
+    'deduplicate' => true,
+
     'types' => [
         'cli' => [
-            'subfolder' => 'errors/cli',
             'mime type' => 'text/plain',
             'charset' => 'utf-8',
+            'folder' => 'errors/cli',
         ],
         'ajax' => [
-            'subfolder' => 'errors/ajax',
             'mime type' => 'application/json',
             'charset' => 'utf-8',
+            'folder' => 'errors/ajax',
         ],
         'html' => [
-            'subfolder' => 'errors/html',
             'mime type' => 'text/html',
             'charset' => 'utf-8',
+            'folder' => 'errors/html',
         ],
     ],
-    // default - this is overridden by the input class on instantiation
-    'request type' => 'html',
-    'default error view' => 'error',
-    'default status code' => 500,
-    'default key' => 'default',
 ];

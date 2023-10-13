@@ -11,7 +11,7 @@ use dmyers\orange\exceptions\FileNotWritable;
 use dmyers\orange\interfaces\ViewerInterface;
 use dmyers\orange\exceptions\FolderNotWritable;
 use dmyers\orange\exceptions\InvalidValue;
-use peel\validate\exceptions\InvalidValue as ExceptionsInvalidValue;
+use peels\validate\exceptions\InvalidValue as ExceptionsInvalidValue;
 
 /**
  * This should be extended by viewer classes

@@ -6,16 +6,18 @@
     }],
     "autoload": {
         "psr-4": {
-            "app\\": "modules/app",
-            "people\\": "modules/people",
+            "application\\welcome\\": "application/welcome",
+            "application\\people\\": "application/people",
+            "application\\rest\\": "application/rest",
+            "application\\shared\\": "application/shared",
             "dmyers\\orange\\": "packages/orange/src",
-            "peel\\cache\\": "packages/peel/cache/src",
-            "peel\\console\\": "packages/peel/console/src",
-            "peel\\session\\": "packages/peel/session/src",
-            "peel\\asset\\": "packages/peel/asset/src",
-            "peel\\flashmsg\\": "packages/peel/flashmsg/src",
-            "peel\\slash\\": "packages/peel/slash/src",
-            "peel\\validate\\": "packages/peel/validate/src"
+            "peels\\cache\\": "packages/peel/cache/src",
+            "peels\\console\\": "packages/peel/console/src",
+            "peels\\session\\": "packages/peel/session/src",
+            "peels\\asset\\": "packages/peel/asset/src",
+            "peels\\flashmsg\\": "packages/peel/flashmsg/src",
+            "peels\\slash\\": "packages/peel/slash/src",
+            "peels\\validate\\": "packages/peel/validate/src"
         },
         "files": [
             "packages/orange/src/Orange.php"

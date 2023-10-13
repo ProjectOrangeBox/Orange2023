@@ -30,6 +30,7 @@ interface ConsoleInterface
     public function getArgument(int $num, string $error = null): string;
     public function getLastArgument(): string;
     public function getArgumentByOption(string $match, string $error = null): string;
+    public function getArgumentExists(string $match): bool;
 
     // set
     public function verbose(int $level): self;

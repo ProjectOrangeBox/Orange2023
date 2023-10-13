@@ -11,10 +11,12 @@ use dmyers\orange\Input;
 use dmyers\orange\Config;
 use dmyers\orange\Output;
 use dmyers\orange\Router;
-use peel\session\Session;
 use dmyers\orange\Console;
+use peels\session\Session;
+use peels\validate\Validate;
 use dmyers\orange\Dispatcher;
 use people\models\parentModel;
+use peels\session\SessionInterface;
 use dmyers\orange\interfaces\LogInterface;
 use dmyers\orange\interfaces\ErrorInterface;
 use dmyers\orange\interfaces\EventInterface;
@@ -25,9 +27,8 @@ use dmyers\orange\interfaces\RouterInterface;
 use dmyers\orange\interfaces\ViewerInterface;
 use dmyers\orange\interfaces\ConsoleInterface;
 use dmyers\orange\interfaces\ContainerInterface;
+use peels\validate\interfaces\ValidateInterface;
 use dmyers\orange\interfaces\DispatcherInterface;
-use peel\validate\interfaces\ValidateInterface;
-use peel\validate\Validate;
 
 /**
  * By placing the services inside a closure they are not created UNTIL they are called
@@ -87,7 +88,7 @@ return [
         // get from input the request type
         $config['request type'] = $container->input->requestType();
 
-        return Error::getInstance($config, $container->phpview, $container->output, $container->log);
+        return Error::getInstance($config, $container->phpview, $container->output);
     },
 
     'pdo' => function (ContainerInterface $container) {
@@ -106,13 +107,13 @@ return [
 
     /* orange "peels" from the peel repro */
 
-    'session' => function (ContainerInterface $container) {
+    'session' => function (ContainerInterface $container): SessionInterface {
         $config = $container->config->session;
 
         return Session::getInstance($config['options'], $config['saveHandler']);
     },
 
-    'validate'=> function(ContainerInterface $container) {
+    'validate'=> function(ContainerInterface $container): ValidateInterface {
         return Validate::getInstance([]);
     },
 

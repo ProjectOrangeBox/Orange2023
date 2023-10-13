@@ -2,7 +2,13 @@
 vendor
 packages/orange/bin/.phpunit.result.cache
 packages/peel/asset/bin/.phpunit.result.cache
-packages/peel
-packages/peel/session/src/SessionInterface.php
 .gitignore
 .phpunit.cache
+_testing
+var/cache
+var/downloads
+var/logs
+var/read
+var/sessions
+var/uploads
+var/write
