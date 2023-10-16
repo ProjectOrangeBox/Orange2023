@@ -11,6 +11,11 @@ class Output extends OrangeOutput implements OutputInterface
 {
     private static OutputInterface $instance;
 
+    // readable for testing
+    public $http_response_code = null;
+    public $header = [];
+    public $setcookie = [];
+
     public static function getInstance(array $config): self
     {
         if (!isset(self::$instance)) {
@@ -22,11 +27,23 @@ class Output extends OrangeOutput implements OutputInterface
 
     public function send(bool $exit = false): void
     {
-        // http_response_code - called
-        // header - called
         $this->sendResponseCode()->sendHeaders()->sendCookies();
 
+        // DO NOT ECHO
+        // read with get();
+
         // we never "exit"
+    }
+
+    public function sendResponseCode(): self
+    {
+        $this->alreadySent('Response Code', $this->statusCodeSent);
+
+        $this->http_response_code = $this->statusCode;
+
+        $this->statusCodeSent = true;
+
+        return $this;
     }
 
     public function sendHeaders(): self
@@ -34,21 +51,10 @@ class Output extends OrangeOutput implements OutputInterface
         $this->alreadySent('Headers', $this->headersSent);
 
         foreach ($this->getHeaders() as $header) {
-            header($header);
+            $this->header[] = $header;
         }
 
         $this->headersSent = true;
-
-        return $this;
-    }
-
-    public function sendResponseCode(): self
-    {
-        $this->alreadySent('Response Code', $this->statusCodeSent);
-
-        http_response_code($this->statusCode);
-
-        $this->statusCodeSent = true;
 
         return $this;
     }
@@ -58,10 +64,14 @@ class Output extends OrangeOutput implements OutputInterface
         $this->alreadySent('Cookies', $this->cookiesSent);
 
         foreach ($this->cookies as $record) {
-            setcookie($record['name'], $record['value'], $record['setCookieOptions']);
-
-            $this->cookiesSent = true;
+            $this->setcookie[] = [
+                $record['name'],
+                $record['value'],
+                $record['setCookieOptions']
+            ];
         }
+
+        $this->cookiesSent = true;
 
         return $this;
     }

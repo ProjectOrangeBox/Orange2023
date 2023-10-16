@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
+use Exception;
 use dmyers\orange\exceptions\ExitException;
 use dmyers\orange\interfaces\InputInterface;
 use dmyers\orange\interfaces\ConsoleInterface;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
-use Exception;
 
 class Console implements ConsoleInterface
 {

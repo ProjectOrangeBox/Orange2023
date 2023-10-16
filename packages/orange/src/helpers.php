@@ -25,7 +25,7 @@ if (!function_exists('mergeDefaultConfig')) {
      * $this->config = mergeDefaultConfig($config,__DIR__.'/config/myClassLocalDefaultfConfig.php');
      *
      */
-    function mergeDefaultConfig(array &$current, string $absFilePath): array
+    function mergeDefaultConfig(array &$current, string $absFilePath, bool $recursive = true): array
     {
         if (!\file_exists($absFilePath)) {
             throw new ConfigFileNotFound($absFilePath);
@@ -37,7 +37,7 @@ if (!function_exists('mergeDefaultConfig')) {
             throw new InvalidConfigurationValue('"' . $absFilePath . '" did not return an array.');
         }
 
-        return array_replace_recursive($defaultConfig, $current);
+        return ($recursive) ? array_replace_recursive($defaultConfig, $current) : array_replace($defaultConfig, $current);
     }
 }
 

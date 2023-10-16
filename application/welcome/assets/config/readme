@@ -1,0 +1,11 @@
+The files in this folder are copied to /config
+
+You can also prepend the filename with @ and the contents will be merged into the matching file (if present)
+Note: you need to make sure that those files support "merging" be making sure they include the lines:
+
+/* merged content below */
+/* end merged contents */
+
+Good examples of files you would merge into are:
+
+services.php and routes.php

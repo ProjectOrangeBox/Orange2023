@@ -36,10 +36,60 @@ copyR($absPath, __ROOT__, '/htdocs', $overwrite);
 // support copy
 copyR($absPath, __ROOT__, '/support', $overwrite);
 
+// add var folder
+copyR($absPath, __ROOT__, '/var', $overwrite);
+
+// copy configs
+copyR($absPath, __ROOT__, '/config', $overwrite);
 // config copy and/or merge
 // configs we need to either overwrite OR merge into where the correct comment is
 
-putBetween(__DIR__ . '/exampleCli_.php', 'a', 'b');
+mergeR($absPath, __ROOT__, '/config');
+
+function mergeR(string $source, string $dest, string $path): void
+{
+    global $console;
+
+    $comment = '/* merged content below */';
+    $endComment = '/* end merged contents */';
+
+    $directory = new RecursiveDirectoryIterator($source . $path, FilesystemIterator::SKIP_DOTS);
+    $matches = new RecursiveIteratorIterator($directory);
+
+    foreach ($matches as $file) {
+        $from = $file->getPathname();
+        $to = $dest . str_replace($source, '', $from);
+        $to = str_replace('/@', '/', $to);
+
+        $c1 = substr($file->getFilename(), 0, 1);
+
+        if ($c1 == '@') {
+            $console->info('Merge ' . str_replace(__ROOT__,'',$from) . ' into ' . str_replace(__ROOT__,'',$to));
+
+            if (!hasString($to, $comment)) {
+                $console->warning('Could not locate "' . $comment . '" skipping file');
+            } else {
+                if (!hasString($to, $endComment)) {
+                    $console->warning('Could not locate "' . $endComment . '" skipping file');
+                } else {
+                    $mergeContent = file_get_contents($from);
+                    $toContent = file_get_contents($to);
+
+                    if (strpos(normalize($toContent), normalize($mergeContent)) !== false) {
+                        $console->warning('Seems merged content may already be in destination file. Skipping');
+                    } else {
+                        file_put_contents($to, putAfter($to, $comment, $mergeContent), LOCK_EX);
+                    }
+                }
+            }
+        }
+    }
+}
+
+function normalize(string $input): string
+{
+    return preg_replace("/[^a-z0-9]/", '', strtolower($input));
+}
 
 function copyR(string $source, string $dest, string $path, bool $overwrite): void
 {
@@ -52,37 +102,40 @@ function copyR(string $source, string $dest, string $path, bool $overwrite): voi
         $from = $file->getPathname();
         $to = $dest . str_replace($source, '', $from);
 
-        if (file_exists($to)) {
-            if (!$overwrite) {
-                $console->stop('"' . $to . '" already exists.');
-            } else {
-                $console->warn('Removing "' . $to . '".');
-                unlink($to);
+        $c1 = substr($file->getFilename(), 0, 1);
+
+        if (!in_array($c1, ['.', '@']) && $file->getFilename() != 'readme') {
+            $console->info('Copying "' . str_replace(__ROOT__, '', $from) . '" to "' . str_replace(__ROOT__, '', $to) . '".');
+
+            if (file_exists($to)) {
+                if (!$overwrite) {
+                    $console->warning('"' . str_replace(__ROOT__,'',$to) . '" already exists.');
+                } else {
+                    $console->warning('Removing "' . str_replace(__ROOT__,'',$to) . '".');
+                    unlink($to);
+                }
             }
-        }
 
-        $path = pathinfo($to);
+            $path = pathinfo($to);
 
-        if (!file_exists($path['dirname'])) {
-            mkdir($path['dirname'], 0777, true);
-        }
+            if (!file_exists($path['dirname'])) {
+                mkdir($path['dirname'], 0777, true);
+            }
 
-        $console->info('Copying "' . $from . '" to "' . $to . '".');
-
-
-        if (!copy($from, $to)) {
-            $console->stop('Could not copy "' . $source . '"  to "' . $to . '".');
+            if (!copy($from, $to)) {
+                $console->stop('Could not copy "' . str_replace(__ROOT__, '', $source) . '"  to "' . str_replace(__ROOT__, '', $to) . '".');
+            }
         }
     }
 }
 
-function hasComment(string $absFilePath, string $comment): bool
+function hasString(string $absFilePath, string $string): bool
 {
     $found = false;
     $lines = file($absFilePath);
 
     foreach ($lines as $line) {
-        if (trim($line) == $comment) {
+        if (trim($line) == $string) {
             $found = true;
 
             break;
@@ -92,7 +145,7 @@ function hasComment(string $absFilePath, string $comment): bool
     return $found;
 }
 
-function putBetween(string $absFilePath, string $start, string $end): bool
+function putAfter(string $absFilePath, string $after, string $put): string
 {
     $success = false;
     $newFile = '';
@@ -100,9 +153,38 @@ function putBetween(string $absFilePath, string $start, string $end): bool
 
     foreach ($lines as $line) {
         $newFile .= $line;
+
+        if (trim($line) == $after && $success == false) {
+            $newFile .= PHP_EOL;
+            $newFile .= $put;
+            $newFile .= PHP_EOL;
+
+            $success = true;
+        }
     }
 
-    var_dump($newFile);
+    return $newFile;
+}
 
-    return $success;
+function putBefore(string $absFilePath, string $before, string $put): string
+{
+    $success = false;
+    $newFile = '';
+    $lines = file($absFilePath);
+
+    foreach ($lines as $line) {
+        if (trim($line) == $before && $success == false) {
+            $newFile .= PHP_EOL;
+            $newFile .= $put;
+            $newFile .= PHP_EOL;
+
+            $success = true;
+        }
+
+        $newFile .= $line;
+    }
+
+    file_put_contents($absFilePath, $newFile, LOCK_EX);
+
+    return $newFile;
 }

@@ -143,16 +143,12 @@ class Error implements ErrorInterface
 
     public function show(string $template = 'error'): void
     {
-        $viewFile = $this->folder . '/' . trim($template, '/');
-        
-        $output = $this->viewer->render($viewFile, ['errors' => $this->errors]);
-        
         $this->output
             ->flushAll()
             ->responseCode($this->statusCode)
             ->charSet($this->charSet)
             ->contentType($this->mimeType)
-            ->set($output)
+            ->set($this->viewer->render($this->folder . '/' . trim($template, '/'), ['errors' => $this->errors]))
             ->send(true);
     }
 
@@ -165,7 +161,6 @@ class Error implements ErrorInterface
     {
         $this->reset()->statusCode(500)->add($msg)->show();
     }
-
 
     public function has(): bool
     {

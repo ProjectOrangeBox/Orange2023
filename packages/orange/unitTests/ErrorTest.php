@@ -6,40 +6,36 @@ use dmyers\orange\Data;
 use dmyers\orange\View;
 use dmyers\orange\Error;
 use dmyers\orange\stubs\Output;
-use dmyers\orange\exceptions\InvalidValue;
-use dmyers\orange\exceptions\MethodNotFound;
 
 final class ErrorTest extends unitTestHelper
 {
     protected $instance;
-    protected $output;
+    protected $outputStub;
 
     protected function setUp(): void
     {
         $errorConfig = [
-            'default views' => __DIR__ . '/support/views/errors',
+            'add path' => __DIR__ . '/support/views/errors',
+            'request type' => 'html',
+            'default root folder' => 'errors',
+            'deduplicate' => true,
             'types' => [
                 'cli' => [
-                    'subfolder' => '/cli',
+                    'folder' => '/cli',
                     'mime type' => 'text/plain',
                     'charset' => 'utf-8',
                 ],
                 'ajax' => [
-                    'subfolder' => '/ajax',
+                    'folder' => '/ajax',
                     'mime type' => 'application/json',
                     'charset' => 'utf-8',
                 ],
                 'html' => [
-                    'subfolder' => '/html',
+                    'folder' => '/html',
                     'mime type' => 'text/html',
                     'charset' => 'utf-8',
                 ],
             ],
-            // default - this is overridden by the input class on instantiation
-            'request type' => 'html',
-            'default error view' => 'error',
-            'default status code' => 500,
-            'default key' => 'default',
         ];
 
         $viewConfig = [
@@ -56,130 +52,151 @@ final class ErrorTest extends unitTestHelper
         ];
 
         // output stub
-        $this->output = new Output($outputConfig);
+        $this->outputStub = new Output($outputConfig);
 
-        $this->instance = new Error($errorConfig, new View($viewConfig, new Data([])), $this->output);
+        $this->instance = new Error($errorConfig, new View($viewConfig, new Data([])), $this->outputStub);
     }
 
-    // Tests
+    /* Public Method Tests */
+
+    public function testStatusCode(): void
+    {
+        $this->assertEquals($this->instance, $this->instance->statusCode(302));
+
+        $this->assertEquals(302, $this->getPrivatePublic('statusCode'));
+    }
+
     public function testRequestType(): void
     {
-        $this->instance->requestType('cli');
+        $this->assertEquals($this->instance, $this->instance->requestType('ajax'));
 
-        $this->assertEquals('cli', $this->getPrivatePublic('requestType'));
+        $this->assertEquals('ajax', $this->getPrivatePublic('detectedRequestType'));
     }
 
-    public function testRequestTypeException(): void
+    public function testMimeType(): void
     {
-        $this->expectException(InvalidValue::class);
-        $this->expectExceptionMessage('Unknown type "monkeys".');
+        $this->assertEquals($this->instance, $this->instance->mimeType('foo/bar'));
 
-        $this->instance->requestType('monkeys');
+        $this->assertEquals('foo/bar', $this->getPrivatePublic('mimeType'));
     }
 
-    public function testAdd(): void
+    public function testCharSet(): void
     {
-        $this->instance->add('This is a bad error.');
-        $this->instance->add('This is a another bad error.');
+        $this->assertEquals($this->instance, $this->instance->charSet('UTF-9'));
 
-        $this->assertEquals([0 => 'This is a bad error.', 1 => 'This is a another bad error.'], $this->instance->errors('default'));
-        $this->assertEquals(['default' => [0 => 'This is a bad error.', 1 => 'This is a another bad error.']], $this->instance->errors());
-    }
-
-    public function testCollectErrors(): void
-    {
-        include_once __DIR__ . '/support/collectErrorsFromMe.php';
-
-        $object = new collectErrorsFromMe();
-
-        $this->instance->collectErrors($object, 'people');
-
-        $this->assertEquals([0 => 'error 1', 1 => 'error 2'], $this->instance->errors('people'));
-        $this->assertEquals(['people' => [0 => 'error 1', 1 => 'error 2']], $this->instance->errors());
-    }
-
-    public function testCollectErrorsException(): void
-    {
-        include_once __DIR__ . '/support/mockRouter.php';
-
-        $object = new mockRouter([]);
-
-        $this->expectException(MethodNotFound::class);
-        $this->expectExceptionMessage('Errors could not collect from "mockRouter" because it does not have a errors method.');
-
-        $this->instance->collectErrors($object);
+        $this->assertEquals('UTF-9', $this->getPrivatePublic('charSet'));
     }
 
     public function testClear(): void
     {
-        $this->instance->add('This is a bad error.');
-        $this->instance->add('This is a another bad error.');
+        $this->setPrivatePublic('errors', ['foobar']);
 
-        $this->instance->clear();
-
+        $this->assertEquals(['foobar'], $this->instance->errors());
+        $this->assertEquals($this->instance, $this->instance->clear());
         $this->assertEquals([], $this->instance->errors());
     }
 
     public function testReset(): void
     {
-        $this->instance->add('This is a bad error.');
-        $this->instance->add('This is a another bad error.');
+        $this->setPrivatePublic('errors', ['foobar']);
+        $this->setPrivatePublic('statusCode', 500);
+        $this->setPrivatePublic('mimeType', 'foo/bar');
+        $this->setPrivatePublic('charSet', 'ascii');
 
-        $this->instance->clear();
+        // this sets it back to the detectedRequestType
+        // OR
+        // what every detectedRequestType is at the time of the call if changed with a call to ->detectedRequestType(...)
+        $this->assertEquals($this->instance, $this->instance->reset());
 
-        $this->assertEquals([], $this->instance->errors());
-        $this->assertEquals('html', $this->getPrivatePublic('requestType'));
+        $this->assertEquals(500, $this->getPrivatePublic('statusCode'));
+        $this->assertEquals('html', $this->getPrivatePublic('detectedRequestType'));
+        $this->assertEquals('text/html', $this->getPrivatePublic('mimeType'));
+        $this->assertEquals('utf-8', $this->getPrivatePublic('charSet'));
+        $this->assertEquals([], $this->getPrivatePublic('errors'));
+    }
+
+    public function testFolder(): void
+    {
+        $this->assertEquals($this->instance, $this->instance->folder('/errors/are/here'));
+
+        // auto trims leading and trailing /
+        $this->assertEquals('errors/are/here', $this->getPrivatePublic('folder'));
+    }
+
+    public function testAdd(): void
+    {
+        $this->assertEquals($this->instance, $this->instance->add('foobar'));
+
+        $this->assertEquals(['foobar'], $this->instance->errors());
+    }
+
+    public function testHasShow(): void
+    {
+        $this->assertFalse($this->instance->has());
+
+        $this->instance->hasShow('test');
+
+        $this->assertEquals('', $this->outputStub->get());
+    }
+
+    public function testShow(): void
+    {
+        $this->assertEquals($this->instance, $this->instance->add('test access'));
+        $this->instance->show('test');
+
+        $this->assertEquals(200, $this->outputStub->http_response_code);
+        $this->assertEquals(['Content-Type: text/html; charset=utf-8'], $this->outputStub->header);
+        $this->assertEquals('<h1>test access</h1>', $this->outputStub->get());
+    }
+
+    public function testShow404(): void
+    {
+        $this->instance->show404('This is a 404 problem!');
+
+        $this->assertEquals(404, $this->outputStub->http_response_code);
+        $this->assertEquals(['Content-Type: text/html; charset=utf-8'], $this->outputStub->header);
+        $this->assertEquals('<h1>This is a 404 problem!</h1>', $this->outputStub->get());
+    }
+
+    public function testShow500(): void
+    {
+        $this->instance->show500('This is a 500 problem!');
+
+        $this->assertEquals(500, $this->outputStub->http_response_code);
+        $this->assertEquals(['Content-Type: text/html; charset=utf-8'], $this->outputStub->header);
+        $this->assertEquals('<h1>This is a 500 problem!</h1>', $this->outputStub->get());
     }
 
     public function testHas(): void
     {
-        $this->instance->add('This is a bad error.');
-        $this->instance->add('This is a another bad error.');
+        $this->assertFalse($this->instance->has());
+
+        $this->setPrivatePublic('errors', ['foobar']);
 
         $this->assertTrue($this->instance->has());
-        $this->assertTrue($this->instance->has('default'));
-        $this->assertFalse($this->instance->has('foobar'));
     }
 
-    public function testSend(): void
+    public function testErrors(): void
     {
-        $this->instance->add('This is a bad error.');
-        $this->instance->add('This is a another bad error.');
+        $this->setPrivatePublic('errors', ['foobar']);
 
-        $this->instance->send(500);
-
-        $this->assertEquals('<p>This is a bad error.</p><p>This is a another bad error.</p>', $this->output->get());
+        $this->assertEquals(['foobar'], $this->instance->errors());
     }
 
-    public function testSendOnError1(): void
+    public function testCollectErrors(): void
     {
-        $this->instance->add('This is a bad error.');
-        $this->instance->add('This is a another bad error.');
+        require __DIR__ . '/support/collectErrorsFromMe.php';
 
-        $this->instance->sendOnError(500);
+        $collectErrorsFromMe = new collectErrorsFromMe();
 
-        $this->assertEquals('<p>This is a bad error.</p><p>This is a another bad error.</p>', $this->output->get());
-    }
+        $this->instance->collectErrors($collectErrorsFromMe);
 
+        $this->assertEquals([['error 1', 'error 2']], $this->instance->errors());
 
-    public function testSendOnError2(): void
-    {
-        $this->instance->sendOnError(500);
+        $this->assertEquals($this->instance, $this->instance->clear());
 
-        $this->assertEquals('', $this->output->get());
-    }
+        $this->instance->collectErrors($collectErrorsFromMe, 'differentMethod');
 
-    public function testShowError(): void
-    {
-        $this->instance->showError('Oh Darn!');
-
-        $this->assertEquals('<h1>An Error Was Encountered<h1><p>Oh Darn!</p>', $this->output->get());
-    }
-
-    public function testDisplay(): void
-    {
-        $this->instance->display('error', ['heading' => 'An Error Was Encountered', 'message' => 'Oh Darn!'], 500);
-
-        $this->assertEquals('<h1>An Error Was Encountered<h1><p>Oh Darn!</p>', $this->output->get());
+        $this->assertEquals([['Big Error 1', 'Big Error 2']], $this->instance->errors());
     }
 }

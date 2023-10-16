@@ -300,9 +300,9 @@ class Output implements OutputInterface
 
         foreach ($this->cookies as $record) {
             setcookie($record['name'], $record['value'], $record['setCookieOptions']);
-
-            $this->cookiesSent = true;
         }
+
+        $this->cookiesSent = true;
 
         return $this;
     }

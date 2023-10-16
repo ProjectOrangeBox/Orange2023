@@ -1,1 +1,1 @@
-<h1><?=$heading ?><h1><p><?=$message ?></p>
+<h1><?=$errors[0] ?></h1>

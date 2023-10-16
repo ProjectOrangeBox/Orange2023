@@ -8,4 +8,8 @@ class collectErrorsFromMe
     {
         return ['error 1', 'error 2'];
     }
+
+    public function differentMethod() {
+        return ['Big Error 1', 'Big Error 2'];
+    }
 }
