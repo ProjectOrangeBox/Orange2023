@@ -11,7 +11,7 @@ require_once __ROOT__ . '/vendor/autoload.php';
 mergeEnv(__ROOT__ . '/.env');
 
 /* send config into application */
-$container = cli(include __ROOT__ . '/app/config/config.php');
+$container = cli(include __ROOT__ . '/config/config.php');
 
 $console = $container->console;
 

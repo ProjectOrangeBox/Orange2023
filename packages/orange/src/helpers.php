@@ -44,7 +44,7 @@ if (!function_exists('mergeDefaultConfig')) {
 /**
  * Easy Access to logging
  * works only if logging service exists
- * 
+ *
  * override as needed
  */
 if (!function_exists('logMsg')) {
@@ -63,7 +63,7 @@ if (!function_exists('logMsg')) {
 
 /**
  * merge a file based .env file with the system based $_ENV
- * 
+ *
  * This is stored in appEnv() for easy mocking
  */
 if (!function_exists('mergeEnv')) {
@@ -222,22 +222,24 @@ if (!function_exists('orangeErrorHandler')) {
 if (!function_exists('_lowleveldeath')) {
     function _lowleveldeath(string $text, int $errorCode = 500): void
     {
-        if (function_exists('container')) {
-            if (container()->has('error')) {
-                // show exits
-                container()->error->reset()->add(['text' => $text, 'code' => $errorCode])->show('error');
-            }
+        if (function_exists('container') && container()->has('error')) {
+            // show and exit
+            container()->error->reset()->add(['text' => $text, 'code' => $errorCode])->show('error');
         }
 
-        // error service not setup
+        // services are not setup so we need to go old school on the rest
         if (isset($_SERVER['SERVER_PROTOCOL'])) {
             header($_SERVER['SERVER_PROTOCOL'] . ' ' . $errorCode . ' Internal Server Error', true, $errorCode);
         }
 
-        // lower level way to determine if CLI
         if (php_sapi_name() === 'cli') {
+            // CLI
             echo 'Error: [' . $errorCode . '] ' . PHP_EOL . $text . PHP_EOL;
+        } elseif (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            // ajax / json
+            echo json_encode(['error' => $text, 'code' => $errorCode], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
         } else {
+            // HTML
             echo '<pre>Error: [' . $errorCode . '] ' . PHP_EOL . $text . PHP_EOL . '</pre>';
         }
 

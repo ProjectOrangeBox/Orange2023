@@ -8,7 +8,7 @@ use application\shared\controllers\BaseController;
 
 class MainController extends BaseController
 {
-    protected array $preloadModels = ['parent' => 'model.parent'];
+    protected array $models = ['parent' => 'model.parent'];
 
     // GUI - Gets
     public function index()
@@ -47,16 +47,13 @@ class MainController extends BaseController
         $validate->addError('Oh this is Bad!');
         $validate->addError('Oh this is also Bad!');
 
-        return sendValidationErrors($validate->errors());
+        $error->collectErrors($validate, 'errors');
 
-        //$this->data['heading'] = 'Please check the following errors';
-        //$this->data['message'] = implode('<br>',$validate->errors());
+        // show error and exit
+        $error->responseCode(406)->onErrorsShow();
 
-        //$this->output->responseCode(406)->contentType('json');
-
-        //return $this->view->render('errors/ajax/error');
-
-        //$error->collectErrors($validate, 'errors')->sendOnError(406, 406, 'errors');
+        // else send 201
+        $this->output->responseCode(201);
     }
 
     public function update(string $recordId)

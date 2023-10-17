@@ -13,7 +13,7 @@ interface ContainerInterface
     public const VALUE = 3;
 
     public function setServices(array $serviceArray): self;
-    
+
     // just the names
     public function getServices(): array;
 

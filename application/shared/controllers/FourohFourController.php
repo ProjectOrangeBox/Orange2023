@@ -8,10 +8,10 @@ use application\shared\controllers\BaseController;
 
 class FourohfourController extends BaseController
 {
+    protected $services = ['error'];
+    
     public function index()
     {
-        $this->output->responseCode(404);
-
-        return $this->view->render('404');
+        $this->error->show404();
     }
 }

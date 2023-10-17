@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace dmyers\orange;
+namespace peels\console;
 
 use Exception;
+use peels\console\ConsoleInterface;
+use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\exceptions\ExitException;
 use dmyers\orange\interfaces\InputInterface;
-use dmyers\orange\interfaces\ConsoleInterface;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 
 class Console implements ConsoleInterface
@@ -80,14 +81,14 @@ class Console implements ConsoleInterface
     ];
 
     protected array $named = [
-        'primary'   => ['icon' => '', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<cyan>', 'stop' => false],
-        'secondary' => ['icon' => '', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<yellow>', 'stop' => false],
-        'success'   => ['icon' => '✔', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<green>', 'stop' => false],
-        'danger'    => ['icon' => '✘', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
-        'warning'   => ['icon' => '❖', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<bright yellow>', 'stop' => false],
-        'info'      => ['icon' => '➜', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<bright blue>', 'stop' => false],
-        'stop'      => ['icon' => '✘', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => true],
-        'error'     => ['icon' => '✘', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
+        'primary'   => ['icon' => '', 'stream' => 'STDOUT', 'color' => '<cyan>', 'stop' => false],
+        'secondary' => ['icon' => '', 'stream' => 'STDOUT', 'color' => '<yellow>', 'stop' => false],
+        'success'   => ['icon' => '✔', 'stream' => 'STDOUT', 'color' => '<green>', 'stop' => false],
+        'danger'    => ['icon' => '✘', 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
+        'warning'   => ['icon' => '❖', 'stream' => 'STDOUT', 'color' => '<bright yellow>', 'stop' => false],
+        'info'      => ['icon' => '➜', 'stream' => 'STDOUT', 'color' => '<bright blue>', 'stop' => false],
+        'stop'      => ['icon' => '✘', 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => true],
+        'error'     => ['icon' => '✘', 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
     ];
 
     protected string $listFormat = '<off>[<cyan>%key%<off>] %value%';
@@ -97,8 +98,10 @@ class Console implements ConsoleInterface
 
     protected array $argv = [];
     protected int $argc = 0;
-    protected int $verboseLevel = 1;
+
     protected bool $verboseSet = false;
+    protected int $verboseFilter = 1;
+    protected int $currentVerboseLevel = 1;
 
     // unit testing storage
     protected bool $simulate = false;
@@ -106,11 +109,10 @@ class Console implements ConsoleInterface
     protected string $stdin = '';
     protected string $stderr = '';
     protected string $stdout = '';
-    protected string $system = '';
 
     public function __construct(array $config, InputInterface $input)
     {
-        $this->config = mergeDefaultConfig($config, __DIR__ . '/config/console.php');
+        $this->config = $config;
 
         $this->lf = $this->config['Linefeed Character'] ?? $this->lf;
 
@@ -142,13 +144,23 @@ class Console implements ConsoleInterface
     }
 
     /**
-     * set verbose level
+     * change verbose level
      */
     public function verbose(int $level): self
     {
+        $this->currentVerboseLevel = $level;
+
+        return $this;
+    }
+
+    /**
+     * Everything less than or equal to this level is sent out
+     */
+    public function setVerboseFilter(int $level): self
+    {
         $this->verboseSet = true;
 
-        $this->verboseLevel = $level;
+        $this->verboseFilter = $level;
 
         return $this;
     }
@@ -174,10 +186,10 @@ class Console implements ConsoleInterface
             }
 
             // set it
-            $this->verbose($level);
+            $this->setVerboseFilter($level);
         }
 
-        return $this->verboseLevel;
+        return $this->verboseFilter;
     }
 
     /**
@@ -185,7 +197,7 @@ class Console implements ConsoleInterface
      */
     public function ifVerbose(int $level): bool
     {
-        return ($level <= $this->verboseLevel);
+        return ($level <= $this->verboseFilter);
     }
 
     /**
@@ -199,9 +211,9 @@ class Console implements ConsoleInterface
      * @throws InvalidConfigurationValue
      * @throws ExitException
      */
-    public function echo(string $string, int $level = 1, bool $linefeed = true, string $stream = 'STDOUT', bool $stop = false): self
+    public function echo(string $string, bool $linefeed = true, string $stream = 'STDOUT', bool $stop = false): self
     {
-        $this->write($stream, $this->formatOutput($string, $linefeed), $level);
+        $this->write($stream, $this->formatOutput($string, $linefeed));
 
         if ($stop) {
             if ($this->simulate) {
@@ -214,131 +226,99 @@ class Console implements ConsoleInterface
         return $this;
     }
 
-    /**
-     * handle the named methods
-     */
-    public function __call($name, $arguments)
+    protected function named(string $name, string $string, bool $linefeed): self
     {
-        $rtn = null;
-        $verboseLevel = -1;
-
-        // convert once
-        $lowercaseMethodName = strtolower($name);
-
-        // support level1... and lvl1... to auto set verbose level
-        if (substr($lowercaseMethodName, 0, 3) == 'lvl') {
-            $verboseLevel = (int)substr($lowercaseMethodName, 3, 1);
-            $lowercaseMethodName = substr($lowercaseMethodName, 4);
-        } elseif (substr($lowercaseMethodName, 0, 5) == 'level') {
-            $verboseLevel = (int)substr($lowercaseMethodName, 5, 1);
-            $lowercaseMethodName = substr($lowercaseMethodName, 6);
+        if (!isset($this->named[$name])) {
+            throw new InvalidValue('Unknown named method ' . $name);
         }
 
-        switch ($lowercaseMethodName) {
-            case 'bell':
-                $times = $this->validateArgument($arguments, 0, 1, 'is_int');
+        $icon = (empty($this->named[$name]['icon'])) ? '' : $this->named[$name]['icon'] . ' ';
 
-                $rtn = $this->bell((int)$times, $verboseLevel);
-                break;
-            case 'line':
-                $length = $this->validateArgument($arguments, 0, 1, 'is_int');
-                $char = $this->validateArgument($arguments, 1, '-', 'is_string');
-
-                $rtn = $this->line($length, $char, $verboseLevel);
-                break;
-            case 'clear':
-                $rtn = $this->clear($verboseLevel);
-                break;
-            case 'linefeed':
-                $times = $this->validateArgument($arguments, 0, 1, 'is_int');
-
-                $rtn = $this->linefeed((int)$times, $verboseLevel);
-                break;
-            case 'table':
-                $array = $this->validateArgument($arguments, 0, [], 'is_array');
-
-                $rtn = $this->table($array, $verboseLevel);
-                break;
-            case 'line':
-                $array = $this->validateArgument($arguments, 0, [], 'is_array');
-
-                $rtn = $this->list($array, $verboseLevel);
-                break;
-            default:
-                // is this a mapped method?
-                if (!isset($this->named[$lowercaseMethodName])) {
-                    throw new Exception('Unknown Method "' . $name . '".');
-                }
-
-                $match = $this->named[$lowercaseMethodName];
-
-                $icon = (empty($match['icon'])) ? '' : $match['icon'] . ' ';
-                $text = $this->validateArgument($arguments, 0, '', 'is_string');
-
-                // did they set the verbose level with the method name?
-                if ($verboseLevel == -1) {
-                    $verboseLevel = $this->validateArgument($arguments, 1, $match['verbose'], 'is_int');
-                }
-
-                $lineFeed = $this->validateArgument($arguments, 2, true, 'is_bool');
-                $stream = $this->validateArgument($arguments, 3, $match['stream'], 'is_string');
-                $stop = $this->validateArgument($arguments, 4, $match['stop'], 'is_bool');
-
-                $rtn = $this->echo($match['color'] . $icon . $text, $verboseLevel, $lineFeed, $stream, $stop);
-        }
-
-        return $rtn;
+        return $this->echo($this->named[$name]['color'] . $icon . $string, $linefeed, $this->named[$name]['stream'], $this->named[$name]['stop']);
     }
 
-    /* misc */
-    public function bell(int $times = 1, int $level = 1): self
+    public function primary(string $string, bool $linefeed = true): self
     {
-        if ($this->ifVerbose($level)) {
-            $this->write('STDOUT', str_repeat($this->bell, $times), $level);
+        return $this->named('primary', $string, $linefeed);
+    }
+
+    public function secondary(string $string, bool $linefeed = true): self
+    {
+        return $this->named('secondary', $string, $linefeed);
+    }
+
+    public function success(string $string, bool $linefeed = true): self
+    {
+        return $this->named('success', $string, $linefeed);
+    }
+
+    public function danger(string $string, bool $linefeed = true): self
+    {
+        return $this->named('danger', $string, $linefeed);
+    }
+
+    public function warning(string $string, bool $linefeed = true): self
+    {
+        return $this->named('warning', $string, $linefeed);
+    }
+
+    public function info(string $string, bool $linefeed = true): self
+    {
+        return $this->named('info', $string, $linefeed);
+    }
+
+    public function stop(string $string, bool $linefeed = true): self
+    {
+        return $this->named('stop', $string, $linefeed);
+    }
+
+    public function error(string $string, bool $linefeed = true): self
+    {
+        return $this->named('error', $string, $linefeed);
+    }
+
+    public function bell(int $times = 1): self
+    {
+        $this->write('STDOUT', str_repeat($this->bell, $times));
+
+        return $this;
+    }
+
+    public function line(int $length = null, string $char = '-'): self
+    {
+        if ($length == null && $this->simulate) {
+            // fixed amount in simulate mode
+            $times = $this->simulatedWidth;
+        } else {
+            $times = ($length) ?? (int)$this->system('tput cols');
+        }
+
+        $times = (int)floor($times / strlen($char));
+
+        $this->write('STDOUT', str_repeat($char, $times) .  $this->lf);
+
+        return $this;
+    }
+
+    public function clear(): self
+    {
+        if ($this->simulate) {
+            // if simulating "clear" the output
+            $this->stderr = '';
+            $this->stdout = '';
+        } else {
+            $this->system('clear');
         }
 
         return $this;
     }
 
-    public function line(int $length = null, string $char = '-', int $level = 1): self
+    public function linefeed(int $times = 1): self
     {
-        if ($this->ifVerbose($level)) {
-            if ($length || !$this->simulate) {
-                $times = ($length) ?? (int)system('tput cols');
-            } else {
-                // fixed amount in simulate mode
-                $times = $this->simulatedWidth;
-            }
-
-            $times = (int)floor($times / strlen($char));
-
-            $this->write('STDOUT', str_repeat($char, $times) .  $this->lf, $level);
-        }
-
-        return $this;
+        return $this->write('STDOUT', str_repeat($this->lf, $times));
     }
 
-    public function clear(int $level = 1): self
-    {
-        if ($this->ifVerbose($level)) {
-            if ($this->simulate) {
-                // if simulating "clear" the output
-                $this->stderr = '';
-                $this->stdout = '';
-            } else {
-                system('clear');
-            }
-        }
-
-        return $this;
-    }
-
-    public function linefeed(int $times = 1, int $level = 1): self
-    {
-        return $this->write('STDOUT', str_repeat($this->lf, $times), $level);
-    }
-
-    public function table(array $table, int $level = 1): self
+    public function table(array $table): self
     {
         // get max column size
         $columnsMaxWidth = [];
@@ -395,7 +375,7 @@ class Console implements ConsoleInterface
         return $this;
     }
 
-    public function list(array $list, int $level = 1): self
+    public function list(array $list): self
     {
         foreach ($list as $key => $value) {
             $this->echo(str_replace(['%key%', '%value%'], [$key, $value], $this->listFormat));
@@ -413,11 +393,7 @@ class Console implements ConsoleInterface
         }
 
         // if in simulate send back std in
-        if ($this->simulate) {
-            return $this->stdin;
-        }
-
-        return rtrim(fgets(\STDIN), $this->lf);
+        return ($this->simulate) ? $this->stdin : rtrim(fgets(\STDIN), $this->lf);
     }
 
     public function getLineOneOf(string $prompt = null, array $options): string
@@ -430,9 +406,9 @@ class Console implements ConsoleInterface
         return $input;
     }
 
-    /** 
+    /**
      * single character (no return needed)
-     * 
+     *
      * This method has a extra exit for simulation mode
      */
     public function get(string $prompt = null): string
@@ -441,14 +417,14 @@ class Console implements ConsoleInterface
             $this->echo($prompt);
         }
 
-        // if in simulate send back std in
+        // if in simulate send back stdin
         if ($this->simulate) {
             // BAIL NOW - multiple exits
             return $this->stdin;
         }
 
         // setup console no buffer
-        system('stty -icanon');
+        $this->system('stty -icanon');
 
         while ($char = fread(\STDIN, 1)) {
             return $char;
@@ -619,19 +595,19 @@ class Console implements ConsoleInterface
         return $success;
     }
 
-    protected function write(string $stream, string $string, int $level = 1): self
+    protected function write(string $stream, string $string): self
     {
         if (!in_array($stream, ['STDOUT', 'STDERR'])) {
             throw new Exception('Stream must be STDOUT or STDERR. "' . $stream . '" sent in.');
         }
 
         if ($stream == 'STDERR') {
-            if ($this->verboseLevel >= $level && !$this->simulate) {
+            if ($this->verboseFilter >= $this->currentVerboseLevel && !$this->simulate) {
                 fwrite(\STDERR, $string);
             }
             $this->stderr .= $string;
         } else {
-            if ($this->verboseLevel >= $level && !$this->simulate) {
+            if ($this->verboseFilter >= $this->currentVerboseLevel && !$this->simulate) {
                 fwrite(\STDOUT, $string);
             }
             $this->stdout .= $string;
@@ -670,15 +646,25 @@ class Console implements ConsoleInterface
     public function __debugInfo(): array
     {
         return [
+            'simulate' => $this->simulate,
             'config' => $this->config,
             'ansicolors' => $this->ANSICodes,
             'list format' => $this->listFormat,
             'lf' => $this->lf,
             'color' => $this->color,
-            'simulate' => $this->simulate,
             'stderr' => $this->stderr,
             'stdout' => $this->stdout,
             'stdin' => $this->stdin,
         ];
+    }
+
+    protected function system(string $command): string
+    {
+        $resultCode = 0;
+        $output = [];
+
+        exec($command, $output, $resultCode);
+
+        return (empty($output)) ? '' : $output[0];
     }
 }

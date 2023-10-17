@@ -61,9 +61,9 @@ final class ErrorTest extends unitTestHelper
 
     public function testStatusCode(): void
     {
-        $this->assertEquals($this->instance, $this->instance->statusCode(302));
+        $this->assertEquals($this->instance, $this->instance->responseCode(302));
 
-        $this->assertEquals(302, $this->getPrivatePublic('statusCode'));
+        $this->assertEquals(302, $this->getPrivatePublic('responseCode'));
     }
 
     public function testRequestType(): void
@@ -130,13 +130,19 @@ final class ErrorTest extends unitTestHelper
         $this->assertEquals(['foobar'], $this->instance->errors());
     }
 
-    public function testHasShow(): void
+    public function testOnErrorsShow(): void
     {
         $this->assertFalse($this->instance->has());
 
-        $this->instance->hasShow('test');
+        $this->instance->onErrorsShow('test');
 
         $this->assertEquals('', $this->outputStub->get());
+
+        $this->assertEquals($this->instance, $this->instance->add('foobar'));
+
+        $this->instance->onErrorsShow('error');
+
+        $this->assertEquals('<h1>foobar</h1>', $this->outputStub->get());
     }
 
     public function testShow(): void

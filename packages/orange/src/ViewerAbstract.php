@@ -58,7 +58,7 @@ abstract class ViewerAbstract implements ViewerInterface
         }
 
         $this->debug = $this->config['debug'] ?? $this->debug;
-        $this->extension = $this->config['extension'] ?? '.' . trim($this->extension, '.');
+        $this->extension = $this->config['extension'] ?? $this->extension;
         $this->aliasViews = $this->config['alias view'] ?? $this->aliasViews;
         $this->allowPhp = $this->config['allow PHP'] ?? $this->allowPhp;
 
@@ -94,19 +94,19 @@ abstract class ViewerAbstract implements ViewerInterface
         // extended in your view classes as needed then call parent::changeOption(...)
         switch ($name) {
             case 'views':
-                $this->loadedViews = $this->validateArgument($value,'is_array');
+                $this->loadedViews = $this->validateArgument($value, 'is_array');
                 break;
             case 'plugins':
-                $this->loadedPlugins = $this->validateArgument($value,'is_array');
+                $this->loadedPlugins = $this->validateArgument($value, 'is_array');
                 break;
             case 'debug':
-                $this->debug = $this->validateArgument($value,'is_bool');
+                $this->debug = $this->validateArgument($value, 'is_bool');
                 break;
             case 'extension':
-                $this->extension = $this->validateArgument($value,'is_string');
+                $this->extension = $this->validateArgument($value, 'is_string');
                 break;
             case 'delimiters':
-                $value = $this->validateArgument($value,'is_array');
+                $value = $this->validateArgument($value, 'is_array');
 
                 $this->delimiters = [$value[0], $value[1]];
 
@@ -114,16 +114,16 @@ abstract class ViewerAbstract implements ViewerInterface
                 $this->r_delim = $this->delimiters[1];
                 break;
             case 'view paths':
-                $this->viewPaths = $this->validateArgument($value,'is_array');
+                $this->viewPaths = $this->validateArgument($value, 'is_array');
                 break;
             case 'plugin paths':
-                $this->plugins = $this->validateArgument($value,'is_array');
+                $this->plugins = $this->validateArgument($value, 'is_array');
                 break;
             case 'temp folder':
-                $this->tempFolder = $this->validateArgument($value,'is_string');
+                $this->tempFolder = $this->validateArgument($value, 'is_string');
                 break;
             case 'alias views':
-                $this->aliasViews = $this->validateArgument($value,'is_array');
+                $this->aliasViews = $this->validateArgument($value, 'is_array');
                 break;
             default:
                 throw new InvalidValue('Unknown value "' . $name . '".');

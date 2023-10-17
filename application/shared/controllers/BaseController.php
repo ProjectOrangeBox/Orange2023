@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace application\shared\controllers;
 
 use stdClass;
+use dmyers\orange\exceptions\FileNotFound;
 use dmyers\orange\interfaces\DataInterface;
 use dmyers\orange\interfaces\InputInterface;
 use dmyers\orange\interfaces\ConfigInterface;
@@ -18,13 +19,23 @@ abstract class BaseController
 {
     protected string $contentType = '';
 
-    protected array $preloadModels = [];
+    // global functions
+    protected array $helpers = [];
+    
+    // attached to $this object
+    protected array $services = [];
+
+    // attached to $model (see below);
+    protected array $models = [];
+
+    // attach models here
     protected stdClass $model;
 
     // auto injection based on variable name is service name
-    // PHP 8: Constructor property promotion
     public function __construct(public OutputInterface $output, public InputInterface $input, public ConfigInterface $config, public  ViewerInterface $view, public DataInterface $data)
     {
+        // ** PHP 8: Constructor property promotion output, input, config, view, data
+
         // change content type if provided
         if (!empty($this->contentType)) {
             $this->output->contentType($this->contentType);
@@ -33,14 +44,32 @@ abstract class BaseController
         // preload some models for this controller and attach to model local property
         $this->model = new stdClass();
 
-        foreach ($this->preloadModels as $name => $serverName) {
-            $this->model->$name = container()->get($serverName);
+        foreach ($this->models as $name => $serviceName) {
+            // throws it's own exception if service not found
+            $this->model->$name = container()->get($serviceName);
+        }
+
+        foreach ($this->helpers as $filename) {
+            $helperFilePath = __DIR__.'/helpers/'.$filename.'.php';
+            
+            if (!file_exists($helperFilePath)) {
+                throw new FileNotFound($helperFilePath);
+            }
+
+            include $helperFilePath;
+        }
+
+        foreach ($this->models as $name => $serviceName) {
+            // throws it's own exception if service not found
+            $this->$name = container()->get($serviceName);
         }
 
         $reflector = new \ReflectionClass(get_class($this));
 
-        // add our local views path
+        // add this base controllers local views path
         $this->view->addPath(dirname($reflector->getFileName()).'/../views');
+        
+        // add the child files view path
         $this->view->addPath(__DIR__.'/../views');
     }
 }

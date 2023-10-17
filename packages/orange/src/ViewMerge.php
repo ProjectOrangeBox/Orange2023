@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace dmyers\orange;
 
-use dmyers\orange\exceptions\Parser;
 use dmyers\orange\ViewerAbstract;
+use dmyers\orange\exceptions\Parser;
 use dmyers\orange\interfaces\ViewerInterface;
 
 /**
  * Based On the original PyroCMS LEX Parser
- * 
+ *
  * https://github.com/pyrocms/lex
- * 
+ *
  * This can be used for some simple "mail merging"
- * 
+ *
  * Has basic looping && logic
  * It can also handles plugins
- * 
+ *
  * To get a better idea of what can and can't be done see the basic unit test file
  */
 

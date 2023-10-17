@@ -21,26 +21,26 @@ body{
 }
 
 .fof{
-	  display: table-cell;
-	  vertical-align: middle;
+      display: table-cell;
+      vertical-align: middle;
 }
 
 .fof h1{
-	  font-size: 50px;
-	  display: inline-block;
-	  padding-right: 12px;
-	  animation: type .5s alternate infinite;
+      font-size: 50px;
+      display: inline-block;
+      padding-right: 12px;
+      animation: type .5s alternate infinite;
 }
 
 @keyframes type{
-	  from{box-shadow: inset -3px 0px 0px #888;}
-	  to{box-shadow: inset -3px 0px 0px transparent;}
+      from{box-shadow: inset -3px 0px 0px #888;}
+      to{box-shadow: inset -3px 0px 0px transparent;}
 }
 </style>
 
 <div id="main">
-    	<div class="fof">
-        		<h1><?=$errors[0]['heading'] ?></h1>
+        <div class="fof">
+                <h1><?=$errors[0]['heading'] ?></h1>
                 <p><?=$errors[0]['msg'] ?></p>
-    	</div>
+        </div>
 </div>

@@ -19,7 +19,7 @@ class Error implements ErrorInterface
 
     protected array $config = [];
     protected array $errors = [];
-    protected int $statusCode = 200;
+    protected int $responseCode = 200;
     protected string $mimeType = '';
     protected string $charSet = '';
     protected bool $deduplicate = true;
@@ -27,16 +27,17 @@ class Error implements ErrorInterface
     protected string $requestType = '';
     protected string $detectedRequestType = '';
     protected string $folder = '';
+    protected string $defaultTemplate = '';
 
     public function __construct(array $config, ViewerInterface $viewer, OutputInterface $output)
     {
         $this->config = mergeDefaultConfig($config, __DIR__ . '/config/error.php');
 
-
         $this->viewer = $viewer;
         $this->output = $output;
 
         $this->deduplicate = $this->config['deduplicate'];
+        $this->defaultTemplate = $this->config['defaultTemplate'];
 
         // local orange views folder (last)
         $this->viewer->addPath($this->config['add path']);
@@ -53,9 +54,9 @@ class Error implements ErrorInterface
         return self::$instance;
     }
 
-    public function statusCode(int $statusCode): self
+    public function responseCode(int $responseCode): self
     {
-        $this->statusCode = $statusCode;
+        $this->responseCode = $responseCode;
 
         return $this;
     }
@@ -134,18 +135,21 @@ class Error implements ErrorInterface
         return $this;
     }
 
-    public function hasShow(string $template): void
+    /* 403 Forbidden default */
+    public function onErrorsShow(string $template): void
     {
         if ($this->has()) {
             $this->show($template);
         }
     }
 
-    public function show(string $template = 'error'): void
+    public function show(string $template = null): void
     {
+        $template = $template ?? $this->defaultTemplate;
+
         $this->output
             ->flushAll()
-            ->responseCode($this->statusCode)
+            ->responseCode($this->responseCode)
             ->charSet($this->charSet)
             ->contentType($this->mimeType)
             ->set($this->viewer->render($this->folder . '/' . trim($template, '/'), ['errors' => $this->errors]))
@@ -154,12 +158,12 @@ class Error implements ErrorInterface
 
     public function show404(string $msg = null): void
     {
-        $this->reset()->statusCode(404)->add($msg)->show();
+        $this->reset()->responseCode(404)->add($msg)->show();
     }
 
     public function show500(string $msg = null): void
     {
-        $this->reset()->statusCode(500)->add($msg)->show();
+        $this->reset()->responseCode(500)->add($msg)->show();
     }
 
     public function has(): bool

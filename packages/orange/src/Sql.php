@@ -431,8 +431,8 @@ class Sql
 
     public function wherePrimary($value): self
     {
-        $tablename = substr($this->tablename, strrpos(' '.$this->tablename, ' '));
-        
+        $tablename = substr($this->tablename, strrpos(' ' . $this->tablename, ' '));
+
         $this->where($tablename . '.' . $this->primaryColumn, '=', $value);
 
         return $this;

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use dmyers\orange\Input;
-use dmyers\orange\Console;
-use dmyers\orange\interfaces\ConsoleInterface;
+use peels\console\Console;
+use peels\console\ConsoleInterface;
 use dmyers\orange\exceptions\ExitException;
 
 final class ConsoleTest extends unitTestHelper
@@ -20,14 +20,14 @@ final class ConsoleTest extends unitTestHelper
             'Linefeed Character' => 'EOL', // use this for the line feed character
             'List Format' => '<off>[<primary>%key%<off>] %value%',
             'named' => [
-                'primary'   => ['icon' => '', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<cyan>', 'stop' => false],
-                'secondary' => ['icon' => '', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<yellow>', 'stop' => false],
-                'success'   => ['icon' => '@', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<green>', 'stop' => false],
-                'danger'    => ['icon' => '#', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
-                'warning'   => ['icon' => '$', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<bright yellow>', 'stop' => false],
-                'info'      => ['icon' => '*', 'verbose' => 1, 'stream' => 'STDOUT', 'color' => '<bright blue>', 'stop' => false],
-                'stop'      => ['icon' => 'X', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => true],
-                'error'     => ['icon' => '#', 'verbose' => 1, 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
+                'primary'   => ['icon' => '', 'stream' => 'STDOUT', 'color' => '<cyan>', 'stop' => false],
+                'secondary' => ['icon' => '', 'stream' => 'STDOUT', 'color' => '<yellow>', 'stop' => false],
+                'success'   => ['icon' => '@', 'stream' => 'STDOUT', 'color' => '<green>', 'stop' => false],
+                'danger'    => ['icon' => '#', 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
+                'warning'   => ['icon' => '$', 'stream' => 'STDOUT', 'color' => '<bright yellow>', 'stop' => false],
+                'info'      => ['icon' => '*', 'stream' => 'STDOUT', 'color' => '<bright blue>', 'stop' => false],
+                'stop'      => ['icon' => 'X', 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => true],
+                'error'     => ['icon' => '#', 'stream' => 'STDERR', 'color' => '<bright red>', 'stop' => false],
             ]
         ], new Input([
             'server' => [
@@ -55,14 +55,14 @@ final class ConsoleTest extends unitTestHelper
 
     public function testEcho2(): void
     {
-        $this->instance->echo('This is a test', 1, false);
+        $this->instance->echo('This is a test', false);
 
         $this->assertEquals('This is a test', $this->getPrivatePublic('stdout'));
     }
 
     public function testEcho3(): void
     {
-        $this->instance->echo('<primary>This is a <blink>test', 1, false);
+        $this->instance->echo('<primary>This is a <blink>test', false);
 
         $this->assertEquals('This is a test', $this->getPrivatePublic('stdout'));
     }
@@ -77,9 +77,9 @@ final class ConsoleTest extends unitTestHelper
         $this->assertFalse($this->instance->ifVerbose(4));
     }
 
-    public function testSetVerboseLevel(): void
+    public function testSetVerboseFilter(): void
     {
-        $this->instance->verbose(4);
+        $this->instance->setVerboseFilter(4);
 
         $this->assertEquals(4, $this->instance->getVerboseLevel());
 
@@ -87,6 +87,7 @@ final class ConsoleTest extends unitTestHelper
         $this->assertTrue($this->instance->ifVerbose(2));
         $this->assertTrue($this->instance->ifVerbose(3));
         $this->assertTrue($this->instance->ifVerbose(4));
+        $this->assertFalse($this->instance->ifVerbose(5));
     }
 
     public function testErrorNoColor(): void
@@ -136,31 +137,31 @@ final class ConsoleTest extends unitTestHelper
 
     public function testLevel1Info(): void
     {
-        $this->instance->level1Info('Important Level 1 Information!');
+        $this->instance->verbose(1)->info('Important Level 1 Information!');
         $this->assertEquals('* Important Level 1 Information!EOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testLvl1info(): void
     {
-        $this->instance->lvl1info('Important Lvl 1 Information!');
+        $this->instance->verbose(1)->info('Important Lvl 1 Information!');
         $this->assertEquals('* Important Lvl 1 Information!EOL', $this->getPrivatePublic('stdout'));
     }
 
     public function testLevel2error(): void
     {
-        $this->instance->level2error('Important Level 2 Error!');
+        $this->instance->verbose(2)->error('Important Level 2 Error!');
         $this->assertEquals('', $this->getPrivatePublic('stdout'));
     }
 
     public function testLvl2Error(): void
     {
-        $this->instance->lvl2Error('Important Lvl 2 Error!');
+        $this->instance->verbose(2)->error('Important Lvl 2 Error!');
         $this->assertEquals('', $this->getPrivatePublic('stdout'));
     }
 
     public function testLvl1Error(): void
     {
-        $this->instance->Lvl1Error('Important Lvl 1 Error!');
+        $this->instance->verbose(1)->error('Important Lvl 1 Error!');
         $this->assertEquals('', $this->getPrivatePublic('stdout'));
     }
 
@@ -186,7 +187,7 @@ final class ConsoleTest extends unitTestHelper
 
     public function testLineLevel(): void
     {
-        $this->instance->level1Line(8);
+        $this->instance->verbose(1)->Line(8);
 
         $this->assertEquals('--------EOL', $this->getPrivatePublic('stdout'));
     }
@@ -194,6 +195,7 @@ final class ConsoleTest extends unitTestHelper
     public function testLine3(): void
     {
         $this->setPrivatePublic('simulatedWidth', 80);
+        
         $this->instance->line();
 
         $this->assertEquals('--------------------------------------------------------------------------------EOL', $this->getPrivatePublic('stdout'));
