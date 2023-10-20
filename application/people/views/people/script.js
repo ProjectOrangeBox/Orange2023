@@ -1,17 +1,10 @@
-function convertFormToJSON(form) {
-  const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
-  const json = {};
-  $.each(array, function() {
-    json[this.name] = this.value || "";
-  });
-  return json;
-}
 $('.js-close').on('click',function() {
   formModal.hide();
 });
+
 $('.js-submit').on('click', function() {
   $.ajax({
-    type: "POST",
+    type: $(this).data('type'),
     url: $(this).data('url'),
     data: convertFormToJSON($(this).data('form')),
     statusCode: {
@@ -27,8 +20,17 @@ $('.js-submit').on('click', function() {
         bootbox.alert(jqXHR.responseText);
       },
       default: function() {
-        bootbox.alert('Could Not Create Record.');
+        bootbox.alert('Record Access Issue.');
       }
     }
   })
 });
+
+function convertFormToJSON(form) {
+  const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
+  const json = {};
+  $.each(array, function() {
+    json[this.name] = this.value || "";
+  });
+  return json;
+}

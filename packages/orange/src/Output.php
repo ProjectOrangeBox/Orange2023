@@ -241,24 +241,35 @@ class Output implements OutputInterface
         return $this;
     }
 
-    public function predefined(string $name): self
+    public function predefined(string $key): self
     {
-        if (!isset($this->predefined[$name])) {
-            throw new OutputException('Unknown Predefined Key ' . $name);
+        if (!isset($this->predefined[$key])) {
+            throw new OutputException('Unknown Predefined Output Key ' . $key);
         }
 
-        $set = $this->predefined[$name];
+        $set = $this->predefined[$key];
 
-        if (isset($set['contentType'])) {
-            $this->contentType($set['contentType']);
+        array_change_key_case($set, CASE_LOWER);
+
+        // redirect sends and exits nothing else will setup
+        if (isset($set['redirect'])) {
+            $this->redirect($set['redirect']);
         }
 
-        if (isset($set['charSet'])) {
-            $this->charSet($set['charSet']);
+        if (isset($set['flushall'])) {
+            $this->flushAll();
         }
 
-        if (isset($set['responseCode'])) {
-            $this->responseCode($set['responseCode']);
+        if (isset($set['contenttype'])) {
+            $this->contentType($set['contenttype']);
+        }
+
+        if (isset($set['charset'])) {
+            $this->charSet($set['charset']);
+        }
+
+        if (isset($set['responsecode'])) {
+            $this->responseCode($set['responsecode']);
         }
 
         if (isset($set['header'])) {
@@ -279,6 +290,14 @@ class Output implements OutputInterface
             } else {
                 $this->cookie($set['cookie']);
             }
+        }
+
+        if (isset($set['write'])) {
+            $this->write($set['write']);
+        }
+
+        if (isset($set['send'])) {
+            $this->send();
         }
 
         return $this;

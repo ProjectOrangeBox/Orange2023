@@ -147,12 +147,14 @@ class Error implements ErrorInterface
     {
         $view = $view ?? $this->defaultView;
 
+        $content = $this->viewer->render($this->folder . '/' . trim($view, '/'), ['errors' => $this->errors]);
+
         $this->output
             ->flushAll()
             ->responseCode($this->responseCode)
             ->charSet($this->charSet)
             ->contentType($this->mimeType)
-            ->set($this->viewer->render($this->folder . '/' . trim($view, '/'), ['errors' => $this->errors]))
+            ->write($content)
             ->send(true);
     }
 
@@ -174,14 +176,5 @@ class Error implements ErrorInterface
     public function errors(): array
     {
         return $this->errors;
-    }
-
-    public function collectErrors(object $object, string $method = 'errors'): self
-    {
-        if (!method_exists($object, $method)) {
-            throw new MethodNotFound('Errors could not collect from "' . get_class($object) . '" because it does not have a "' . $method . '" method.');
-        }
-
-        return $this->add($object->$method());
     }
 }

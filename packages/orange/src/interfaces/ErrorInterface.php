@@ -20,5 +20,4 @@ interface ErrorInterface
     public function send500(string $msg = null): void;
     public function has(): bool;
     public function errors(): array;
-    public function collectErrors(object $object, string $method = 'errors'): self;
 }

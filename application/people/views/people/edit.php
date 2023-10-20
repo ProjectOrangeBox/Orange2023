@@ -14,7 +14,7 @@
   </div>
   <div class="mb-3 float-end">
     <a class="js-close btn">Cancel</a>
-    <a data-form="#updateForm" data-url="<?= getUrl('people-update-post',[$record['id']]) ?>" class="js-submit btn btn-primary">Submit</a>
+    <a data-type="PUT" data-form="#updateForm" data-url="<?= getUrl('people-update-post',[$record['id']]) ?>" class="js-submit btn btn-primary">Submit</a>
   </div>
 </form>
 <script>

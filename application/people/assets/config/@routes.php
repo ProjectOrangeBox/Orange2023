@@ -6,5 +6,5 @@
 
 // actions - post
 ['method' => 'post', 'url' => '/people/create', 'callback' => [\application\people\controllers\MainController::class, 'create'], 'name'=>'people-create-post'],
-['method' => 'post', 'url' => '/people/update/(\d+)', 'callback' => [\application\people\controllers\MainController::class, 'update'], 'name'=>'people-update-post'],
-['method' => 'post', 'url' => '/people/delete/(\d+)', 'callback' => [\application\people\controllers\MainController::class, 'delete'], 'name'=>'people-delete-post'],
+['method' => 'put', 'url' => '/people/update/(\d+)', 'callback' => [\application\people\controllers\MainController::class, 'update'], 'name'=>'people-update-post'],
+['method' => 'delete', 'url' => '/people/delete/(\d+)', 'callback' => [\application\people\controllers\MainController::class, 'delete'], 'name'=>'people-delete-post'],

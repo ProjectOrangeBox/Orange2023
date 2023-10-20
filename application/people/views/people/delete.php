@@ -5,7 +5,7 @@
   </div>
   <div class="mb-3 float-end">
     <a class="js-close btn">Cancel</a>
-    <a data-form="#deleteForm" data-url="<?= getUrl('people-delete-post',[$record['id']]) ?>" class="js-submit btn btn-primary">Submit</a>
+    <a  data-type="DELETE" data-form="#deleteForm" data-url="<?= getUrl('people-delete-post',[$record['id']]) ?>" class="js-submit btn btn-primary">Submit</a>
   </div>
 </form>
 <script>

@@ -33,7 +33,7 @@ interface OutputInterface
     public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = null, bool $httponly = null, string $samesite = null): self;
     public function flushCookies(): self;
 
-    public function predefined(string $name): self;
+    public function predefined(string $key): self;
     public function flushAll(): self;
     public function redirect(string $url, int $responseCode = 200, bool $exit = true): void;
 }

@@ -134,13 +134,13 @@ final class ErrorTest extends unitTestHelper
     {
         $this->assertFalse($this->instance->has());
 
-        $this->instance->onErrorsShow('test');
+        $this->instance->onErrorsSend('test');
 
         $this->assertEquals('', $this->outputStub->get());
 
         $this->assertEquals($this->instance, $this->instance->add('foobar'));
 
-        $this->instance->onErrorsShow('error');
+        $this->instance->onErrorsSend('error');
 
         $this->assertEquals('<h1>foobar</h1>', $this->outputStub->get());
     }
@@ -148,28 +148,28 @@ final class ErrorTest extends unitTestHelper
     public function testShow(): void
     {
         $this->assertEquals($this->instance, $this->instance->add('test access'));
-        $this->instance->show('test');
+        $this->instance->send('test');
 
         $this->assertEquals(200, $this->outputStub->http_response_code);
-        $this->assertEquals(['Content-Type: text/html; charset=utf-8'], $this->outputStub->header);
+        $this->assertEquals([], $this->outputStub->header);
         $this->assertEquals('<h1>test access</h1>', $this->outputStub->get());
     }
 
     public function testShow404(): void
     {
-        $this->instance->show404('This is a 404 problem!');
+        $this->instance->send404('This is a 404 problem!');
 
         $this->assertEquals(404, $this->outputStub->http_response_code);
-        $this->assertEquals(['Content-Type: text/html; charset=utf-8'], $this->outputStub->header);
+        $this->assertEquals([], $this->outputStub->header);
         $this->assertEquals('<h1>This is a 404 problem!</h1>', $this->outputStub->get());
     }
 
     public function testShow500(): void
     {
-        $this->instance->show500('This is a 500 problem!');
+        $this->instance->send500('This is a 500 problem!');
 
         $this->assertEquals(500, $this->outputStub->http_response_code);
-        $this->assertEquals(['Content-Type: text/html; charset=utf-8'], $this->outputStub->header);
+        $this->assertEquals([], $this->outputStub->header);
         $this->assertEquals('<h1>This is a 500 problem!</h1>', $this->outputStub->get());
     }
 
@@ -187,22 +187,5 @@ final class ErrorTest extends unitTestHelper
         $this->setPrivatePublic('errors', ['foobar']);
 
         $this->assertEquals(['foobar'], $this->instance->errors());
-    }
-
-    public function testCollectErrors(): void
-    {
-        require __DIR__ . '/support/collectErrorsFromMe.php';
-
-        $collectErrorsFromMe = new collectErrorsFromMe();
-
-        $this->instance->collectErrors($collectErrorsFromMe);
-
-        $this->assertEquals([['error 1', 'error 2']], $this->instance->errors());
-
-        $this->assertEquals($this->instance, $this->instance->clear());
-
-        $this->instance->collectErrors($collectErrorsFromMe, 'differentMethod');
-
-        $this->assertEquals([['Big Error 1', 'Big Error 2']], $this->instance->errors());
     }
 }

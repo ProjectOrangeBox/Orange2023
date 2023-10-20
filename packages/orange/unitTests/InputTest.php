@@ -28,10 +28,7 @@ final class InputTest extends unitTestHelper
                 'name' => 'Johnny Appleseed',
                 'age' => 26,
             ],
-            'request' => [
-                'name' => 'Johnny Appleseed',
-                'age' => 27,
-            ],
+            'request' => [],
             'cookie' => [
                 'name' => 'Johnny Appleseed',
                 'age' => 28,
@@ -112,9 +109,10 @@ final class InputTest extends unitTestHelper
 
     public function testRequest(): void
     {
+        // this will grab from get because it's the first that contains something when we request checks
         $this->assertEquals([
             'name' => 'Johnny Appleseed',
-            'age' => 27,
+            'age' => 26,
         ], $this->instance->request());
     }
 
@@ -163,10 +161,7 @@ final class InputTest extends unitTestHelper
                 'name' => 'Johnny Appleseed',
                 'age' => 26,
             ],
-            'request' => [
-                'name' => 'Johnny Appleseed',
-                'age' => 27,
-            ],
+            'request' => [],
             'cookie' => [
                 'name' => 'Johnny Appleseed',
                 'age' => 28,

@@ -38,7 +38,6 @@ class MainController extends BaseController
         return $this->view->render('people/delete');
     }
 
-    // actions - posted
     public function create()
     {
         $this->process('create', '201');
@@ -56,7 +55,7 @@ class MainController extends BaseController
 
     protected function process(string $method, string $pass, string $fail = '406')
     {
-        if (!$this->model->parent->$method($this->input->post())) {
+        if (!$this->model->parent->$method($this->input->request())) {
             $this->output->predefined($fail)->write(wrapArray($this->model->parent->errors(), '<p>', '</p>', chr(10)));
         } else {
             $this->output->predefined($pass);

@@ -13,7 +13,7 @@
   </div>
   <div class="mb-3 float-end">
     <a class="js-close btn">Cancel</a>
-    <a data-form="#createForm" data-url="<?= getUrl('people-create-post') ?>" class="js-submit btn btn-primary">Submit</a>
+    <a  data-type="POST" data-form="#createForm" data-url="<?= getUrl('people-create-post') ?>" class="js-submit btn btn-primary">Submit</a>
   </div>
 </form>
 <script>

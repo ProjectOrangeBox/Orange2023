@@ -27,7 +27,7 @@ final class OutputTest extends unitTestHelper
     // Tests
     public function testFlush(): void
     {
-        $this->instance->set('this is the output');
+        $this->instance->write('this is the output');
 
         $this->assertEquals('this is the output', $this->instance->get());
 
@@ -38,14 +38,14 @@ final class OutputTest extends unitTestHelper
 
     public function testSetOutput(): void
     {
-        $this->instance->set('this is the output');
+        $this->instance->write('this is the output');
 
         $this->assertEquals('this is the output', $this->instance->get());
     }
 
     public function testAppendOutput(): void
     {
-        $this->instance->set('this is the output');
+        $this->instance->write('this is the output');
         $this->instance->write(' this too!');
 
         $this->assertEquals('this is the output this too!', $this->instance->get());
@@ -163,7 +163,7 @@ final class OutputTest extends unitTestHelper
     {
         $html = '<h1>Hello World!</h1>';
 
-        $this->instance->set($html);
+        $this->instance->write($html);
 
         ob_start();
         $this->instance->send();
@@ -189,7 +189,7 @@ final class OutputTest extends unitTestHelper
     public function testFlushAll(): void
     {
         $this->instance->header('HTTP/1.1 404 Not Found');
-        $this->instance->set('hello world');
+        $this->instance->write('hello world');
 
         $this->instance->flushAll();
 
