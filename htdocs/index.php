@@ -15,7 +15,7 @@ chdir(__ROOT__);
 require_once __ROOT__ . '/vendor/autoload.php';
 
 // merge the file system .env with the system level $_ENV
-// you than must use fetchEnv() to retrieve values
+// you than must use fetchAppEnv() to retrieve values
 mergeEnv(__ROOT__.'/.env');
 
 // user added

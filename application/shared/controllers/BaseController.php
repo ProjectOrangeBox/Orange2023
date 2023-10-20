@@ -20,8 +20,8 @@ abstract class BaseController
     protected string $contentType = '';
 
     // global functions
-    protected array $helpers = [];
-    
+    protected array $libraries = [];
+
     // attached to $this object
     protected array $services = [];
 
@@ -31,10 +31,15 @@ abstract class BaseController
     // attach models here
     protected stdClass $model;
 
+    protected string $childDir = '';
+
     // auto injection based on variable name is service name
     public function __construct(public OutputInterface $output, public InputInterface $input, public ConfigInterface $config, public  ViewerInterface $view, public DataInterface $data)
     {
         // ** PHP 8: Constructor property promotion output, input, config, view, data
+
+        $reflector = new \ReflectionClass(get_class($this));
+        $this->childDir = dirname(dirname($reflector->getFileName()));
 
         // change content type if provided
         if (!empty($this->contentType)) {
@@ -49,27 +54,26 @@ abstract class BaseController
             $this->model->$name = container()->get($serviceName);
         }
 
-        foreach ($this->helpers as $filename) {
-            $helperFilePath = __DIR__.'/helpers/'.$filename.'.php';
-            
-            if (!file_exists($helperFilePath)) {
-                throw new FileNotFound($helperFilePath);
+        foreach ($this->libraries as $filename) {
+            $libraryFilePath = $this->childDir . '/libraries/' . $filename . '.php';
+
+            if (!file_exists($libraryFilePath)) {
+                throw new FileNotFound($libraryFilePath);
             }
 
-            include $helperFilePath;
+            include $libraryFilePath;
         }
 
         foreach ($this->models as $name => $serviceName) {
             // throws it's own exception if service not found
-            $this->$name = container()->get($serviceName);
+            $this->model->$name = container()->get($serviceName);
         }
 
-        $reflector = new \ReflectionClass(get_class($this));
 
         // add this base controllers local views path
-        $this->view->addPath(dirname($reflector->getFileName()).'/../views');
-        
+        $this->view->addPath($this->childDir . '/views');
+
         // add the child files view path
-        $this->view->addPath(__DIR__.'/../views');
+        $this->view->addPath(__DIR__ . '/../views');
     }
 }

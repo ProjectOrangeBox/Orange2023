@@ -9,6 +9,7 @@ use application\shared\controllers\BaseController;
 class MainController extends BaseController
 {
     protected array $models = ['parent' => 'model.parent'];
+    protected array $libraries = ['helpers'];
 
     // GUI - Gets
     public function index()
@@ -40,27 +41,25 @@ class MainController extends BaseController
     // actions - posted
     public function create()
     {
-        //$this->output->responseCode(201);
-        $validate = container()->validate;
-        $error = container()->error;
-
-        $validate->addError('Oh this is Bad!');
-        $validate->addError('Oh this is also Bad!');
-
-        $error->collectErrors($validate, 'errors');
-
-        // show error and exit
-        $error->responseCode(406)->onErrorsShow();
-
-        // else send 201
-        $this->output->responseCode(201);
+        $this->process('create', '201');
     }
 
-    public function update(string $recordId)
+    public function update()
     {
+        $this->process('update', '202');
     }
 
-    public function delete(string $recordId)
+    public function delete()
     {
+        $this->process('delete', '202');
+    }
+
+    protected function process(string $method, string $pass, string $fail = '406')
+    {
+        if (!$this->model->parent->$method($this->input->post())) {
+            $this->output->predefined($fail)->write(wrapArray($this->model->parent->errors(), '<p>', '</p>', chr(10)));
+        } else {
+            $this->output->predefined($pass);
+        }
     }
 }

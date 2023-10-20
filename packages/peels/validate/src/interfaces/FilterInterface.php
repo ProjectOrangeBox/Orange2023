@@ -13,9 +13,10 @@ interface FilterInterface
     public function file(string $name = null, string $filters = '', $default = null): mixed;
     public function cookie(string $name = null, string $filters = '', $default = null): mixed;
 
-    public function addFilter(string $name, string $class): self;
-    public function addFilters(array $filters): self;
+    public function addRule(string $name, string $class): self;
+    public function addRules(array $rules): self;
 
+    /* filter input $filtered = $this->input($rawInput,'is_string|alpha'); */
     public function input(mixed $value, string $filter): mixed;
 
     public function remapInput(string $method, string $mapping): array;

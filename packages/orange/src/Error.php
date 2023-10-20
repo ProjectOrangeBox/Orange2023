@@ -27,7 +27,7 @@ class Error implements ErrorInterface
     protected string $requestType = '';
     protected string $detectedRequestType = '';
     protected string $folder = '';
-    protected string $defaultTemplate = '';
+    protected string $defaultView = '';
 
     public function __construct(array $config, ViewerInterface $viewer, OutputInterface $output)
     {
@@ -37,7 +37,7 @@ class Error implements ErrorInterface
         $this->output = $output;
 
         $this->deduplicate = $this->config['deduplicate'];
-        $this->defaultTemplate = $this->config['defaultTemplate'];
+        $this->defaultView = $this->config['defaultView'];
 
         // local orange views folder (last)
         $this->viewer->addPath($this->config['add path']);
@@ -136,34 +136,34 @@ class Error implements ErrorInterface
     }
 
     /* 403 Forbidden default */
-    public function onErrorsShow(string $template): void
+    public function onErrorsSend(string $view): void
     {
         if ($this->has()) {
-            $this->show($template);
+            $this->send($view);
         }
     }
 
-    public function show(string $template = null): void
+    public function send(string $view = null): void
     {
-        $template = $template ?? $this->defaultTemplate;
+        $view = $view ?? $this->defaultView;
 
         $this->output
             ->flushAll()
             ->responseCode($this->responseCode)
             ->charSet($this->charSet)
             ->contentType($this->mimeType)
-            ->set($this->viewer->render($this->folder . '/' . trim($template, '/'), ['errors' => $this->errors]))
+            ->set($this->viewer->render($this->folder . '/' . trim($view, '/'), ['errors' => $this->errors]))
             ->send(true);
     }
 
-    public function show404(string $msg = null): void
+    public function send404(string $msg = null): void
     {
-        $this->reset()->responseCode(404)->add($msg)->show();
+        $this->reset()->responseCode(404)->add($msg)->send();
     }
 
-    public function show500(string $msg = null): void
+    public function send500(string $msg = null): void
     {
-        $this->reset()->responseCode(500)->add($msg)->show();
+        $this->reset()->responseCode(500)->add($msg)->send();
     }
 
     public function has(): bool

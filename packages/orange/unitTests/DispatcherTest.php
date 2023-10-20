@@ -22,12 +22,10 @@ final class DispatcherTest extends unitTestHelper
     // Tests
     public function testCall(): void
     {
-        $router = new mockRouter([
+        $this->assertEquals('<h1>foobar</h1>', $this->instance->call([
             'argv' => [],
             'callback' => ['mockController', 'index'],
-        ]);
-
-        $this->assertEquals('<h1>foobar</h1>', $this->instance->call($router));
+        ]));
     }
 
     public function testControllerClassNotFoundException(): void
@@ -35,12 +33,10 @@ final class DispatcherTest extends unitTestHelper
         $this->expectException(ControllerClassNotFound::class);
         $this->expectExceptionMessage('foobar');
 
-        $router = new mockRouter([
+        $this->instance->call([
             'argv' => [],
             'callback' => ['foobar', 'index'],
         ]);
-
-        $this->instance->call($router);
     }
 
     public function testMethodNotFoundException(): void
@@ -48,11 +44,9 @@ final class DispatcherTest extends unitTestHelper
         $this->expectException(MethodNotFound::class);
         $this->expectExceptionMessage('foobar');
 
-        $router = new mockRouter([
+        $this->instance->call([
             'argv' => [],
             'callback' => ['mockController', 'foobar'],
         ]);
-
-        $this->instance->call($router);
     }
 }

@@ -16,7 +16,6 @@ class Input implements InputInterface
     protected bool $isHttps = false;
     protected string $ipAddress = '';
     protected array $config = [];
-    protected array $serverNormalized = [];
 
     public function __construct(array $config)
     {
@@ -36,7 +35,7 @@ class Input implements InputInterface
 
     public function requestUri(): string
     {
-        $path = parse_url($this->serverNormalized['request_uri'], PHP_URL_PATH);
+        $path = parse_url($this->server('request_uri',''), PHP_URL_PATH);
 
         return ($path !== false) ? $path : '';
     }
@@ -121,10 +120,7 @@ class Input implements InputInterface
      */
     public function replace(array $input): self
     {
-        // default input keys
-        $inputKeys = ($this->config['valid input keys']) ?? ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'];
-
-        foreach ($inputKeys as $key) {
+        foreach ($this->config['valid input keys'] as $key) {
             $this->input[$key] = [];
 
             if (isset($input[$key])) {
@@ -135,44 +131,36 @@ class Input implements InputInterface
                         throw new InvalidValue('Input key "' . $key . '" does not contain an array.');
                     }
 
-                    // save a copy for internal logic
-                    if ($key == 'server') {
-                        $this->serverNormalized = array_change_key_case($input[$key], CASE_LOWER);
-                    }
-
                     $this->input[$key] = $this->cleanKeys($input[$key]);
                 }
             }
         }
 
         // setup the request type based on a few things
-        $isAjax = (!empty($this->serverNormalized['http_x_requested_with']) && strtolower($this->serverNormalized['http_x_requested_with']) == 'xmlhttprequest');
-        $isJson = (!empty($this->serverNormalized['http_accept']) && strpos(strtolower($this->serverNormalized['http_accept']), 'application/json') !== false);
+        $isAjax = (strtolower($this->server('http_x_requested_with', '')) == 'xmlhttprequest');
+        $isJson = (strpos(strtolower($this->server('http_accept', '')), 'application/json') !== false);
 
         // 2 different checks
         $isCli1 = (!empty($input['PHP_SAPI']) && $input['PHP_SAPI'] === 'CLI');
         $isCli2 = (!empty($input['STDIN']) && $input['STDIN'] === true);
 
-        // if either are true it's cli
-        $isCli = ($isCli1 || $isCli2);
-
         if ($isAjax || $isJson) {
             $this->requestType = 'ajax';
-            $this->requestMethod = $this->serverNormalized['request_method'] ?? '';
-        } elseif ($isCli) {
+            $this->requestMethod = $this->server('request_method', '');
+        } elseif ($isCli1 || $isCli2) {
             $this->requestType = 'cli';
             $this->requestMethod = 'cli';
         } else {
             $this->requestType = 'html';
-            $this->requestMethod = $this->serverNormalized['request_method'] ?? '';
+            $this->requestMethod = $this->server('request_method', '');
         }
 
         // is this https
-        if (!empty($this->serverNormalized['https']) && $this->serverNormalized['https'] !== 'off') {
+        if ($this->server('https','off') !== 'off') {
             $this->isHttps = true;
-        } elseif (isset($this->serverNormalized['http_x_forwarded_proto']) && $this->serverNormalized['http_x_forwarded_proto'] === 'https') {
+        } elseif ($this->server('http_x_forwarded_proto','') === 'https') {
             $this->isHttps = true;
-        } elseif (!empty($this->serverNormalized['http_front_end_https']) && $this->serverNormalized['http_front_end_https'] !== 'off') {
+        } elseif ($this->server('http_front_end_https','off') !== 'off') {
             $this->isHttps = true;
         } else {
             $this->isHttps = false;
@@ -237,7 +225,6 @@ class Input implements InputInterface
             'isHttps' => $this->isHttps,
             'ipAddress' => $this->ipAddress,
             'config' => $this->config,
-            'server normalized' => $this->serverNormalized,
             'convert keys to' => $this->config['convert keys to'],
             're key filter' => $this->config['re key filter'],
             'valid input keys' => $this->config['valid input keys'],

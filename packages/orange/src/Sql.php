@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace dmyers\orange;
 
 use PDO;
-use Exception;
 use Throwable;
 use PDOStatement;
 use dmyers\orange\exceptions\SqlBuilderException;

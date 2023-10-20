@@ -89,6 +89,7 @@ class Router implements RouterInterface
             throw new RouteNotFound('[' . $requestMethod . ']' . $requestUri);
         }
 
+        /* What is returned by getMatched() if no key is provided */
         $this->matched = [
             'request method' => $requestMethod,
             'request uri' => $requestUri,

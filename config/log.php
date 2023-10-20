@@ -20,7 +20,7 @@ return [
     'permissions' => 0644,
     // where to store the log file
     'filepath' => __ROOT__ . '/var/logs/' . date('Y-m-d') . '-log.txt',
-    // what level are we logging (this could be loaded using fetchEnv() or by testing ENVIRONMENT for example
+    // what level are we logging (this could be loaded using fetchAppEnv() or by testing ENVIRONMENT for example
     'threshold' => LOG::ALL,
     // what format should the log line be in
     'line format' => '%timestamp %level %message' . PHP_EOL,

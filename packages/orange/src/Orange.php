@@ -22,9 +22,9 @@ if (!function_exists('http')) {
      * 'config folder' the absolute path to where the configuration files are stored
      *
      * Optional:
-     * 'environment' the current environment (different for each system and usually set using fetchEnv('ENVIRONMENT') to get it from the .env
+     * 'environment' the current environment (different for each system and usually set using fetchAppEnv('ENVIRONMENT') to get it from the .env
      *      default 'production'
-     * 'debug' the current debug level true or false usually set using fetchEnv('DEBUG', false) to get it from the .env
+     * 'debug' the current debug level true or false usually set using fetchAppEnv('DEBUG', false) to get it from the .env
      *      default false;
      *
      * 'timezone' PHP valid timezone identifier, like UTC, Africa/Lagos, Asia/Hong_Kong, or Europe/Lisbon.
@@ -46,7 +46,7 @@ if (!function_exists('http')) {
         $container->events->trigger('before.controller', $container->router, $container->input);
 
         // dispatch route
-        $container->output->append($container->dispatcher->call($container->router));
+        $container->output->write($container->dispatcher->call($container->router->getMatched()));
 
         // call event
         $container->events->trigger('before.output', $container->router, $container->input, $container->output);

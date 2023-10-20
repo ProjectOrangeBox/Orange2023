@@ -15,9 +15,9 @@ use peels\console\Console;
 use peels\session\Session;
 use peels\validate\Validate;
 use dmyers\orange\Dispatcher;
-use people\models\parentModel;
 use peels\console\ConsoleInterface;
 use peels\session\SessionInterface;
+use application\people\models\parentModel;
 use dmyers\orange\interfaces\LogInterface;
 use dmyers\orange\interfaces\ErrorInterface;
 use dmyers\orange\interfaces\EventInterface;
@@ -93,16 +93,7 @@ return [
 
     'pdo' => function (ContainerInterface $container) {
         // stored in the .env file specific to each server (not commited to GIT)
-        return new PDO('mysql:host=' . fetchEnv('db.host') . ';dbname=' . fetchEnv('db.database'), fetchEnv('db.username'), fetchEnv('db.password'), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    },
-
-    // sample model
-
-    'model.parent' => function (ContainerInterface $container) {
-        return parentModel::getInstance([], $container->pdo);
-    },
-    'model.childern' => function (ContainerInterface $container) {
-        return parentModel::getInstance([], $container->pdo);
+        return new PDO('mysql:host=' . fetchAppEnv('db.host') . ';dbname=' . fetchAppEnv('db.database'), fetchAppEnv('db.username'), fetchAppEnv('db.password'), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     },
 
     /* orange "peels" from the peel repro */
@@ -113,9 +104,22 @@ return [
         return Session::getInstance($config['options'], $config['saveHandler']);
     },
 
-    'validate'=> function(ContainerInterface $container): ValidateInterface {
-        return Validate::getInstance([]);
+    'validate' => function (ContainerInterface $container): ValidateInterface {
+        return Validate::getInstance($container->config->validate);
     },
+
+    /* merged content below */
+
+    // sample model
+
+    'model.parent' => function (ContainerInterface $container) {
+        return parentModel::getInstance([], $container->pdo);
+    },
+    'model.childern' => function (ContainerInterface $container) {
+        return parentModel::getInstance([], $container->pdo);
+    },
+
+    /* end merged contents */
 
     // you can use anything for a service name
     // model.foo or $value

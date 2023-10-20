@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace dmyers\orange;
 
 use dmyers\orange\exceptions\MethodNotFound;
-use dmyers\orange\interfaces\RouterInterface;
 use dmyers\orange\interfaces\DispatcherInterface;
 use dmyers\orange\exceptions\ControllerClassNotFound;
 use dmyers\orange\exceptions\InvalidValue;
@@ -30,10 +29,9 @@ class Dispatcher implements DispatcherInterface
         return self::$instance;
     }
 
-    public function call(RouterInterface $route): string
+    /* pass in whatever was in router callback as well as any arguments */
+    public function call(array $routeMatched): string
     {
-        $routeMatched = $route->getMatched();
-
         $controllerClass = $routeMatched['callback'][0];
 
         if (class_exists($controllerClass)) {

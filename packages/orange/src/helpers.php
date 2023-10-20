@@ -79,19 +79,20 @@ if (!function_exists('mergeEnv')) {
             throw new FileNotFound('ini file error "' . $absEnvFilePath . '" did not return an array.');
         }
 
+        // insert into appEnv
         appEnv(array_replace_recursive(appEnv(), $env));
     }
 }
 
 /**
- * fetchEnv with required default
+ * fetchAppEnv with required default
  * use this function instead of plain old $_ENV
  * this allows easier mocking
  * and provides a default if the env value doesn't exist
  * a default should always be set for security
  */
-if (!function_exists('fetchEnv')) {
-    function fetchEnv(string $key, $default = '__#NOVALUE#__') /* mixed */
+if (!function_exists('fetchAppEnv')) {
+    function fetchAppEnv(string $key, $default = '__#NOVALUE#__') /* mixed */
     {
         $searchArray = appEnv();
 
@@ -124,12 +125,10 @@ if (!function_exists('appEnv')) {
     {
         static $env = null;
 
-        if ($env === null) {
-            $env = $_ENV;
-        }
-
         if ($replace !== null) {
             $env = $replace;
+        } elseif ($env === null) {
+            $env = $_ENV;
         }
 
         return $env;
@@ -222,11 +221,6 @@ if (!function_exists('orangeErrorHandler')) {
 if (!function_exists('_lowleveldeath')) {
     function _lowleveldeath(string $text, int $errorCode = 500): void
     {
-        if (function_exists('container') && container()->has('error')) {
-            // show and exit
-            container()->error->reset()->add(['text' => $text, 'code' => $errorCode])->show('error');
-        }
-
         // services are not setup so we need to go old school on the rest
         if (isset($_SERVER['SERVER_PROTOCOL'])) {
             header($_SERVER['SERVER_PROTOCOL'] . ' ' . $errorCode . ' Internal Server Error', true, $errorCode);
@@ -235,7 +229,7 @@ if (!function_exists('_lowleveldeath')) {
         if (php_sapi_name() === 'cli') {
             // CLI
             echo 'Error: [' . $errorCode . '] ' . PHP_EOL . $text . PHP_EOL;
-        } elseif (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        } elseif (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
             // ajax / json
             echo json_encode(['error' => $text, 'code' => $errorCode], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
         } else {
@@ -254,39 +248,6 @@ if (!function_exists('concat')) {
     function concat(): string
     {
         return implode('', func_get_args());
-    }
-}
-
-/**
- * provide reading values using dot notation
- * or really any notation using the last argument into an arrays
- */
-if (!function_exists('getDotNotation')) {
-    function getDotNotation($input, string $dotNotation, $default = null, string $dot = '.')
-    {
-        if (!empty($dotNotation) && !empty($dot)) {
-            $keys = explode($dot, $dotNotation);
-
-            foreach ($keys as $key) {
-                if (is_array($input)) {
-                    if (isset($input[$key])) {
-                        $input = $input[$key];
-                    } else {
-                        return $default;
-                    }
-                } elseif (is_object($input)) {
-                    if (isset($input->$key)) {
-                        $input = $input->$key;
-                    } else {
-                        return $default;
-                    }
-                } else {
-                    return $default;
-                }
-            }
-        }
-
-        return $input;
     }
 }
 

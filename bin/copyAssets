@@ -41,14 +41,17 @@ copyR($absPath, __ROOT__, '/var', $overwrite);
 
 // copy configs
 copyR($absPath, __ROOT__, '/config', $overwrite);
-// config copy and/or merge
-// configs we need to either overwrite OR merge into where the correct comment is
 
+// merge configs
 mergeR($absPath, __ROOT__, '/config');
 
 function mergeR(string $source, string $dest, string $path): void
 {
     global $console;
+
+    if (!is_dir($source . $path)) {
+        return;
+    }
 
     $comment = '/* merged content below */';
     $endComment = '/* end merged contents */';
@@ -94,6 +97,10 @@ function normalize(string $input): string
 function copyR(string $source, string $dest, string $path, bool $overwrite): void
 {
     global $console;
+
+    if (!is_dir($source . $path)) {
+        return;
+    }
 
     $directory = new RecursiveDirectoryIterator($source . $path, FilesystemIterator::SKIP_DOTS);
     $matches = new RecursiveIteratorIterator($directory);

@@ -12,8 +12,8 @@ return [
     // prefix views with
     'default root folder' => 'errors',
 
-    // default template
-    'defaultTemplate' => 'error',
+    // default view
+    'defaultView' => 'error',
 
     'deduplicate' => true,
 

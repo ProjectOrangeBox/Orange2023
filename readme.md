@@ -19,25 +19,46 @@ I used PHP 8.2 but haven't tested for backward compatibility. Fortunately the fr
 
 Don't forget to run `composer install`
 
-Don't forget to add a .env file in the root of your project even if it's empty `touch .env` works.
+Don't forget to add a .env file in the root of your project even a empty `.env` file works.
 
-A sample .env has been provided and sample.env
+A sample .env has been provided in ./support/samples/sample.env
 
 The .env file is in [.ini format](https://en.wikipedia.org/wiki/INI_file)
 
-## Samples Modules Folders added to show the possiblily of modular design
+## Sample database data
 
-/modulea
+Addtionally a sample sql dump has been provided to create a sample database
 
-/moduleb
+## a HMVC structure has been provied inside /application
 
-You could than move the config folder and bootstrap file for example into a folder named "core" and put all of your controllers, models and views into "module" folders.
+/application/people
+
+/application/rest
+
+/application/shared
+
+/application/welcome
+
+You could also configure orange to have everything in a single application folder
+
+This is setup in /config/config.php and loaded into the http() or cli() methods as well as the configuration in composer.json
+
+Finally a ./bin/copyAssets script has been included to provide a "migration" method to copy module assets into the correct places.
+
+A example of this would be inside the ./application/welcome/assets folder and by calling ./copyAssets /application/welcome/assets
 
 ## Recommended
 
 For handling Dates
 
+Carbon - A simple PHP API extension for DateTime.
+
 https://carbon.nesbot.com/
 
 https://github.com/briannesbitt/carbon
 
+For handling Migrations
+
+Phinx - PHP Database Migrations For Everyone.
+
+https://phinx.org/

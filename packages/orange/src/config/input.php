@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// read $_ENV using fetchEnv();
+// read $_ENV using fetchAppEnv();
 return [
     'raw' => file_get_contents('php://input'),
     'post' => $_POST,

@@ -22,7 +22,7 @@
                     <td><?= $row['lastname'] ?></td>
                     <td><?= $row['age'] ?></td>
                     <td>
-                        <button type="button" data-url="<?= getUrl('people-update', [$row['id']]) ?>" class="js-url-modal js-edit btn btn-primary"><i class="fa-solid fa-square-pen"></i></button>
+                        <button type="button" data-url="<?= getUrl('people-update', [$row['id']]) ?>" class="js-url-modal js-update btn btn-primary"><i class="fa-solid fa-square-pen"></i></button>
                         <button type="button" data-url="<?= getUrl('people-delete', [$row['id']]) ?>" class="js-url-modal js-delete btn btn-danger"><i class="fa-solid fa-trash-can"></i></button>
                     </td>
                 </tr>
@@ -38,30 +38,27 @@
         </div>
     </div>
 </div>
-
-<script>
-    // setup the form modal reference
-    var formModal = new bootstrap.Modal('#formModal', {});
-
-    document.addEventListener("DOMContentLoaded", function(e) {
-        $('.js-url-modal').on('click', function() {
-            $('.modal-body').load($(this).data('url'), function(responseText, textStatus, jqXHR) {
-                if (textStatus == 'success') {
-                    formModal.show();
-                } else {
-                    bootbox.alert('Could not load url.');
-                }
-            });
-        });
-    });
-</script>
 <?php fig::end() ?>
 
 <?php fig::section('css') ?>
 <?php fig::end(fig::AFTER) ?>
 
 
-<?php fig::section('js') ?>
+<?php fig::section('script') ?>
+// setup the form modal reference
+var formModal = new bootstrap.Modal('#formModal', {});
+
+document.addEventListener("DOMContentLoaded", function(e) {
+    $('.js-url-modal').on('click', function() {
+        $('.modal-body').load($(this).data('url'), function(responseText, textStatus, jqXHR) {
+            if (textStatus == 'success') {
+                formModal.show();
+            } else {
+                bootbox.alert('Could not load url.');
+            }
+        });
+    });
+});
 <?php fig::end(fig::AFTER) ?>
 
 

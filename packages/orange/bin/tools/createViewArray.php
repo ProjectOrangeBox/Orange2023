@@ -3,7 +3,7 @@
 
 declare(strict_types=1);
 
-define('__ROOT__', realpath(__DIR__ . '/../../../'));
+define('__ROOT__', realpath(__DIR__ . '/../../../../'));
 chdir(__ROOT__);
 
 $argc = $_SERVER['argc'];

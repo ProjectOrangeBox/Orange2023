@@ -46,7 +46,7 @@ final class OutputTest extends unitTestHelper
     public function testAppendOutput(): void
     {
         $this->instance->set('this is the output');
-        $this->instance->append(' this too!');
+        $this->instance->write(' this too!');
 
         $this->assertEquals('this is the output this too!', $this->instance->get());
     }
@@ -84,7 +84,7 @@ final class OutputTest extends unitTestHelper
 
     public function testGetHeaders(): void
     {
-        $this->assertContains('Content-Type: text/html; charset=utf-8', $this->instance->getHeaders());
+        $this->assertEquals([], $this->instance->getHeaders());
     }
 
     public function testSendHeaders(): void

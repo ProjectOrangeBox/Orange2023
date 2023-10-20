@@ -74,11 +74,11 @@ final class HelpersTest extends unitTestHelper
     public function testMergeEnv(): void
     {
         mergeEnv(__DIR__ . '/support/mockEnv');
-        $this->assertEquals('development', fetchEnv('ENVIRONMENT'));
-        $this->assertEquals(true, fetchEnv('DEBUG'));
+        $this->assertEquals('development', fetchAppEnv('ENVIRONMENT'));
+        $this->assertEquals(true, fetchAppEnv('DEBUG'));
     }
 
-    public function testFetchEnv(): void
+    public function testfetchAppEnv(): void
     {
         $matches = [
             'map' => true,
@@ -86,17 +86,17 @@ final class HelpersTest extends unitTestHelper
         ];
 
         $this->assertEquals($matches, appEnv($matches));
-        $this->assertEquals(true, fetchEnv('map'));
-        $this->assertEquals('sugar', fetchEnv('cookies'));
-        $this->assertEquals('default value', fetchEnv('food', 'default value'));
+        $this->assertEquals(true, fetchAppEnv('map'));
+        $this->assertEquals('sugar', fetchAppEnv('cookies'));
+        $this->assertEquals('default value', fetchAppEnv('food', 'default value'));
     }
 
-    public function testFetchEnvDefaultException(): void
+    public function testfetchAppEnvDefaultException(): void
     {
         $this->expectException(InvalidConfigurationValue::class);
         $this->expectExceptionMessage('No env value found for "food" and no default value set.');
 
-        $this->assertEquals(null, fetchEnv('food'));
+        $this->assertEquals(null, fetchAppEnv('food'));
     }
 
     public function testAppEnv(): void
@@ -120,23 +120,6 @@ final class HelpersTest extends unitTestHelper
     public function testConcat(): void
     {
         $this->assertEquals('Johnny.Appleseed', concat('Johnny', '.', 'Appleseed'));
-    }
-
-    public function testGetDotNotation(): void
-    {
-        $array = [
-            'names' => [
-                'first' => 'John',
-                'last' => 'Apple',
-            ],
-            'age' => 28,
-        ];
-
-        $this->assertEquals('John', getDotNotation($array, 'names.first'));
-        $this->assertEquals('none', getDotNotation($array, 'names.middle', 'none'));
-
-        $this->assertEquals('John', getDotNotation($array, 'names/first', null, '/'));
-        $this->assertEquals('none', getDotNotation($array, 'names/middle', 'none', '/'));
     }
 
     public function testConfig(): void

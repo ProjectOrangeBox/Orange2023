@@ -9,6 +9,11 @@ use dmyers\orange\interfaces\InputInterface;
 use peels\validate\interfaces\FilterInterface;
 use peels\validate\interfaces\ValidateInterface;
 
+/**
+ * Class to pull data from input with validation & filtering rules as well as support for default values
+ * 
+ * additionally provides a method to "remap" input as needed
+ */
 class Filter implements FilterInterface
 {
     private static FilterInterface $instance;
@@ -19,7 +24,6 @@ class Filter implements FilterInterface
     protected array $validInputMethods = ['post', 'get', 'request', 'server', 'file', 'cookie'];
     protected string $filterSeparator = '|';
 
-    // if possible a NEW validate instance
     public function __construct(ValidateInterface $validate, InputInterface $input)
     {
         $this->validate = $validate;
@@ -65,18 +69,16 @@ class Filter implements FilterInterface
         return $this->pickFiltered('cookie', $name, $filters, $default);
     }
 
-    public function addFilter(string $name, string $class): self
+    public function addRule(string $name, string $class): self
     {
         $this->validate->addRule($name, $class);
 
         return $this;
     }
 
-    public function addFilters(array $filters): self
+    public function addRules(array $rules): self
     {
-        foreach ($filters as $name => $class) {
-            $this->validate->addRule($name, $class);
-        }
+        $this->validate->addRules($rules);
 
         return $this;
     }

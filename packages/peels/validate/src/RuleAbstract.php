@@ -96,6 +96,19 @@ abstract class RuleAbstract
         return $this;
     }
 
+    protected function inputIsNumber(string $errorMsg = null): self
+    {
+        if (!is_scalar($this->input) || is_bool($this->input) || $this->input === '') {
+            $errorMsg = $errorMsg ?? '%s must be numbers and not empty.';
+
+            throw new RuleFailed($errorMsg);
+        }
+
+        $this->input = $this->input;
+
+        return $this;
+    }
+
     protected function inputIsStringNumberEmpty(string $errorMsg = null): self
     {
         if (!is_scalar($this->input) || is_bool($this->input)) {

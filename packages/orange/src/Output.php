@@ -33,6 +33,8 @@ class Output implements OutputInterface
     protected array $headers = [];
     protected bool $headersSent = false;
 
+    protected array $predefined = [];
+
     public function __construct(array $config)
     {
         $this->config = mergeDefaultConfig($config, __DIR__ . '/config/output.php');
@@ -43,6 +45,8 @@ class Output implements OutputInterface
         $this->config['mimes'] = (isset($this->config['mimes'])) ? array_replace_recursive($this->config['mimes'], $mimes) : $mimes;
 
         $this->mimes = $this->config['mimes'];
+
+        $this->predefined = $this->config['predefined'];
 
         // handle http status code merging
         $statusCodesInt = require __DIR__ . '/config/statusCodes.php';
@@ -56,8 +60,6 @@ class Output implements OutputInterface
 
         $this->contentType = $this->config['contentType'];
         $this->charSet = $this->config['charSet'];
-
-        $this->header('Content-Type: ' . $this->contentType . '; charset=' . $this->charSet, 'Content-Type');
     }
 
     public static function getInstance(array $config): self
@@ -100,16 +102,13 @@ class Output implements OutputInterface
         return $this;
     }
 
-    public function set(string $html): self
+    public function write(string $html, bool $append = true): self
     {
-        $this->output = $html;
-
-        return $this;
-    }
-
-    public function append(string $html): self
-    {
-        $this->output .= $html;
+        if (!$append) {
+            $this->output = $html;
+        } else {
+            $this->output .= $html;
+        }
 
         return $this;
     }
@@ -127,8 +126,6 @@ class Output implements OutputInterface
         }
 
         $this->contentType = $contentType;
-
-        $this->header('Content-Type: ' . $this->contentType . '; charset=' . $this->charSet, 'Content-Type');
 
         return $this;
     }
@@ -170,8 +167,20 @@ class Output implements OutputInterface
     {
         $this->alreadySent('Headers', $this->headersSent);
 
+        // add our content type
+        $this->header('Content-Type: ' . $this->contentType . '; charset=' . $this->charSet, 'Content-Type');
+
         foreach ($this->getHeaders() as $header) {
             header($header);
+        }
+
+        // Send content length
+        if ($this->config['send length'] === true) {
+            $length = extension_loaded('mbstring') ? mb_strlen($this->output, 'latin1') : strlen($this->output);
+
+            if ($length > 0) {
+                header('Content-Length: ' . $length);
+            }
         }
 
         $this->headersSent = true;
@@ -182,8 +191,6 @@ class Output implements OutputInterface
     public function charSet(string $charSet): self
     {
         $this->charSet = $charSet;
-
-        $this->header('Content-Type: ' . $this->contentType . '; charset=' . $this->charSet, 'Content-Type');
 
         return $this;
     }
@@ -230,6 +237,49 @@ class Output implements OutputInterface
         http_response_code($this->statusCode);
 
         $this->statusCodeSent = true;
+
+        return $this;
+    }
+
+    public function predefined(string $name): self
+    {
+        if (!isset($this->predefined[$name])) {
+            throw new OutputException('Unknown Predefined Key ' . $name);
+        }
+
+        $set = $this->predefined[$name];
+
+        if (isset($set['contentType'])) {
+            $this->contentType($set['contentType']);
+        }
+
+        if (isset($set['charSet'])) {
+            $this->charSet($set['charSet']);
+        }
+
+        if (isset($set['responseCode'])) {
+            $this->responseCode($set['responseCode']);
+        }
+
+        if (isset($set['header'])) {
+            if (is_array($set['header'])) {
+                foreach ($set['header'] as $h) {
+                    $this->header($h);
+                }
+            } else {
+                $this->header($set['header']);
+            }
+        }
+
+        if (isset($set['cookie'])) {
+            if (is_array($set['cookie'])) {
+                foreach ($set['cookie'] as $h) {
+                    $this->cookie($h);
+                }
+            } else {
+                $this->cookie($set['cookie']);
+            }
+        }
 
         return $this;
     }

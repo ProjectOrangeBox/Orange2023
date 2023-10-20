@@ -29,4 +29,8 @@
     <?= fig::value('body') ?>
 </body>
 
+<script>
+<?= fig::value('script') ?>
+</script>
+
 </html>

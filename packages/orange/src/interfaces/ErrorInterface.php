@@ -14,10 +14,10 @@ interface ErrorInterface
     public function reset(): self;
     public function folder(string $folder): self;
     public function add(): self;
-    public function show(string $template): void;
-    public function show404(string $msg = null): void;
-    public function show500(string $msg = null): void;
-    public function onErrorsShow(string $template): void;
+    public function send(string $view): void;
+    public function onErrorsSend(string $view): void;
+    public function send404(string $msg = null): void;
+    public function send500(string $msg = null): void;
     public function has(): bool;
     public function errors(): array;
     public function collectErrors(object $object, string $method = 'errors'): self;

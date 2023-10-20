@@ -238,8 +238,9 @@ class Validate implements ValidateInterface
     {
         foreach ($ruleSet as $key => $rules) {
             if (is_array($rules)) {
-                $human = $rules['human'];
-                $rules = $rules['rules'];
+                // get human first before rules is overwritten
+                $human = $rules[1];
+                $rules = $rules[0];
             } else {
                 $human = $this->makeHumanLookNice(null, $key);
             }

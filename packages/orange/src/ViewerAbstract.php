@@ -161,12 +161,16 @@ abstract class ViewerAbstract implements ViewerInterface
     public function addPath(string $path, bool $first = false): self
     {
         // path is added without checking if it's there for various reasons
+        // path is also used as the array key so there aren't any duplicates
+        // and you can "move" a previously added path to the "top" is necessary
         $path = rtrim($path, '/');
 
         if ($first) {
-            array_unshift($this->viewPaths, rtrim($path, '/'));
+            // add to beginning of search array
+            $this->viewPaths = [$path => $path] + $this->viewPaths;
         } else {
-            $this->viewPaths[] = rtrim($path, '/');
+            // append to the end of search array
+            $this->viewPaths[$path] = $path;
         }
 
         return $this;
@@ -183,6 +187,7 @@ abstract class ViewerAbstract implements ViewerInterface
 
     public function addPlugin(string $name, mixed $args): self
     {
+        // this replaces any plugin with the same name
         $this->plugins[$name] = $args;
 
         return $this;

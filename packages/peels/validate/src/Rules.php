@@ -221,7 +221,7 @@ class Rules extends RuleAbstract
     {
         $this->inputIsStringNumberEmpty()->optionIsInteger();
 
-        if ((int)$this->input <= $this->option) {
+        if ((float)$this->input <= (float)$this->option) {
             throw new RuleFailed('%s is not greater than %3$s.');
         }
     }
@@ -230,7 +230,7 @@ class Rules extends RuleAbstract
     {
         $this->inputIsStringNumberEmpty()->optionIsInteger();
 
-        if ((int)$this->input >= (int)$this->option) {
+        if ((float)$this->input >= (float)$this->option) {
             throw new RuleFailed('%s is not greater than or equal to %s.');
         }
     }
@@ -246,7 +246,7 @@ class Rules extends RuleAbstract
 
     public function isInteger(): void
     {
-        $this->inputIsStringNumber();
+        $this->inputIsNumber();
 
         if (preg_match('/^-?\d{1,}$/', $this->input) !== 1) {
             throw new RuleFailed('%s is not an integer.');
@@ -257,7 +257,7 @@ class Rules extends RuleAbstract
     {
         $this->inputIsStringNumberEmpty()->optionIsInteger();
 
-        if ((int)$this->input >= $this->option) {
+        if ((float)$this->input >= (float)$this->option) {
             throw new RuleFailed('%s is not less than %s.');
         }
     }
@@ -266,7 +266,7 @@ class Rules extends RuleAbstract
     {
         $this->inputIsStringNumberEmpty()->optionIsInteger();
 
-        if ($this->input <= $this->option) {
+        if ((float)$this->input <= (float)$this->option) {
             throw new RuleFailed('%s is not less than or equal to %s.');
         }
     }
@@ -282,7 +282,7 @@ class Rules extends RuleAbstract
 
     public function isNatural(): void
     {
-        $this->inputIsStringNumber();
+        $this->inputIsNumber();
 
         if (preg_match('/^-?\d{1,}$/', $this->input) !== 1) {
             throw new RuleFailed('%s is not a natural number.');
@@ -291,7 +291,7 @@ class Rules extends RuleAbstract
 
     public function isNaturalNoZero(): void
     {
-        $this->inputIsStringNumber();
+        $this->inputIsNumber();
 
         if (preg_match('/^-?\d{1,}$/', $this->input) !== 1 || $this->input === '0') {
             throw new RuleFailed('%s is not a natural number greater than 0.');
@@ -300,7 +300,7 @@ class Rules extends RuleAbstract
 
     public function isNumeric(): void
     {
-        $this->inputIsStringNumber();
+        $this->inputIsNumber();
 
         if (preg_match('/\A[\-+]?\d*\.?\d+\z/', $this->input) !== 1) {
             throw new RuleFailed('%s is not a numeric value.');
