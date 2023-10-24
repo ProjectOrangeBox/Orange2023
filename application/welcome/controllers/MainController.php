@@ -31,11 +31,4 @@ class MainController extends BaseController
     public function redirect(){
         $this->output->redirect('/');
     }
-
-    public function error(){
-        //$this->output->flushAll()->responseCode(500)->send(true);
-        $error = container()->error;
-
-        $error->add(['heading'=>'Error!','msg'=>'We have a problem'])->show('basic');
-    }
 }
