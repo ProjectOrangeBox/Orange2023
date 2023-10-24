@@ -3,6 +3,8 @@
 
 declare(strict_types=1);
 
+use function PHPUnit\Framework\fileExists;
+
 define('__ROOT__', realpath(__DIR__ . '/../'));
 chdir(__ROOT__);
 
@@ -64,10 +66,14 @@ function mergeR(string $source, string $dest, string $path): void
         $to = $dest . str_replace($source, '', $from);
         $to = str_replace('/@', '/', $to);
 
+        if (!file_exists($to)) {
+            file_put_contents($to, emptyConfig());
+        }
+
         $c1 = substr($file->getFilename(), 0, 1);
 
         if ($c1 == '@') {
-            $console->info('Merge ' . str_replace(__ROOT__,'',$from) . ' into ' . str_replace(__ROOT__,'',$to));
+            $console->info('Merge ' . str_replace(__ROOT__, '', $from) . ' into ' . str_replace(__ROOT__, '', $to));
 
             if (!hasString($to, $comment)) {
                 $console->warning('Could not locate "' . $comment . '" skipping file');
@@ -116,9 +122,9 @@ function copyR(string $source, string $dest, string $path, bool $overwrite): voi
 
             if (file_exists($to)) {
                 if (!$overwrite) {
-                    $console->warning('"' . str_replace(__ROOT__,'',$to) . '" already exists.');
+                    $console->warning('"' . str_replace(__ROOT__, '', $to) . '" already exists.');
                 } else {
-                    $console->warning('Removing "' . str_replace(__ROOT__,'',$to) . '".');
+                    $console->warning('Removing "' . str_replace(__ROOT__, '', $to) . '".');
                     unlink($to);
                 }
             }
@@ -194,4 +200,23 @@ function putBefore(string $absFilePath, string $before, string $put): string
     file_put_contents($absFilePath, $newFile, LOCK_EX);
 
     return $newFile;
+}
+
+
+function emptyConfig()
+{
+    $php = <<<RAWPHP
+<?php
+
+declare(strict_types=1);
+
+return [
+
+    /* merged content below */
+    /* end merged contents */
+
+];
+RAWPHP;
+
+    return $php;
 }
