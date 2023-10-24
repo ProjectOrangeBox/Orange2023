@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use dmyers\orange\Sql;
+use \peels\model\Sql;
 
 final class SqlTest extends unitTestHelper
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use dmyers\orange\ModelAbstract;
+use peels\model\ModelAbstract;
 
 final class ModelAbstractTest extends unitTestHelper
 {
