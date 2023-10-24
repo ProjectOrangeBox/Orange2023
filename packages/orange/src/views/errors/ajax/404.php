@@ -1,1 +1,0 @@
-{"heading": "<?=$heading ?>", "data": <?=$message ?>}

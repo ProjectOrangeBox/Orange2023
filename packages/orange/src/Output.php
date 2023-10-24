@@ -33,8 +33,6 @@ class Output implements OutputInterface
     protected array $headers = [];
     protected bool $headersSent = false;
 
-    protected array $predefined = [];
-
     public function __construct(array $config)
     {
         $this->config = mergeDefaultConfig($config, __DIR__ . '/config/output.php');
@@ -45,8 +43,6 @@ class Output implements OutputInterface
         $this->config['mimes'] = (isset($this->config['mimes'])) ? array_replace_recursive($this->config['mimes'], $mimes) : $mimes;
 
         $this->mimes = $this->config['mimes'];
-
-        $this->predefined = $this->config['predefined'];
 
         // handle http status code merging
         $statusCodesInt = require __DIR__ . '/config/statusCodes.php';
@@ -237,68 +233,6 @@ class Output implements OutputInterface
         http_response_code($this->statusCode);
 
         $this->statusCodeSent = true;
-
-        return $this;
-    }
-
-    public function predefined(string $key): self
-    {
-        if (!isset($this->predefined[$key])) {
-            throw new OutputException('Unknown Predefined Output Key ' . $key);
-        }
-
-        $set = $this->predefined[$key];
-
-        array_change_key_case($set, CASE_LOWER);
-
-        // redirect sends and exits nothing else will setup
-        if (isset($set['redirect'])) {
-            $this->redirect($set['redirect']);
-        }
-
-        if (isset($set['flushall'])) {
-            $this->flushAll();
-        }
-
-        if (isset($set['contenttype'])) {
-            $this->contentType($set['contenttype']);
-        }
-
-        if (isset($set['charset'])) {
-            $this->charSet($set['charset']);
-        }
-
-        if (isset($set['responsecode'])) {
-            $this->responseCode($set['responsecode']);
-        }
-
-        if (isset($set['header'])) {
-            if (is_array($set['header'])) {
-                foreach ($set['header'] as $h) {
-                    $this->header($h);
-                }
-            } else {
-                $this->header($set['header']);
-            }
-        }
-
-        if (isset($set['cookie'])) {
-            if (is_array($set['cookie'])) {
-                foreach ($set['cookie'] as $h) {
-                    $this->cookie($h);
-                }
-            } else {
-                $this->cookie($set['cookie']);
-            }
-        }
-
-        if (isset($set['write'])) {
-            $this->write($set['write']);
-        }
-
-        if (isset($set['send'])) {
-            $this->send();
-        }
 
         return $this;
     }

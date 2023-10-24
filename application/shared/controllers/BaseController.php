@@ -69,7 +69,6 @@ abstract class BaseController
             $this->model->$name = container()->get($serviceName);
         }
 
-
         // add this base controllers local views path
         $this->view->addPath($this->childDir . '/views');
 

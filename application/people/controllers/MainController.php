@@ -56,9 +56,9 @@ class MainController extends BaseController
     protected function process(string $method, string $pass, string $fail = '406')
     {
         if (!$this->model->parent->$method($this->input->request())) {
-            $this->output->predefined($fail)->write(wrapArray($this->model->parent->errors(), '<p>', '</p>', chr(10)));
+            container()->quickView->load($fail, ['errors' => $this->model->parent->errors()]);
         } else {
-            $this->output->predefined($pass);
+            container()->quickView->load($pass);
         }
     }
 }

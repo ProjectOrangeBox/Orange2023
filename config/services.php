@@ -5,7 +5,6 @@ declare(strict_types=1);
 use dmyers\orange\Log;
 use dmyers\orange\Data;
 use dmyers\orange\View;
-use dmyers\orange\Error;
 use dmyers\orange\Event;
 use dmyers\orange\Input;
 use dmyers\orange\Config;
@@ -19,7 +18,6 @@ use peels\console\ConsoleInterface;
 use peels\session\SessionInterface;
 use application\people\models\parentModel;
 use dmyers\orange\interfaces\LogInterface;
-use dmyers\orange\interfaces\ErrorInterface;
 use dmyers\orange\interfaces\EventInterface;
 use dmyers\orange\interfaces\InputInterface;
 use dmyers\orange\interfaces\ConfigInterface;
@@ -29,6 +27,7 @@ use dmyers\orange\interfaces\ViewerInterface;
 use dmyers\orange\interfaces\ContainerInterface;
 use peels\validate\interfaces\ValidateInterface;
 use dmyers\orange\interfaces\DispatcherInterface;
+use peels\quickview\QuickView;
 
 /**
  * By placing the services inside a closure they are not created UNTIL they are called
@@ -80,17 +79,9 @@ return [
     'data' => function (ContainerInterface $container) {
         return Data::getInstance();
     },
-
-    'error' => function (ContainerInterface $container): ErrorInterface {
-        // get out our config so we can append something onto it
-        $config = $container->config->error;
-
-        // get from input the request type
-        $config['request type'] = $container->input->requestType();
-
-        return Error::getInstance($config, $container->phpview, $container->output);
+    'collection' => function (ContainerInterface $container) {
+        return Data::getInstance();
     },
-
     'pdo' => function (ContainerInterface $container) {
         // stored in the .env file specific to each server (not commited to GIT)
         return new PDO('mysql:host=' . fetchAppEnv('db.host') . ';dbname=' . fetchAppEnv('db.database'), fetchAppEnv('db.username'), fetchAppEnv('db.password'), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
@@ -106,6 +97,10 @@ return [
 
     'validate' => function (ContainerInterface $container): ValidateInterface {
         return Validate::getInstance($container->config->validate);
+    },
+
+    'quickView' => function (ContainerInterface $container): QuickView {
+        return QuickView::getInstance($container->config->quickview,$container->output);
     },
 
     /* merged content below */

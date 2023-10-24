@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace application\people\models;
 
 use PDO;
-use dmyers\orange\ModelAbstract;
+use peels\model\ModelAbstract;
 use peels\validate\interfaces\ValidateInterface;
 
 class parentModel extends ModelAbstract
