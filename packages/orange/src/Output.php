@@ -12,26 +12,21 @@ class Output implements OutputInterface
     private static OutputInterface $instance;
 
     protected array $config = [];
-
     protected array $mimes = [];
-
     protected string $output = '';
 
     // default to http status code ok
     protected int $statusCode = 200;
-    protected bool $statusCodeSent = false;
 
     protected array $statusCodesInt = [];
     protected array $statusCodes = [];
     protected array $statusCodesNormalized = [];
+    protected bool $statusCodeSent = false;
 
     protected string $contentType = '';
     protected string $charSet = '';
     protected array $cookies = [];
-    protected bool $cookiesSent = false;
-
     protected array $headers = [];
-    protected bool $headersSent = false;
 
     public function __construct(array $config)
     {
@@ -79,7 +74,7 @@ class Output implements OutputInterface
         $this->sendResponseCode()->sendHeaders()->sendCookies();
 
         // this should be the only echo
-        echo $this->get();
+        echo $this->output;
 
         if ($exit) {
             exit(0);
@@ -88,7 +83,7 @@ class Output implements OutputInterface
 
     public function redirect(string $url, int $responseCode = 302, bool $exit = true): void
     {
-        $this->flushAll()->header('Location: ' . $url)->responseCode($responseCode)->send($exit);
+        $this->flushAll()->header('Location', $url)->responseCode($responseCode)->send($exit);
     }
 
     public function flush(): self
@@ -98,12 +93,12 @@ class Output implements OutputInterface
         return $this;
     }
 
-    public function write(string $html, bool $append = true): self
+    public function write(string $string, bool $append = true): self
     {
-        if (!$append) {
-            $this->output = $html;
+        if ($append) {
+            $this->output .= $string;
         } else {
-            $this->output .= $html;
+            $this->output = $string;
         }
 
         return $this;
@@ -131,28 +126,32 @@ class Output implements OutputInterface
         return $this->contentType;
     }
 
-    public function header(string $header, string $key = null): self
+    public function header(string $key, string $value): self
     {
-        $this->alreadySent('Headers', $this->headersSent);
-
-        if ($key === null) {
-            $segs = explode(':', $header);
-            $key = strtolower(trim($segs[0]));
-        }
-
-        $this->headers[$key] = $header;
+        $this->headers[$key] = ['key' => $key, 'value' => $value, 'sent' => false];
 
         return $this;
     }
 
     public function getHeaders(): array
     {
-        return $this->headers;
+        // just the headers
+        $headers = [];
+
+        foreach ($this->headers as $header) {
+            $headers[] = $header['key'] . ': ' . $header['value'];
+        }
+
+        return $headers;
     }
 
     public function flushHeaders(): self
     {
-        $this->alreadySent('Headers', $this->headersSent);
+        foreach ($this->headers as $header) {
+            if ($header['sent'] == true) {
+                throw new OutputException('Some headers already sent.');
+            }
+        }
 
         $this->headers = [];
 
@@ -161,25 +160,22 @@ class Output implements OutputInterface
 
     public function sendHeaders(): self
     {
-        $this->alreadySent('Headers', $this->headersSent);
+        if (headers_sent()) {
+            throw new OutputException('Output already started.');
+        }
 
         // add our content type
-        $this->header('Content-Type: ' . $this->contentType . '; charset=' . $this->charSet, 'Content-Type');
+        $this->header('Content-Type', $this->contentType . '; charset=' . $this->charSet);
 
-        foreach ($this->getHeaders() as $header) {
-            header($header);
-        }
+        // send headers
+        foreach ($this->headers as $index => $header) {
+            if (!$header['sent']) {
+                header($header['key'] . ': ' . $header['value']);
 
-        // Send content length
-        if ($this->config['send length'] === true) {
-            $length = extension_loaded('mbstring') ? mb_strlen($this->output, 'latin1') : strlen($this->output);
-
-            if ($length > 0) {
-                header('Content-Length: ' . $length);
+                // flip send flag
+                $this->headers[$index]['sent'] = true;
             }
         }
-
-        $this->headersSent = true;
 
         return $this;
     }
@@ -198,16 +194,18 @@ class Output implements OutputInterface
 
     public function responseCode(int|string $code): self
     {
-        $this->alreadySent('Response Code', $this->statusCodeSent);
+        if ($this->statusCodeSent) {
+            throw new OutputException('Status response code sent.');
+        }
 
         if (is_string($code)) {
             $code = strtolower($code);
 
             if (!isset($this->statusCodesNormalized[$code])) {
                 throw new OutputException('Unknown HTTP Status Code ' . $code);
-            } else {
-                $code = $this->statusCodesNormalized[$code];
             }
+
+            $code = $this->statusCodesNormalized[$code];
         }
 
         // test the integer
@@ -228,8 +226,7 @@ class Output implements OutputInterface
 
     public function sendResponseCode(): self
     {
-        $this->alreadySent('Response Code', $this->statusCodeSent);
-
+        // actual a header
         http_response_code($this->statusCode);
 
         $this->statusCodeSent = true;
@@ -239,8 +236,6 @@ class Output implements OutputInterface
 
     public function cookie(string|array $name, string $value = '', int $expire = 0, string $domain = '', string $path = '/', bool $secure = null, bool $httponly = null, string $samesite = null): self
     {
-        $this->alreadySent('Cookies', $this->cookiesSent);
-
         if (is_array($name)) {
             // always leave 'name' in last place, as the loop will break otherwise, due to $$item
             foreach (['value', 'expire', 'domain', 'path', 'prefix', 'secure', 'httponly', 'samesite', 'name'] as $item) {
@@ -283,14 +278,18 @@ class Output implements OutputInterface
             'samesite' => $samesite,
         ];
 
-        $this->cookies[$name] = ['name' => $name, 'value' => $value, 'options' => $setCookieOptions];
+        $this->cookies[$name] = ['name' => $name, 'value' => $value, 'options' => $setCookieOptions, 'sent' => false];
 
         return $this;
     }
 
     public function flushCookies(): self
     {
-        $this->alreadySent('Cookies', $this->cookiesSent);
+        foreach ($this->cookies as $cookie) {
+            if ($cookie['sent'] == true) {
+                throw new OutputException('Some cookies already sent.');
+            }
+        }
 
         $this->cookies = [];
 
@@ -299,38 +298,15 @@ class Output implements OutputInterface
 
     public function sendCookies(): self
     {
-        $this->alreadySent('Cookies', $this->cookiesSent);
+        // send cookies
+        foreach ($this->cookies as $key => $cookie) {
+            if (!$cookie['sent']) {
+                setcookie($cookie['name'], $cookie['value'], $cookie['setCookieOptions']);
 
-        foreach ($this->cookies as $record) {
-            setcookie($record['name'], $record['value'], $record['setCookieOptions']);
+                $this->cookies[$key]['sent'] = true;
+            }
         }
-
-        $this->cookiesSent = true;
 
         return $this;
-    }
-
-    protected function alreadySent(string $blank, bool $test): void
-    {
-        if ($test) {
-            throw new OutputException($blank . ' already sent.');
-        }
-    }
-
-    public function __debugInfo(): array
-    {
-        return [
-            'config' => $this->config,
-            'code' => $this->statusCode,
-            'contentType' => $this->contentType,
-            'charSet' => $this->charSet,
-            'headers' => $this->headers,
-            'headers sent' => $this->headersSent,
-            'status code sent' => $this->statusCodeSent,
-            'output' => $this->output,
-            'cookies sent' => $this->cookiesSent,
-            'cookies' => $this->cookies,
-            'popular content types' => $this->mimes,
-        ];
     }
 }

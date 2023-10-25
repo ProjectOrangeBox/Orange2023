@@ -182,15 +182,4 @@ class Router implements RouterInterface
     {
         return mb_convert_case($name, MB_CASE_LOWER, mb_detect_encoding($name));
     }
-
-    public function __debugInfo(): array
-    {
-        return [
-            'siteUrl' => $this->siteUrl,
-            'isHttps' => $this->isHttps,
-            'routes' => $this->routes,
-            'matched' => $this->matched,
-            'config' => $this->config,
-        ];
-    }
 }

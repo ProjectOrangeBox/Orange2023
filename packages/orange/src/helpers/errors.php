@@ -11,11 +11,11 @@ if (!function_exists('orangeExceptionHandler')) {
     function orangeExceptionHandler(Throwable $exception): void
     {
         $args = [
-            $exception->getMessage(),
-            $exception->getCode(),
-            $exception->getLine(),
-            $exception->getFile(),
-            get_class($exception),
+            'message ' . $exception->getMessage(),
+            'code ' . $exception->getCode(),
+            'line ' . $exception->getLine(),
+            'file ' . $exception->getFile(),
+            'class ' . get_class($exception),
         ];
 
         _lowleveldeath(implode(' ', $args), 500, $exception->getTrace());
@@ -38,7 +38,7 @@ if (!function_exists('orangeErrorHandler')) {
             return false;
         }
 
-        _lowleveldeath('', 500, func_get_args());
+        _lowleveldeath('', 500, ['severity' => $severity, 'message' => $message, 'filepath' => $filepath, 'line' => $line]);
     }
 
     set_error_handler('orangeErrorHandler');

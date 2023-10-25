@@ -76,9 +76,4 @@ class Dispatcher implements DispatcherInterface
 
         return $output;
     }
-
-    public function __debugInfo(): array
-    {
-        return [];
-    }
 }

@@ -77,9 +77,9 @@ final class OutputTest extends unitTestHelper
 
     public function testHeader(): void
     {
-        $this->instance->header('HTTP/1.1 404 Not Found');
+        $this->instance->header('Cache-Control','max-age=604800');
 
-        $this->assertContains('HTTP/1.1 404 Not Found', $this->instance->getHeaders());
+        $this->assertContains('Cache-Control: max-age=604800', $this->instance->getHeaders());
     }
 
     public function testGetHeaders(): void
@@ -89,20 +89,20 @@ final class OutputTest extends unitTestHelper
 
     public function testSendHeaders(): void
     {
-        $this->instance->header('HTTP/1.1 404 Not Found');
+        $this->instance->header('Cache-Control','max-age=604800');
 
         $this->instance->sendHeaders();
 
-        $this->assertContains('HTTP/1.1 404 Not Found', $this->getPrivatePublic('headers'));
+        $this->assertContains('Cache-Control: max-age=604800', $this->instance->getHeaders());
     }
 
     public function testFlushHeaders(): void
     {
-        $this->instance->header('HTTP/1.1 404 Not Found');
+        $this->instance->header('Cache-Control','max-age=604800');
 
         $this->instance->flushHeaders();
 
-        $this->assertNotContains('HTTP/1.1 404 Not Found', $this->instance->getHeaders());
+        $this->assertNotContains('Cache-Control: max-age=604800', $this->instance->getHeaders());
     }
 
     public function testCharSet(): void
@@ -172,7 +172,7 @@ final class OutputTest extends unitTestHelper
         $this->assertEquals($html, $output);
         $this->assertEquals($html, $this->instance->get());
         $this->assertEquals(200, $this->instance->getResponseCode());
-        $this->assertContains('Content-Type: text/html; charset=utf-8',  $this->getPrivatePublic('headers'));
+        $this->assertContains('Content-Type: text/html; charset=utf-8',  $this->instance->getHeaders());
     }
 
     public function testRedirect(): void
@@ -182,13 +182,13 @@ final class OutputTest extends unitTestHelper
         $output = ob_get_clean();
 
         $this->assertEquals(308,  $this->getPrivatePublic('statusCode'));
-        $this->assertContains('Location: http://www.example.com',  $this->getPrivatePublic('headers'));
+        $this->assertContains('Location: http://www.example.com',  $this->instance->getHeaders());
         $this->assertEquals('', $output);
     }
 
     public function testFlushAll(): void
     {
-        $this->instance->header('HTTP/1.1 404 Not Found');
+        $this->instance->header('Content-Type','text/html; charset=utf-8');
         $this->instance->write('hello world');
 
         $this->instance->flushAll();
@@ -208,24 +208,9 @@ final class OutputTest extends unitTestHelper
         $this->instance->sendHeaders();
 
         $this->expectException(OutputException::class);
-        $this->expectExceptionMessage('Headers already sent.');
+        $this->expectExceptionMessage('Some headers already sent.');
 
         $this->instance->flushHeaders();
-    }
-
-    public function testHeaderSentException(): void
-    {
-        $this->instance = new Output([
-            'contentType' => 'text/html',
-            'charSet' => 'utf-8',
-        ]);
-
-        $this->instance->sendHeaders();
-
-        $this->expectException(OutputException::class);
-        $this->expectExceptionMessage('Headers already sent.');
-
-        $this->instance->sendHeaders();
     }
 
     public function testResponseCodeException(): void
@@ -235,10 +220,10 @@ final class OutputTest extends unitTestHelper
             'charSet' => 'utf-8',
         ]);
 
-        $this->instance->sendResponseCode();
+        $this->instance->send();
 
         $this->expectException(OutputException::class);
-        $this->expectExceptionMessage('Response Code already sent.');
+        $this->expectExceptionMessage('Status response code sent.');
 
         $this->instance->responseCode(404);
     }
@@ -250,14 +235,22 @@ final class OutputTest extends unitTestHelper
 
         $this->instance->cookie('username', 'Johnny Appleseed', $minutes);
 
-        $this->assertEquals(['username' => ['name' => 'username', 'value' => 'Johnny Appleseed', 'options' => [
-            'expires' => $expire,
-            'path' => '',
-            'domain' => '',
-            'secure' => false,
-            'httponly' => false,
-            'samesite' => "Lax",
-        ]]], $this->getPrivatePublic('cookies'));
+        $this->assertEquals([
+            'username' =>
+            [
+                'name' => 'username',
+                'value' => 'Johnny Appleseed',
+                'options' => [
+                    'expires' => $expire,
+                    'path' => '',
+                    'domain' => '',
+                    'secure' => false,
+                    'httponly' => false,
+                    'samesite' => "Lax",
+                ],
+                'sent' => false,
+            ]
+        ], $this->getPrivatePublic('cookies'));
     }
 
     public function testFlushCookie(): void

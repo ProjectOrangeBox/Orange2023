@@ -177,14 +177,4 @@ class Config extends ArrayObject implements ConfigInterface
     {
         return mb_convert_case($name, MB_CASE_LOWER, mb_detect_encoding($name));
     }
-
-    public function __debugInfo(): array
-    {
-        return [
-            'config' => $this->config,
-            'storage' => $this->storage,
-            'searchPaths' => $this->searchPaths,
-            'throwErrorOnMissingFile' => $this->throwErrorOnMissingFile,
-        ];
-    }
 }

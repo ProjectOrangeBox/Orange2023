@@ -235,19 +235,4 @@ class Input implements InputInterface
 
         return empty($re) ? $key :  preg_replace($re, '', $key);
     }
-
-    public function __debugInfo(): array
-    {
-        return [
-            'input' => $this->input,
-            'requestType' => $this->requestType,
-            'requestMethod' => $this->requestMethod,
-            'isHttps' => $this->isHttps,
-            'ipAddress' => $this->ipAddress,
-            'config' => $this->config,
-            'convert keys to' => $this->config['convert keys to'],
-            're key filter' => $this->config['re key filter'],
-            'valid input keys' => $this->config['valid input keys'],
-        ];
-    }
 }

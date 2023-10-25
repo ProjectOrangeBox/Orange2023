@@ -265,25 +265,6 @@ abstract class ViewerAbstract implements ViewerInterface
         return ob_get_clean();
     }
 
-    public function __debugInfo(): array
-    {
-        return [
-            'config' => $this->config,
-            'view paths' => $this->viewPaths,
-            'loaded views' => $this->loadedViews,
-            'alias views' => $this->aliasViews,
-            'extension' => $this->extension,
-            'found view' => $this->foundView,
-            'temp folder' => $this->tempFolder,
-            'debug' => $this->debug,
-            'plugins' => $this->plugins,
-            'delimiters' => $this->delimiters,
-            'l_delim' => $this->l_delim,
-            'r_delim' => $this->r_delim,
-            'loaded plugins' => $this->loadedPlugins,
-        ];
-    }
-
     protected function isFileWritable(string $file): bool
     {
         // check we can write in the directory

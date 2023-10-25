@@ -222,7 +222,7 @@ class Rules extends RuleAbstract
         $this->inputIsStringNumberEmpty()->optionIsInteger();
 
         if ((float)$this->input <= (float)$this->option) {
-            throw new RuleFailed('%s is not greater than %3$s.');
+            throw new RuleFailed('%s is not greater than %s.');
         }
     }
 

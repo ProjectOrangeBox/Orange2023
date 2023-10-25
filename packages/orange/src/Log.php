@@ -154,17 +154,6 @@ class Log implements LogInterface
         }
     }
 
-    public function __debugInfo(): array
-    {
-        return [
-            'config' => $this->config,
-            'enabled' => $this->enabled,
-            'threshold' => $this->threshold,
-            'psrLevels' => $this->psrLevels,
-            'psrLevelsInt' => $this->psrLevelsInt,
-        ];
-    }
-
     protected function isFileWritable(string $file): bool
     {
         // check we can write in the directory

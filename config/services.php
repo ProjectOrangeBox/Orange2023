@@ -100,7 +100,7 @@ return [
     },
 
     'quickView' => function (ContainerInterface $container): QuickView {
-        return QuickView::getInstance($container->config->quickview,$container->output);
+        return QuickView::getInstance($container->config->quickview, $container->output);
     },
 
     /* merged content below */

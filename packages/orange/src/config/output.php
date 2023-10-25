@@ -13,5 +13,4 @@ return [
         'httponly' => '',
         'samesite' => '',
     ],
-    'predefined'=>[],
 ];
