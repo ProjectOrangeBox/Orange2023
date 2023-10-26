@@ -6,7 +6,6 @@ namespace peels\validate;
 
 use peels\validate\Notation;
 use peels\validate\exceptions\RuleFailed;
-use peels\validate\ValidationRuleAbstract;
 use peels\validate\exceptions\InvalidValue;
 use peels\validate\exceptions\RuleNotFound;
 use peels\validate\exceptions\ValidationFailed;

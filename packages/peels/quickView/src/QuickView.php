@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace peels\quickview;
 
-use dmyers\orange\Output;
 use dmyers\orange\exceptions\Output as OutputException;
 use dmyers\orange\interfaces\OutputInterface;
 
@@ -12,7 +11,6 @@ class QuickView
 {
     private static $instance;
     protected OutputInterface $output;
-
     protected array $quickviews = [];
 
     public function __construct(array $config, OutputInterface $output)
@@ -31,6 +29,9 @@ class QuickView
         return self::$instance;
     }
 
+    /**
+     * pass thru to output service
+     */
     public function __call($name, $arguments)
     {
         if (!method_exists($this->output, $name)) {
@@ -129,7 +130,7 @@ class QuickView
         }
     }
 
-    // provide function variable scope
+    // function protected variable scope
     protected function renderString(string $__viewFilePath, array $__dataArray): string
     {
         // extract out view data and make it in scope

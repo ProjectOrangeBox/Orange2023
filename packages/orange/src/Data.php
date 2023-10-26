@@ -19,7 +19,7 @@ class Data extends ArrayObject implements DataInterface
     public static function getInstance(array $data = []): self
     {
         if (!isset(self::$instance)) {
-            self::$instance = new self($data);
+            self::$instance = new (get_called_class())($data);
         }
 
         return self::$instance;

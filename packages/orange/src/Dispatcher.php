@@ -23,7 +23,7 @@ class Dispatcher implements DispatcherInterface
     public static function getInstance(ContainerInterface $container): self
     {
         if (!isset(self::$instance)) {
-            self::$instance = new self($container);
+            self::$instance = new (get_called_class())($container);
         }
 
         return self::$instance;

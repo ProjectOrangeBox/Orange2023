@@ -87,8 +87,6 @@ return [
         return new PDO('mysql:host=' . fetchAppEnv('db.host') . ';dbname=' . fetchAppEnv('db.database'), fetchAppEnv('db.username'), fetchAppEnv('db.password'), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     },
 
-    /* orange "peels" from the peel repro */
-
     'session' => function (ContainerInterface $container): SessionInterface {
         $config = $container->config->session;
 

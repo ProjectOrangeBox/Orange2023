@@ -20,7 +20,7 @@ class Container implements ContainerInterface
     public static function getInstance(): self
     {
         if (!isset(self::$instance)) {
-            self::$instance = new self();
+            self::$instance = new (get_called_class())();
         }
 
         return self::$instance;

@@ -54,7 +54,7 @@ class Event implements EventInterface
     public static function getInstance(array $config): self
     {
         if (!isset(self::$instance)) {
-            self::$instance = new self($config);
+            self::$instance = new (get_called_class())($config);
         }
 
         return self::$instance;

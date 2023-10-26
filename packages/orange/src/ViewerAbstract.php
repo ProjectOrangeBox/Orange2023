@@ -81,9 +81,7 @@ abstract class ViewerAbstract implements ViewerInterface
     public static function getInstance(array $config, ?DataInterface $data = null): self
     {
         if (!isset(self::$instance)) {
-            $extendingClass = get_called_class();
-
-            self::$instance = new $extendingClass($config, $data);
+            self::$instance = new (get_called_class())($config, $data);
         }
 
         return self::$instance;

@@ -54,9 +54,9 @@ class Output implements OutputInterface
     }
 
     public static function getInstance(array $config): self
-    {
+    {        
         if (!isset(self::$instance)) {
-            self::$instance = new self($config);
+            self::$instance = new (get_called_class())($config);
         }
 
         return self::$instance;
@@ -69,8 +69,6 @@ class Output implements OutputInterface
 
     public function send(bool $exit = false): void
     {
-        // http_response_code - called
-        // header - called
         $this->sendResponseCode()->sendHeaders()->sendCookies();
 
         // this should be the only echo
