@@ -9,7 +9,6 @@ use application\shared\controllers\BaseController;
 class MainController extends BaseController
 {
     protected array $models = ['parent' => 'model.parent'];
-    protected array $libraries = ['helpers'];
 
     // GUI - Gets
     public function index()
@@ -56,7 +55,7 @@ class MainController extends BaseController
     protected function process(string $method, string $pass, string $fail = '406')
     {
         if (!$this->model->parent->$method($this->input->request())) {
-            container()->quickView->show($fail, ['errors' => $this->model->parent->errors()]);
+            container()->quickView->show($fail, ['json' => ['size' => 'large', 'title' => 'Your Form Has The Following Errors', 'message' => wrapArray($this->model->parent->errors(), '', '</br>')]]);
         } else {
             container()->quickView->show($pass);
         }

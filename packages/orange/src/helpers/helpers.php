@@ -72,3 +72,35 @@ if (!function_exists('concat')) {
         return implode('', func_get_args());
     }
 }
+
+if (!function_exists('element')) {
+    function element(string $tag, array $attr = [], string $content = '', bool $escape = true)
+    {
+        $selfClosing = ['area', 'base', 'br', 'embed', 'hr', 'iframe', 'img', 'input', 'link', 'meta', 'param', 'source'];
+
+        $html = '<' . $tag . ' ' . str_replace("=", '="', http_build_query($attr, '', '" ', PHP_QUERY_RFC3986)) . '">';
+
+        if (!empty($content)) {
+            $html .= ($escape) ? htmlentities($content) : $content;
+        }
+
+        if (!in_array($tag, $selfClosing)) {
+            $html .= '</' . $tag . '>';
+        }
+
+        return $html;
+    }
+}
+
+if (!function_exists('wrapArray')) {
+    function wrapArray(array $array, string $prefix = '', string $suffix = '', string $separator = ''): string
+    {
+        $output = [];
+
+        foreach ($array as $s) {
+            $output[] = $prefix . $s . $suffix;
+        }
+
+        return implode($separator, $output);
+    }
+}

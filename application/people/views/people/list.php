@@ -48,15 +48,13 @@
 // setup the form modal reference
 var formModal = new bootstrap.Modal('#formModal', {});
 
-document.addEventListener("DOMContentLoaded", function(e) {
-    $('.js-url-modal').on('click', function() {
-        $('.modal-body').load($(this).data('url'), function(responseText, textStatus, jqXHR) {
-            if (textStatus == 'success') {
-                formModal.show();
-            } else {
-                bootbox.alert('Could not load url.');
-            }
-        });
+$('.js-url-modal').on('click', function() {
+    $('.modal-body').load($(this).data('url'), function(responseText, textStatus, jqXHR) {
+        if (textStatus == 'success') {
+            formModal.show();
+        } else {
+            bootbox.alert('Could not load url.');
+        }
     });
 });
 <?php fig::end(fig::AFTER) ?>
