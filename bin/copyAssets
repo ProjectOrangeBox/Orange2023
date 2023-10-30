@@ -46,6 +46,9 @@ foreach ($mergeFolders as $folder) {
     $methods->merge($folder);
 }
 
+// merge as config
+$methods->merge('/config', true);
+
 exit;
 
 class methods
@@ -88,8 +91,9 @@ class methods
 
             foreach ($matches as $file) {
                 $from = $file->getPathname();
-                $to = $dest . str_replace($this->fullPath, '', $from);
-                $to = $this->rootPath . '/' . str_replace('/' . $this->mergePrefix, '/', $to);
+                $to = str_replace($this->fullPath, '', $from);
+                $to = str_replace('/' . $this->mergePrefix, '/', $to);
+                $to = $this->rootPath . $to;
 
                 if (!file_exists($to) && $isConfigFile) {
                     file_put_contents($to, $this->emptyConfig());
@@ -108,7 +112,7 @@ class methods
                             $mergeContent = file_get_contents($from);
                             $toContent = file_get_contents($to);
 
-                            if (strpos($this->normalize($toContent), $this->normalize($mergeContent)) !== false) {
+                            if (strpos($this->simplify($toContent), $this->simplify($mergeContent)) !== false) {
                                 $this->console->warning('Seems merged content may already be in destination file. Skipping');
                             } else {
                                 file_put_contents($to, $this->putAfter($to, $this->comment, $mergeContent), LOCK_EX);
@@ -122,7 +126,7 @@ class methods
         }
     }
 
-    public function normalize(string $input): string
+    public function simplify(string $input): string
     {
         return preg_replace("/[^a-z0-9]/", '', strtolower($input));
     }
@@ -151,10 +155,10 @@ class methods
         }
     }
 
-    public function hasString(string $absFilePath, string $string): bool
+    public function hasString(string $path, string $string): bool
     {
         $found = false;
-        $lines = file($absFilePath);
+        $lines = file($path);
 
         foreach ($lines as $line) {
             if (trim($line) == $string) {
@@ -167,11 +171,11 @@ class methods
         return $found;
     }
 
-    public function putAfter(string $absFilePath, string $after, string $put): string
+    public function putAfter(string $path, string $after, string $put): string
     {
         $success = false;
         $newFile = '';
-        $lines = file($absFilePath);
+        $lines = file($path);
 
         foreach ($lines as $line) {
             $newFile .= $line;
@@ -187,30 +191,6 @@ class methods
 
         return $newFile;
     }
-
-    public function putBefore(string $absFilePath, string $before, string $put): string
-    {
-        $success = false;
-        $newFile = '';
-        $lines = file($absFilePath);
-
-        foreach ($lines as $line) {
-            if (trim($line) == $before && $success == false) {
-                $newFile .= PHP_EOL;
-                $newFile .= $put;
-                $newFile .= PHP_EOL;
-
-                $success = true;
-            }
-
-            $newFile .= $line;
-        }
-
-        file_put_contents($absFilePath, $newFile, LOCK_EX);
-
-        return $newFile;
-    }
-
 
     public function emptyConfig()
     {
