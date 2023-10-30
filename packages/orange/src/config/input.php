@@ -19,4 +19,5 @@ return [
     // for cli detection override config if needed
     'PHP_SAPI' => strtoupper(PHP_SAPI),
     'STDIN' => defined('STDIN'),
+    'requestOrder' => ['get', 'post', 'rawp'],
 ];

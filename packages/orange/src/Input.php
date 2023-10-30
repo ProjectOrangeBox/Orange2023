@@ -74,53 +74,56 @@ class Input implements InputInterface
 
     public function raw(): mixed
     {
-        return $this->pick('raw');
+        return $this->input['raw'];
     }
 
-    public function post(string $name = null, $default = null): mixed
+    // try to convert raw to JSON object
+    public function rawObj(): mixed
     {
-        return $this->pick('post', $name, $default);
+        return json_encode($this->input['raw']);
     }
 
-    public function get(string $name = null, $default = null): mixed
+    public function rawp(string $name = null, $default = null): mixed
     {
-        return $this->pick('get', $name, $default);
+        return $this->extract('rawp', $name, $default);
     }
 
     public function request(string $name = null, $default = null): mixed
     {
         $output = [];
 
-        // try to determine where it's coming from and use that
-        if (!empty($this->input['get'])) {
-            $output = $this->pick('get', $name, $default);
-        } elseif (!empty($this->input['post'])) {
-            $output = $this->pick('post', $name, $default);
-        } elseif (!empty($this->input['raw'])) {
-            $output = $this->pick('rawp', $name, $default);
+        foreach ($this->config['requestOrder'] as $method) {
+            if (!empty($this->input[$method])) {
+                $output = $this->extract($method, $name, $default);
+            }
         }
 
         return $output;
     }
 
-    public function rawp(string $name = null, $default = null): mixed
+    public function post(string $name = null, $default = null): mixed
     {
-        return $this->pick('rawp', $name, $default);
+        return $this->extract('post', $name, $default);
+    }
+
+    public function get(string $name = null, $default = null): mixed
+    {
+        return $this->extract('get', $name, $default);
     }
 
     public function server(string $name = null, $default = null): mixed
     {
-        return $this->pick('server', $name, $default);
+        return $this->extract('server', $name, $default);
     }
 
     public function file(string $name = null, $default = null): mixed
     {
-        return $this->pick('file', $name, $default);
+        return $this->extract('file', $name, $default);
     }
 
     public function cookie(string $name = null, $default = null): mixed
     {
-        return $this->pick('cookie', $name, $default);
+        return $this->extract('cookie', $name, $default);
     }
 
     /**
@@ -142,6 +145,8 @@ class Input implements InputInterface
             if (isset($input[$key])) {
                 if ($key == 'raw') {
                     $this->input[$key] = $input[$key];
+
+                    parse_str($input[$key], $this->input['rawp']);
                 } else {
                     if (!is_array($input[$key])) {
                         throw new InvalidValue('Input key "' . $key . '" does not contain an array.');
@@ -187,12 +192,8 @@ class Input implements InputInterface
 
     /* protected */
 
-    protected function pick(string $type, ?string $name = null, $default = null)
+    protected function extract(string $type, ?string $name = null, $default = null)
     {
-        if ($type == 'rawp' && !isset($this->input['rawp'])) {
-            parse_str($this->input['raw'], $this->input['rawp']);
-        }
-
         if ($name === null) {
             $value = $this->input[$type];
         } elseif (isset($this->input[$type][$this->cleanKey($name)])) {
