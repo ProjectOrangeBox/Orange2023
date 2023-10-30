@@ -104,3 +104,10 @@ if (!function_exists('wrapArray')) {
         return implode($separator, $output);
     }
 }
+
+if (!function_exists('dataUri')) {
+    function dataUri($file)
+    {
+        echo 'data:' . mime_content_type($file) . ';base64,' . base64_encode(file_get_contents($file));
+    }
+}
