@@ -7,41 +7,34 @@ use dmyers\orange\Input;
 final class InputTest extends unitTestHelper
 {
     protected $instance;
+    private $default = [
+        'body' => 'name=Johnny%20Appleseed&age=25',
+        'files' => [],
+        'server' => [
+            'request_uri' => '/product/123abc',
+            'request_method' => 'get',
+            'http_x_requested_with' => 'xmlhttprequest',
+            'http_accept' => 'application/json',
+            'https' => 'on',
+        ],
+        'get' => [
+            'name' => 'Johnny Appleseed',
+            'age' => 26,
+        ],
+        'cookie' => [
+            'name' => 'Johnny Appleseed',
+            'age' => 28,
+        ],
+        'valid input keys' => ['body',  'get', 'server', 'files', 'cookie'],
+        
+        // looks like a apache server request
+        'PHP_SAPI' => 'APACHE',
+        'STDIN' => false,
+    ];
 
     protected function setUp(): void
     {
-        $this->instance = new Input([
-            'raw' => [],
-            'file' => [],
-            'server' => [
-                'request_uri' => '/product/123abc',
-                'request_method' => 'get',
-                'http_x_requested_with' => 'xmlhttprequest',
-                'http_accept' => 'application/json',
-                'https' => true,
-            ],
-            'post' => [
-                'name' => 'Johnny Appleseed',
-                'age' => 25,
-            ],
-            'get' => [
-                'name' => 'Johnny Appleseed',
-                'age' => 26,
-            ],
-            'request' => [],
-            'cookie' => [
-                'name' => 'Johnny Appleseed',
-                'age' => 28,
-            ],
-
-            'convert keys to' => 'lowercase',
-            're key filter' => '@[^a-z0-9 \[\]\-_]+@',
-            'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
-
-            // looks like a apache server request
-            'PHP_SAPI' => 'APACHE',
-            'STDIN' => false,
-        ]);
+        $this->instance = new Input($this->default);
     }
 
     // Tests
@@ -86,9 +79,12 @@ final class InputTest extends unitTestHelper
         $this->assertTrue($this->instance->isHttpsRequest());
     }
 
-    public function testRaw(): void
+    public function testBody(): void
     {
-        $this->assertEquals([], $this->instance->raw());
+        $this->assertEquals([
+            'name' => 'Johnny Appleseed',
+            'age' => 25,
+        ], $this->instance->body());
     }
 
     public function testPost(): void
@@ -96,7 +92,7 @@ final class InputTest extends unitTestHelper
         $this->assertEquals([
             'name' => 'Johnny Appleseed',
             'age' => 25,
-        ], $this->instance->post());
+        ], $this->instance->body());
     }
 
     public function testGet(): void
@@ -107,15 +103,6 @@ final class InputTest extends unitTestHelper
         ], $this->instance->get());
     }
 
-    public function testRequest(): void
-    {
-        // this will grab from get because it's the first that contains something when we request checks
-        $this->assertEquals([
-            'name' => 'Johnny Appleseed',
-            'age' => 26,
-        ], $this->instance->request());
-    }
-
     public function testServer(): void
     {
         $this->assertEquals([
@@ -123,12 +110,12 @@ final class InputTest extends unitTestHelper
             'request_method' => 'get',
             'http_x_requested_with' => 'xmlhttprequest',
             'http_accept' => 'application/json',
-            'https' => true,
+            'https' => 'on',
 
         ], $this->instance->server());
     }
 
-    public function testFile(): void
+    public function testFiles(): void
     {
         $this->assertEquals([], $this->instance->file());
     }
@@ -144,24 +131,19 @@ final class InputTest extends unitTestHelper
     public function testCopy(): void
     {
         $this->assertEquals([
-            'raw' => [],
-            'file' => [],
+            'body' => 'name=Johnny%20Appleseed&age=25',
+            'files' => [],
             'server' => [
                 'request_uri' => '/product/123abc',
                 'request_method' => 'get',
                 'http_x_requested_with' => 'xmlhttprequest',
                 'http_accept' => 'application/json',
-                'https' => true,
-            ],
-            'post' => [
-                'name' => 'Johnny Appleseed',
-                'age' => 25,
+                'https' => 'on',
             ],
             'get' => [
                 'name' => 'Johnny Appleseed',
                 'age' => 26,
             ],
-            'request' => [],
             'cookie' => [
                 'name' => 'Johnny Appleseed',
                 'age' => 28,
@@ -172,52 +154,15 @@ final class InputTest extends unitTestHelper
     public function testReplace(): void
     {
         $replace = [
-            'raw' => [],
-            'file' => [],
-            'server' => [],
-            'post' => [
-                'name' => 'Jenny Appleseed',
-                'age' => 29,
-            ],
             'get' => [],
-            'request' => [],
+            'body' => '',
+            'files' => [],
+            'server' => [],
             'cookie' => [],
         ];
 
         $this->instance->replace($replace);
 
         $this->assertEquals($replace, $this->instance->copy());
-    }
-
-    public function testKeysFilter(): void
-    {
-        $this->instance = new Input([
-            'post' => [
-                'name[]' => 'Johnny Appleseed',
-                'NameHere' => 1,
-                'name_here' => 2,
-                'name-here' => 3,
-                'NameHere' => 4,
-                'NAME123[]' => 5,
-                'NAME HERE' => 6,
-                'NAME#HERE' => 7,
-                'NAME#$%^&*()HERE' => 8,
-                'NA#$%^&*ME#HERE' => 9,
-                'NAME%20HERE' => 10,
-            ],
-            'convert keys to' => 'lowercase',
-            're key filter' => '@[^a-z0-9 \[\]\-_]+@',
-            'valid input keys' => ['post', 'get', 'request', 'server', 'file', 'raw', 'cookie'],
-        ]);
-
-        $this->assertEquals([
-            'name[]' => 'Johnny Appleseed',
-            'namehere' => 9,
-            'name_here' => 2,
-            'name-here' => 3,
-            'name123[]' => 5,
-            'name here' => 6,
-            'name20here' => 10,
-        ], $this->getPrivatePublic('input')['post']);
     }
 }

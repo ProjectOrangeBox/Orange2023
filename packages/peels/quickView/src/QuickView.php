@@ -109,13 +109,18 @@ class QuickView
         }
 
         if (isset($quickviews['template'])) {
-            // create tempF file, use it and delete it
+            // create temp file, use it and delete it
+            // I would use just memory but you can "include" a memory "file"
+            // Therefore since it's not around long enough to be viewed we will just use
+            // the linux temp directory
             $tempFile = tempnam(sys_get_temp_dir(), 'quickview_');
 
+            // write it
             file_put_contents($tempFile, $quickviews['template']);
 
             $this->output->write($this->renderString($tempFile, $data));
 
+            // now delete it
             unlink($tempFile);
         }
 

@@ -16,6 +16,7 @@ class Input implements InputInterface
     protected bool $isHttps = false;
     protected string $ipAddress = '';
     protected array $config = [];
+    protected array $lowercaseServer = [];
 
     public function __construct(array $config)
     {
@@ -35,9 +36,13 @@ class Input implements InputInterface
 
     public function requestUri(): string
     {
-        $path = parse_url($this->server('request_uri', ''), PHP_URL_PATH);
+        $path = $this->getServer('request_uri');
 
-        return ($path !== false) ? $path : '';
+        if ($path !== '') {
+            $path = parse_url($path, PHP_URL_PATH);
+        }
+
+        return $path;
     }
 
     public function uriSegement(int $int): string
@@ -67,48 +72,74 @@ class Input implements InputInterface
         return ($this->requestType == 'cli');
     }
 
-    public function isHttpsRequest(): bool
+    public function isHttpsRequest(bool $asString = false): mixed
     {
-        return $this->isHttps;
+        $return = $this->isHttps;
+
+        if ($asString) {
+            $return = ($this->isHttps) ? 'https' : 'http';
+        }
+
+        return $return;
     }
 
-    public function raw(): mixed
+    /**
+     * passing true for name will return the raw body
+     * if not it will try to detect the type of payload 
+     * and return a matching key name
+     * or complete payload
+     */
+    public function body($name = null, $default = null): mixed
     {
-        return $this->input['raw'];
-    }
+        $return = $default;
 
-    // try to convert raw to JSON object
-    public function rawObj(): mixed
-    {
-        return json_encode($this->input['raw']);
-    }
+        if ($name === true) {
+            $return = $this->input['body'];
+        } else {
+            $jsonObject = json_decode($this->input['body']);
 
-    public function rawp(string $name = null, $default = null): mixed
-    {
-        return $this->extract('rawp', $name, $default);
-    }
+            if ($jsonObject !== null) {
+                if ($name === null) {
+                    $return = $jsonObject;
+                } elseif (isset($jsonObject->$name)) {
+                    $return = $jsonObject->$name;
+                }
+            } else {
+                parse_str($this->input['body'], $jsonArray);
 
-    public function request(string $name = null, $default = null): mixed
-    {
-        $output = [];
-
-        foreach ($this->config['requestOrder'] as $method) {
-            if (!empty($this->input[$method])) {
-                $output = $this->extract($method, $name, $default);
+                if (is_array($jsonArray)) {
+                    if ($name === null) {
+                        $return = $jsonArray;
+                    } elseif (isset($jsonArray[$name])) {
+                        $return = $jsonArray[$name];
+                    }
+                }
             }
         }
 
-        return $output;
+        return $return;
     }
 
-    public function post(string $name = null, $default = null): mixed
-    {
-        return $this->extract('post', $name, $default);
-    }
-
-    public function get(string $name = null, $default = null): mixed
+    public function get(?string $name = null, $default = null): mixed
     {
         return $this->extract('get', $name, $default);
+    }
+
+    public function extract(string $type, ?string $name = null, $default = null)
+    {
+        if (!isset($this->input[$type])) {
+            throw new InvalidValue($type);
+        }
+
+        $value = $default;
+
+        if ($name === null) {
+            $value = $this->input[$type];
+        } elseif (isset($this->input[$type][$name])) {
+            $value = $this->input[$type][$name];
+        }
+
+        return $value;
     }
 
     public function server(string $name = null, $default = null): mixed
@@ -118,7 +149,7 @@ class Input implements InputInterface
 
     public function file(string $name = null, $default = null): mixed
     {
-        return $this->extract('file', $name, $default);
+        return $this->extract('files', $name, $default);
     }
 
     public function cookie(string $name = null, $default = null): mixed
@@ -140,100 +171,63 @@ class Input implements InputInterface
     public function replace(array $input): self
     {
         foreach ($this->config['valid input keys'] as $key) {
-            $this->input[$key] = [];
-
-            if (isset($input[$key])) {
-                if ($key == 'raw') {
-                    $this->input[$key] = $input[$key];
-
-                    parse_str($input[$key], $this->input['rawp']);
-                } else {
-                    if (!is_array($input[$key])) {
-                        throw new InvalidValue('Input key "' . $key . '" does not contain an array.');
-                    }
-
-                    $this->input[$key] = $this->cleanKeys($input[$key]);
-                }
-            }
+            $this->input[$key] = (isset($input[$key])) ? $input[$key] : [];
         }
 
-        // setup the request type based on a few things
-        $isAjax = (strtolower($this->server('http_x_requested_with', '')) == 'xmlhttprequest');
-        $isJson = (strpos(strtolower($this->server('http_accept', '')), 'application/json') !== false);
+        $this->lowercaseServer = array_change_key_case($this->input['server'], CASE_LOWER);
 
-        // 2 different checks
-        $isCli1 = (!empty($input['PHP_SAPI']) && $input['PHP_SAPI'] === 'CLI');
-        $isCli2 = (!empty($input['STDIN']) && $input['STDIN'] === true);
+        // default
+        $this->requestType = 'html';
+        $this->requestMethod = $this->getMethod();
 
-        if ($isAjax || $isJson) {
+        if (($this->getServer('http_x_requested_with') == 'xmlhttprequest') || (strpos($this->getServer('http_accept'), 'application/json') !== false)) {
             $this->requestType = 'ajax';
-            $this->requestMethod = $this->server('request_method', '');
-        } elseif ($isCli1 || $isCli2) {
+        } elseif ((!empty($input['PHP_SAPI']) && $input['PHP_SAPI'] === 'CLI') || (!empty($input['STDIN']) && $input['STDIN'] === true)) {
             $this->requestType = 'cli';
             $this->requestMethod = 'cli';
-        } else {
-            $this->requestType = 'html';
-            $this->requestMethod = $this->server('request_method', '');
         }
 
         // is this https
-        if ($this->server('https', 'off') !== 'off') {
-            $this->isHttps = true;
-        } elseif ($this->server('http_x_forwarded_proto', '') === 'https') {
-            $this->isHttps = true;
-        } elseif ($this->server('http_front_end_https', 'off') !== 'off') {
-            $this->isHttps = true;
-        } else {
-            $this->isHttps = false;
-        }
+        $this->isHttps = $this->getHttp();
 
         return $this;
     }
 
     /* protected */
-
-    protected function extract(string $type, ?string $name = null, $default = null)
+    protected function getMethod(): string
     {
-        if ($name === null) {
-            $value = $this->input[$type];
-        } elseif (isset($this->input[$type][$this->cleanKey($name)])) {
-            $value = $this->input[$type][$this->cleanKey($name)];
-        } else {
-            $value = $default;
+        $method = $this->getServer('request_method');
+
+        if ($this->getServer('http_x_http_method_override') !== '') {
+            $method = $this->getServer('http_x_http_method_override');
+        } elseif ($this->get('_method') !== null) {
+            $method = $this->get('_method');
+        } elseif ($this->body('_method') !== null) {
+            $method = $this->body('_method');
         }
 
-        return $value;
+        return strtolower($method);
     }
 
-    protected function cleanKeys(array $inputArray): array
+    protected function getHttp(): bool
     {
-        $outputArray = [];
+        $isHttps = false;
 
-        foreach ($inputArray as $arrayKey => $arrayValue) {
-            $outputArray[$this->cleanKey($arrayKey)] = $arrayValue;
+        if ($this->getServer('https') !== '') {
+            $isHttps = true;
+        } elseif ($this->getServer('http_x_forwarded_proto') === 'https') {
+            $isHttps = true;
+        } elseif ($this->getServer('http_front_end_https') !== '') {
+            $isHttps = true;
         }
 
-        return $outputArray;
+        return $isHttps;
     }
 
-    protected function cleanKey(string $key): string
+    protected function getServer(string $name): string
     {
-        $case = ($this->config['convert keys to']) ?? 'lowercase';
+        $name = strtolower($name);
 
-        switch (strtolower($case)) {
-            case 'lowercase':
-                $key = strtolower($key);
-                break;
-            case 'uppercase':
-                $key = strtoupper($key);
-                break;
-        }
-
-        // do we have a filter for the input keys?
-        // @[^a-z0-9 \[\]\-_]+@
-        // a-z A-Z 0-9 [ ] - _ (space)
-        $re = $this->config['re key filter'] ?? '';
-
-        return empty($re) ? $key :  preg_replace($re, '', $key);
+        return (isset($this->lowercaseServer[$name])) ? strtolower($this->lowercaseServer[$name]) : '';
     }
 }
