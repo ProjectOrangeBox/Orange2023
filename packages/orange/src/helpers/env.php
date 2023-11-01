@@ -5,11 +5,12 @@ declare(strict_types=1);
 use dmyers\orange\exceptions\FileNotFound;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 
-/**
+/*
  * merge a file based .env file with the system based $_ENV
  *
  * This is stored in appEnv() for easy mocking
  */
+
 if (!function_exists('mergeEnv')) {
     function mergeEnv(string $absEnvFilePath): void
     {
@@ -28,7 +29,7 @@ if (!function_exists('mergeEnv')) {
     }
 }
 
-/**
+/*
  * fetchAppEnv with required default
  * use this function instead of plain old $_ENV
  * this allows easier mocking
@@ -61,7 +62,7 @@ if (!function_exists('fetchAppEnv')) {
     }
 }
 
-/**
+/*
  * mockable unified env storage
  */
 if (!function_exists('appEnv')) {

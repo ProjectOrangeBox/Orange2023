@@ -85,7 +85,7 @@ class Input implements InputInterface
 
     /**
      * passing true for name will return the raw body
-     * if not it will try to detect the type of payload 
+     * if not it will try to detect the type of payload
      * and return a matching key name
      * or complete payload
      */

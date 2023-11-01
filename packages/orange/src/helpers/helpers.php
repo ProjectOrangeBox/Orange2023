@@ -5,11 +5,12 @@ declare(strict_types=1);
 use dmyers\orange\exceptions\ConfigFileNotFound;
 use dmyers\orange\exceptions\InvalidConfigurationValue;
 
-/**
+/*
  * This is used to merge a config file which returns an array with a variable which contains an array
  */
+
 if (!function_exists('mergeDefaultConfig')) {
-    /**
+    /*
      * Used to load default config
      *
      * $this->config = mergeDefaultConfig($config,__DIR__.'/config/myClassLocalDefaultfConfig.php');
@@ -31,7 +32,7 @@ if (!function_exists('mergeDefaultConfig')) {
     }
 }
 
-/**
+/*
  * Great for local cache files because the file is written atomically
  * that way another thread doesn't read a 1/2 written file
  */
@@ -52,7 +53,7 @@ if (!function_exists('file_put_contents_atomic')) {
             return false;
         }
 
-        /* flush from the cache */
+        // flush from the cache
         if (function_exists('opcache_invalidate')) {
             opcache_invalidate($filePath, true);
         } elseif (function_exists('apc_delete_file')) {
@@ -63,7 +64,7 @@ if (!function_exists('file_put_contents_atomic')) {
     }
 }
 
-/**
+/*
  * add the "missing" concat function
  */
 if (!function_exists('concat')) {
@@ -73,6 +74,9 @@ if (!function_exists('concat')) {
     }
 }
 
+/*
+ * build a standard html element
+ */
 if (!function_exists('element')) {
     function element(string $tag, array $attr = [], string $content = '', bool $escape = true)
     {
@@ -92,6 +96,9 @@ if (!function_exists('element')) {
     }
 }
 
+/*
+ * wrap and array for output
+ */
 if (!function_exists('wrapArray')) {
     function wrapArray(array $array, string $prefix = '', string $suffix = '', string $separator = ''): string
     {
@@ -105,6 +112,11 @@ if (!function_exists('wrapArray')) {
     }
 }
 
+/*
+ * make a datauri
+ *
+ * <img src="***">
+ */
 if (!function_exists('dataUri')) {
     function dataUri($file)
     {

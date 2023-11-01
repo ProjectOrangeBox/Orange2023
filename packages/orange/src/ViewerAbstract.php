@@ -11,7 +11,6 @@ use dmyers\orange\exceptions\FileNotWritable;
 use dmyers\orange\interfaces\ViewerInterface;
 use dmyers\orange\exceptions\FolderNotWritable;
 use dmyers\orange\exceptions\InvalidValue;
-use peels\validate\exceptions\InvalidValue as ExceptionsInvalidValue;
 
 /**
  * This should be extended by viewer classes
@@ -49,6 +48,8 @@ abstract class ViewerAbstract implements ViewerInterface
 
     public function __construct(array $config, ?DataInterface $data = null)
     {
+        $userViewPaths = $config['view paths'] ?? null;
+
         $this->config = mergeDefaultConfig($config, __DIR__ . '/config/view.php');
 
         $this->data = $data;
@@ -67,6 +68,10 @@ abstract class ViewerAbstract implements ViewerInterface
 
             $this->l_delim = $this->delimiters[0];
             $this->r_delim = $this->delimiters[1];
+        }
+
+        if (is_array($userViewPaths)) {
+            $this->addPaths($userViewPaths);
         }
 
         if (isset($this->config['view paths'])) {

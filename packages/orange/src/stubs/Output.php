@@ -25,7 +25,7 @@ class Output extends OrangeOutput implements OutputInterface
 
     public function sendResponseCode(): self
     {
-        // 
+        //
         $this->http_response_code = $this->statusCode;
         //http_response_code($this->statusCode);
 

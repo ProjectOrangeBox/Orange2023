@@ -2,21 +2,22 @@
 
 declare(strict_types=1);
 
+/* throw a 404 or 500 error - low level */
 if (!function_exists('throw404')) {
     function throw404(string $msg = ''): void
     {
-        _lowleveldeath($msg, 404);
+        _lowleveldeath(404, $msg);
     }
 }
 
 if (!function_exists('throw500')) {
     function throw500(string $msg = ''): void
     {
-        _lowleveldeath($msg, 500);
+        _lowleveldeath(500, $msg);
     }
 }
 
-/**
+/*
  * default exception handler
  *
  * override as needed
@@ -24,21 +25,13 @@ if (!function_exists('throw500')) {
 if (!function_exists('orangeExceptionHandler')) {
     function orangeExceptionHandler(Throwable $exception): void
     {
-        $args = [
-            'message ' . $exception->getMessage(),
-            'code ' . $exception->getCode(),
-            'line ' . $exception->getLine(),
-            'file ' . $exception->getFile(),
-            'class ' . get_class($exception),
-        ];
-
-        _lowleveldeath(implode(' ', $args), 500, $exception->getTrace());
+        _lowleveldeath(500, 'Exception', ['message' => $exception->getMessage(), 'code' => $exception->getCode(), 'line' => $exception->getLine(), 'file' => $exception->getFile(), 'class' => get_class($exception), 'trace' => $exception->getTrace()]);
     }
 
     set_exception_handler('orangeExceptionHandler');
 }
 
-/**
+/*
  * default error handler
  *
  * override as needed
@@ -52,7 +45,7 @@ if (!function_exists('orangeErrorHandler')) {
             return false;
         }
 
-        _lowleveldeath('', 500, ['severity' => $severity, 'message' => $message, 'filepath' => $filepath, 'line' => $line]);
+        _lowleveldeath(500, 'Error', ['severity' => $severity, 'message' => $message, 'filepath' => $filepath, 'line' => $line]);
     }
 
     set_error_handler('orangeErrorHandler');
@@ -60,42 +53,59 @@ if (!function_exists('orangeErrorHandler')) {
 
 
 
-/**
+/*
  * low level death
- * handles throwing a error before error service might be setup
+ * 
+ * override for testing since this uses a lot of unmockable:
+ * php_sapi_name(), $_SERVER, uses http_response_code()
  */
 if (!function_exists('_lowleveldeath')) {
-    function _lowleveldeath(string $text = '', int $errorCode = 500, array $options = []): void
+    function _lowleveldeath(int $errorCode = 500, string $text = '', array $options = []): void
     {
         $write = '';
+        $folder = '';
 
+        // this is pretty low level so we just make the "default" output here to 
         if (fetchAppEnv('ENVIRONMENT', 'production') != 'production') {
             if (php_sapi_name() === 'cli') {
                 // CLI
+                $folder = 'cli/';
                 $write .= $errorCode . PHP_EOL;
                 $write .= (!empty($text)) ? $text . PHP_EOL : '';
-                $write .= (!empty($options)) ? print_r($options, true) . PHP_EOL : '';
+                $write .= (!empty($options)) ? var_export($options, true) . PHP_EOL : '';
             } elseif (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
                 // ajax / json
-                $write .= json_encode(['text' => $text, 'errorCode' => $errorCode, 'options' => $options], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+                $folder = 'ajax/';
+                $write .= json_encode(['text' => $text, 'errorCode' => $errorCode, 'options' => $options], JSON_PRETTY_PRINT);
             } else {
                 // HTML
-                $write .= (!empty($text)) ? '<h1>' . $text . '</h1>' : '';
-                $write .= '<h3>' . $errorCode . '</h3>';
-                $write .= (!empty($options)) ? '<pre>' . print_r($options, true) . '</pre>' : '';
+                $folder = 'html/';
+                $write .= '<h1>' . $errorCode . '</h1>';
+                $write .= (!empty($text)) ? '<h3>' . $text . '</h3>' : '';
+                $write .= (!empty($options)) ? '<pre>' . var_export($options, true) . '</pre>' : '';
             }
         } else {
-            $write .= $errorCode . ' Fatal Error';
+            $write .= 'Fatal Error: ' . $errorCode . ' ' . $text;
+            
+            // clear the options if it's a production env
+            $options = [];
         }
 
         try {
-            // if output isn't defined an exception will be thrown and
-            // it will be captured by the lowest of low levels below
-            container()->output->flushAll()->status($errorCode)->write($write)->send();
-        } catch (Throwable $t) {
-            http_response_code($errorCode);
-            echo $write;
+            // let's try to use a view if we can find it
+            if (container()->view->findView('errors/' . $folder . $errorCode)) {
+                // use the template output
+                $write = container()->view->render('errors/' . $folder . $errorCode, ['text' => $text, 'errorCode' => $errorCode, 'options' => $options]);
+            }
+        } catch (Throwable $throwable) {
+            // do nothing special it will just fall back to the original $write output
         }
+
+        // lowest level output
+        if ($folder != 'cli/') {
+            http_response_code($errorCode);
+        }
+        echo $write;
 
         // fail safe
         exit(1);

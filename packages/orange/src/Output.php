@@ -54,7 +54,7 @@ class Output implements OutputInterface
     }
 
     public static function getInstance(array $config): self
-    {        
+    {
         if (!isset(self::$instance)) {
             self::$instance = new (get_called_class())($config);
         }
