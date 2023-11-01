@@ -54,7 +54,7 @@ class MainController extends BaseController
 
     protected function process(string $method, string $pass, string $fail = '406')
     {
-        if (!$this->model->parent->$method($this->input->body())) {
+        if (!$this->model->parent->$method($this->request->body())) {
             container()->quickView->show($fail, ['json' => ['size' => 'large', 'title' => 'Your Form Has The Following Errors', 'message' => wrapArray($this->model->parent->errors(), '', '</br>')]]);
         } else {
             container()->quickView->show($pass);

@@ -31,19 +31,17 @@ abstract class BaseController
     // attach models here
     protected stdClass $model;
 
-    protected string $childDir = '';
-
     // auto injection based on variable name is service name
-    public function __construct(public OutputInterface $output, public InputInterface $input, public ConfigInterface $config, public  ViewerInterface $view, public DataInterface $data)
+    public function __construct(public OutputInterface $response, public InputInterface $request, public ConfigInterface $config, public  ViewerInterface $view, public DataInterface $data)
     {
         // ** PHP 8: Constructor property promotion output, input, config, view, data
 
         $reflector = new \ReflectionClass(get_class($this));
-        $this->childDir = dirname(dirname($reflector->getFileName()));
+        define('__CHILDDIR__', dirname(dirname($reflector->getFileName())));
 
         // change content type if provided
         if (!empty($this->contentType)) {
-            $this->output->contentType($this->contentType);
+            $this->response->contentType($this->contentType);
         }
 
         // preload some models for this controller and attach to model local property
@@ -55,7 +53,7 @@ abstract class BaseController
         }
 
         foreach ($this->libraries as $filename) {
-            $libraryFilePath = $this->childDir . '/libraries/' . $filename . '.php';
+            $libraryFilePath = __CHILDDIR__ . '/libraries/' . $filename . '.php';
 
             if (!file_exists($libraryFilePath)) {
                 throw new FileNotFound($libraryFilePath);
@@ -70,7 +68,7 @@ abstract class BaseController
         }
 
         // add this base controllers local views path
-        $this->view->addPath($this->childDir . '/views');
+        $this->view->addPath(__CHILDDIR__ . '/views');
 
         // add the child files view path
         $this->view->addPath(__DIR__ . '/../views');

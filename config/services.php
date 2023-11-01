@@ -48,12 +48,14 @@ return [
     'events' => function (ContainerInterface $container): EventInterface {
         return Event::getInstance($container->config->events);
     },
+    '@request'=>'input', // alias of input
     'input' => function (ContainerInterface $container): InputInterface {
         return Input::getInstance($container->config->input);
     },
     'config' => function (ContainerInterface $container): ConfigInterface {
         return Config::getInstance($container->{'$config'});
     },
+    '@response'=>'output', // alias of output
     'output' => function (ContainerInterface $container): OutputInterface {
         return Output::getInstance($container->config->output);
     },
