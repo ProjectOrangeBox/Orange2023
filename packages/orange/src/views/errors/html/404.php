@@ -25,6 +25,12 @@
         vertical-align: middle;
     }
 
+    pre {
+        text-align: left;
+        width: 50%;
+        margin: 0 auto;
+    }
+
     .fof h1 {
         font-size: 50px;
         display: inline-block;

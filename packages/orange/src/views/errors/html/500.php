@@ -32,6 +32,12 @@
         animation: type .5s alternate infinite;
     }
 
+    pre {
+        text-align: left;
+        width: 50%;
+        margin: 0 auto;
+    }
+
     @keyframes type {
         from {
             box-shadow: inset -3px 0px 0px #888;
@@ -46,6 +52,6 @@
     <div class="fof">
         <h1>Error <?= $errorCode ?></h1>
         <h3><?= $text ?></h3>
-        <pre><?= (!empty($options)) ? var_export($options,true) : '' ?></pre>
+        <pre><?= (!empty($options)) ? var_export($options, true) : '' ?></pre>
     </div>
 </div>

@@ -8,12 +8,12 @@ use application\shared\controllers\BaseController;
 
 class MainController extends BaseController
 {
-    protected array $models = ['parent' => 'model.parent'];
+    protected array $models = ['people' => 'model.people'];
 
     // GUI - Gets
     public function index()
     {
-        $this->data['parents'] = $this->model->parent->getAll();
+        $this->data['people'] = $this->model->people->getAll();
 
         return $this->view->render('people/list');
     }
@@ -25,14 +25,14 @@ class MainController extends BaseController
 
     public function updateForm(string $recordId)
     {
-        $this->data['record'] = $this->model->parent->getById($recordId);
+        $this->data['record'] = $this->model->people->getById($recordId);
 
         return $this->view->render('people/edit');
     }
 
     public function deleteForm(string $recordId)
     {
-        $this->data['record'] = $this->model->parent->getById($recordId);
+        $this->data['record'] = $this->model->people->getById($recordId);
 
         return $this->view->render('people/delete');
     }
@@ -54,8 +54,8 @@ class MainController extends BaseController
 
     protected function process(string $method, string $pass, string $fail = '406')
     {
-        if (!$this->model->parent->$method($this->request->body())) {
-            container()->quickView->show($fail, ['json' => ['size' => 'large', 'title' => 'Your Form Has The Following Errors', 'message' => wrapArray($this->model->parent->errors(), '', '</br>')]]);
+        if (!$this->model->people->$method($this->request->body())) {
+            container()->quickView->show($fail, ['json' => ['size' => 'large', 'title' => 'Your Form Has The Following Errors', 'message' => wrapArray($this->model->people->errors(), '', '</br>')]]);
         } else {
             container()->quickView->show($pass);
         }

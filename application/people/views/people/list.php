@@ -15,7 +15,7 @@
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($parents as $row) { ?>
+            <?php foreach ($people as $row) { ?>
                 <tr>
                     <th scope="row"><?= $row['id'] ?></th>
                     <td><?= $row['firstname'] ?></td>
@@ -32,7 +32,7 @@
 </div>
 <!-- Modal -->
 <div class="modal fade" id="formModal" role="dialog">
-    <div class="modal-dialog modal-dialog-scrollable modal-xl">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-body"></div>
         </div>

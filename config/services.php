@@ -14,9 +14,10 @@ use peels\console\Console;
 use peels\session\Session;
 use peels\validate\Validate;
 use dmyers\orange\Dispatcher;
+use peels\quickview\QuickView;
 use peels\console\ConsoleInterface;
 use peels\session\SessionInterface;
-use application\people\models\parentModel;
+use application\people\models\peopleModel;
 use dmyers\orange\interfaces\LogInterface;
 use dmyers\orange\interfaces\EventInterface;
 use dmyers\orange\interfaces\InputInterface;
@@ -27,7 +28,6 @@ use dmyers\orange\interfaces\ViewerInterface;
 use dmyers\orange\interfaces\ContainerInterface;
 use peels\validate\interfaces\ValidateInterface;
 use dmyers\orange\interfaces\DispatcherInterface;
-use peels\quickview\QuickView;
 
 /**
  * By placing the services inside a closure they are not created UNTIL they are called
@@ -107,11 +107,8 @@ return [
 
     // sample model
 
-    'model.parent' => function (ContainerInterface $container) {
-        return parentModel::getInstance([], $container->pdo);
-    },
-    'model.childern' => function (ContainerInterface $container) {
-        return parentModel::getInstance([], $container->pdo);
+    'model.people' => function (ContainerInterface $container) {
+        return peopleModel::getInstance([], $container->pdo);
     },
 
     /* end merged contents */

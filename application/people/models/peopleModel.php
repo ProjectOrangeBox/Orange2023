@@ -8,7 +8,7 @@ use PDO;
 use peels\model\ModelAbstract;
 use peels\validate\interfaces\ValidateInterface;
 
-class parentModel extends ModelAbstract
+class peopleModel extends ModelAbstract
 {
     protected string $tablename = 'parent';
     protected string $primaryColumn = 'id';
