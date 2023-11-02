@@ -45,7 +45,7 @@ if (!function_exists('orangeErrorHandler')) {
             return false;
         }
 
-        _lowleveldeath(500, 'Error', ['severity' => $severity, 'message' => $message, 'filepath' => $filepath, 'line' => $line]);
+        _lowleveldeath(500, 'Error', compact('severity', 'message', 'filepath', 'line'));
     }
 
     set_error_handler('orangeErrorHandler');
@@ -76,7 +76,7 @@ if (!function_exists('_lowleveldeath')) {
             } elseif (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
                 // ajax / json
                 $folder = 'ajax/';
-                $write .= json_encode(['text' => $text, 'errorCode' => $errorCode, 'options' => $options], JSON_PRETTY_PRINT);
+                $write .= json_encode(compact('text', 'errorCode', 'options'), JSON_PRETTY_PRINT);
             } else {
                 // HTML
                 $folder = 'html/';
@@ -86,7 +86,7 @@ if (!function_exists('_lowleveldeath')) {
             }
         } else {
             $write .= 'Fatal Error: ' . $errorCode . ' ' . $text;
-            
+
             // clear the options if it's a production env
             $options = [];
         }
@@ -95,7 +95,7 @@ if (!function_exists('_lowleveldeath')) {
             // let's try to use a view if we can find it
             if (container()->view->findView('errors/' . $folder . $errorCode)) {
                 // use the template output
-                $write = container()->view->render('errors/' . $folder . $errorCode, ['text' => $text, 'errorCode' => $errorCode, 'options' => $options]);
+                $write = container()->view->render('errors/' . $folder . $errorCode, compact('errorCode', 'text', 'options'));
             }
         } catch (Throwable $throwable) {
             // do nothing special it will just fall back to the original $write output
