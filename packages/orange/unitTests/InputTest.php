@@ -117,7 +117,7 @@ final class InputTest extends unitTestHelper
 
     public function testFiles(): void
     {
-        $this->assertEquals([], $this->instance->file());
+        $this->assertEquals([], $this->instance->files());
     }
 
     public function testCookie(): void
@@ -148,6 +148,8 @@ final class InputTest extends unitTestHelper
                 'name' => 'Johnny Appleseed',
                 'age' => 28,
             ],
+            'post' => [],
+            'request' => [],
         ], $this->instance->copy());
     }
 
@@ -159,6 +161,8 @@ final class InputTest extends unitTestHelper
             'files' => [],
             'server' => [],
             'cookie' => [],
+            'post' => [],
+            'request' => [],
         ];
 
         $this->instance->replace($replace);

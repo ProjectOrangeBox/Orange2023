@@ -12,20 +12,20 @@ use dmyers\orange\exceptions\InvalidConfigurationValue;
  */
 
 if (!function_exists('mergeEnv')) {
-    function mergeEnv(string $absEnvFilePath): void
+    function mergeEnv(string $absEnvFilePath, array $env = []): void
     {
         if (!file_exists($absEnvFilePath)) {
             throw new FileNotFound('.env file missing at "' . $absEnvFilePath . '".');
         }
 
-        $env = parse_ini_file($absEnvFilePath, true, INI_SCANNER_TYPED);
+        $fileEnv = parse_ini_file($absEnvFilePath, true, INI_SCANNER_TYPED);
 
-        if (!is_array($env)) {
+        if (!is_array($fileEnv)) {
             throw new FileNotFound('ini file error "' . $absEnvFilePath . '" did not return an array.');
         }
 
         // insert into appEnv
-        appEnv(array_replace_recursive(appEnv(), $env));
+        appEnv(array_replace_recursive($env, $fileEnv));
     }
 }
 
@@ -68,14 +68,12 @@ if (!function_exists('fetchAppEnv')) {
 if (!function_exists('appEnv')) {
     function appEnv(array $replace = null): array
     {
-        static $env = null;
-
-        if ($replace !== null) {
+        static $env = [];
+    
+        if (is_array($replace)) {
             $env = $replace;
-        } elseif ($env === null) {
-            $env = $_ENV;
         }
-
+        
         return $env;
     }
 }

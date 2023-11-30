@@ -11,16 +11,23 @@ define('__WWW__', realpath(__DIR__));
 // change default directory to the ROOT folder when this file runs
 chdir(__ROOT__);
 
+// Set timezone to default, falls back to system if php.ini not set
+date_default_timezone_set(@date_default_timezone_get());
+
+// Set internal encoding.
+@ini_set('default_charset', 'UTF-8');
+mb_internal_encoding('UTF-8');
+
 // standard composer auto loader
 require_once __ROOT__ . '/vendor/autoload.php';
 
 // merge the file system .env with the system level $_ENV
 // you than must use fetchAppEnv() to retrieve values
-mergeEnv(__ROOT__.'/.env');
+mergeEnv(__ROOT__ . '/.env', $_ENV);
 
 // user added
-if (file_exists(__ROOT__.'/bootstrap.php')) {
-    require_once __ROOT__.'/bootstrap.php';
+if (file_exists(__ROOT__ . '/bootstrap.php')) {
+    require_once __ROOT__ . '/bootstrap.php';
 }
 
 /* send config into application and away we go! */

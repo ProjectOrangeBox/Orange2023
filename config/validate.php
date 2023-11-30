@@ -11,7 +11,6 @@ return [
         'hasCanUpdate' => \application\people\libraries\restRules::class . '::hasCanUpdate',
         'hasCanDelete' => \application\people\libraries\restRules::class . '::hasCanDelete',
 
-
         /* end merged contents */
     ],
 ];

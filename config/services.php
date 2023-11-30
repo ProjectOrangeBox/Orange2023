@@ -12,12 +12,13 @@ use dmyers\orange\Output;
 use dmyers\orange\Router;
 use peels\console\Console;
 use peels\session\Session;
+use peels\cache\FilesCache;
 use peels\validate\Validate;
 use dmyers\orange\Dispatcher;
 use peels\quickview\QuickView;
+use peels\cache\CacheInterface;
 use peels\console\ConsoleInterface;
 use peels\session\SessionInterface;
-use application\people\models\peopleModel;
 use dmyers\orange\interfaces\LogInterface;
 use dmyers\orange\interfaces\EventInterface;
 use dmyers\orange\interfaces\InputInterface;
@@ -48,14 +49,14 @@ return [
     'events' => function (ContainerInterface $container): EventInterface {
         return Event::getInstance($container->config->events);
     },
-    '@request'=>'input', // alias of input
+    '@request' => 'input', // alias of input
     'input' => function (ContainerInterface $container): InputInterface {
         return Input::getInstance($container->config->input);
     },
     'config' => function (ContainerInterface $container): ConfigInterface {
         return Config::getInstance($container->{'$config'});
     },
-    '@response'=>'output', // alias of output
+    '@response' => 'output', // alias of output
     'output' => function (ContainerInterface $container): OutputInterface {
         return Output::getInstance($container->config->output);
     },
@@ -103,12 +104,16 @@ return [
         return QuickView::getInstance($container->config->quickview, $container->output);
     },
 
+    'cache' => function (ContainerInterface $container): CacheInterface {
+        return FilesCache::getInstance($container->config->cache);
+    },
+
     /* merged content below */
-
-    // sample model
-
+    'model.food' => function (ContainerInterface $container) {
+        return \application\food\models\foodModel::getInstance([], $container->pdo);
+    },
     'model.people' => function (ContainerInterface $container) {
-        return peopleModel::getInstance([], $container->pdo);
+        return \application\people\models\peopleModel::getInstance([], $container->pdo);
     },
 
     /* end merged contents */

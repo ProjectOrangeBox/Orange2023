@@ -27,8 +27,8 @@ class mockRouter implements RouterInterface
 
         return ($key) ? $this->matched[strtolower($key)] : $this->matched;
     }
-
-    public function getUrl(string $searchName, array $arguments = [], bool $appendSiteUrl = true): string
+    
+    public function getUrl(string $searchName, array $arguments = [], bool $appendSiteUrl = true, bool $overrideRegex = false): string
     {
         return '';
     }

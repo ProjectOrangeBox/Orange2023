@@ -115,7 +115,10 @@ class Router implements RouterInterface
         return ($key) ? $this->matched[strtolower($key)] : $this->matched;
     }
 
-    public function getUrl(string $searchName, array $arguments = [], bool $appendSiteUrl = true): string
+    /*
+     * convert route name to a path
+     */
+    public function getUrl(string $searchName, array $arguments = [], bool $appendSiteUrl = true, bool $overrideRegex = false): string
     {
         $matchedUrl = '';
         $searchName = $this->normalizeName($searchName);
@@ -140,8 +143,10 @@ class Router implements RouterInterface
                             foreach ($matches as $index => $match) {
                                 $value = (string)$arguments[$index];
 
-                                if (!preg_match('@' . $match[0] . '@m', $value)) {
-                                    throw new InvalidValue('Parameter mismatch. Expecting ' . $match[1] . ' got ' . $value . ' route named "' . $searchName . '".');
+                                if ($overrideRegex === false) {
+                                    if (!preg_match('@' . $match[0] . '@m', $value)) {
+                                        throw new InvalidValue('Parameter mismatch. Expecting ' . $match[1] . ' got ' . $value . ' route named "' . $searchName . '".');
+                                    }
                                 }
 
                                 $matchedUrl = preg_replace('/' . preg_quote($match[0], '/') . '/', $value, $matchedUrl, 1);

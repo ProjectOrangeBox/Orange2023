@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 // read $_ENV using fetchAppEnv();
 return [
-    // post, put, delete
     'body' => file_get_contents('php://input'),
-    'get' => $_GET,
 
-    // fixed keys
+    'get' => $_GET,
     'server' => $_SERVER,
     'files' => $_FILES,
     'cookie' => $_COOKIE,
+    'post' => $_POST,
+    'request' => $_REQUEST,
 
-    'valid input keys' => ['body',  'get', 'server', 'files', 'cookie'],
+    'get search keys' => ['body', 'get', 'server', 'files', 'cookie', 'post', 'request'],
 
     // for cli detection override config if needed
-    'PHP_SAPI' => strtoupper(PHP_SAPI),
-    'STDIN' => defined('STDIN'),
+    'PHP_SAPI' => PHP_SAPI, // string
+    'STDIN' => defined('STDIN'), // boolean
 ];

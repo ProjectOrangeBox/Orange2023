@@ -8,11 +8,12 @@
         "psr-4": {
             "application\\welcome\\": "application/welcome",
             "application\\people\\": "application/people",
+            "application\\food\\": "application/food",
             "application\\rest\\": "application/rest",
             "application\\shared\\": "application/shared",
 
             "dmyers\\orange\\": "packages/orange/src",
-            
+
             "peels\\cache\\": "packages/peels/cache/src",
             "peels\\console\\": "packages/peels/console/src",
             "peels\\session\\": "packages/peels/session/src",
@@ -20,13 +21,13 @@
             "peels\\flashmsg\\": "packages/peels/flashmsg/src",
             "peels\\slash\\": "packages/peels/slash/src",
             "peels\\validate\\": "packages/peels/validate/src",
-            "peels\\console\\": "packages/peels/console/src",
             "peels\\quickview\\": "packages/peels/quickView/src",
             "peels\\model\\": "packages/peels/model/src",
             "peels\\mergeview\\": "packages/peels/mergeview/src"
         },
         "files": [
-            "packages/orange/src/Orange.php"
+            "packages/orange/src/Orange.php",
+            "packages/peels/cache/src/CacheHelper.php"
         ]
     },
     "require-dev": {

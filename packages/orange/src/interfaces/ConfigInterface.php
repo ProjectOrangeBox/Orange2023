@@ -12,9 +12,6 @@ interface ConfigInterface
     public function __get(string $filename): array;
     public function __set(string $filename, array $array): void;
 
-    public function get(string $filename, string $key = '__#NOVALUE#__', mixed $default = null): mixed;
-    public function set(string $filename, mixed $key = '__#NOVALUE#__', mixed $value = '__#NOVALUE#__'): void;
-
-    // inject entire storage array (good if using a caching system)
-    public function setStorage(array $storage): self;
+    public function get(string $filename, string $key = null, mixed $default = null): mixed;
+    public function set(string $filename, mixed $key = null, mixed $value = '__#NOVALUE#__'): void;
 }

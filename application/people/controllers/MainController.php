@@ -13,7 +13,7 @@ class MainController extends BaseController
     // GUI - Gets
     public function index()
     {
-        $this->data['people'] = $this->model->people->getAll();
+        $this->data['people'] = cacheGetOr('people_list', $this->model->people, 'getAll', [], 1000);
 
         return $this->view->render('people/list');
     }
@@ -57,6 +57,8 @@ class MainController extends BaseController
         if (!$this->model->people->$method($this->request->body())) {
             container()->quickView->show($fail, ['json' => ['size' => 'large', 'title' => 'Your Form Has The Following Errors', 'message' => wrapArray($this->model->people->errors(), '', '</br>')]]);
         } else {
+            cacheDelete('people_list');
+
             container()->quickView->show($pass);
         }
     }

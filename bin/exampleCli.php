@@ -8,7 +8,7 @@ chdir(__ROOT__);
 
 require_once __ROOT__ . '/vendor/autoload.php';
 
-mergeEnv(__ROOT__ . '/.env');
+mergeEnv(__ROOT__ . '/.env', $_ENV);
 
 /* send config into application */
 $container = cli(include __ROOT__ . '/config/config.php');
@@ -48,11 +48,11 @@ $arg1 = $console->getArgument(1);
 $console->echo('Arg 1 <bold>' . $arg1);
 
 $table = [
-    ['Colors','Names','Age'],
-    ['Red','Johnny Apple',23],
-    ['Purple','Jenny Smith',23],
-    ['Yellow','Jake Louder',23],
-    ['Yellow','Jack Black',857],
+    ['Colors', 'Names', 'Age'],
+    ['Red', 'Johnny Apple', 23],
+    ['Purple', 'Jenny Smith', 23],
+    ['Yellow', 'Jake Louder', 23],
+    ['Yellow', 'Jack Black', 857],
 ];
 
 $console->table($table);
@@ -61,8 +61,8 @@ $name = $console->getLine('What is your name?');
 
 $console->echo('<bright blue>Hello <magenta>' . $name);
 
-$console->list([1=>'red',2=>'blue',3=>'green']);
+$console->list([1 => 'red', 2 => 'blue', 3 => 'green']);
 
-$selection = $console->getOneOf(null, [1,2,3]);
+$selection = $console->getOneOf(null, [1, 2, 3]);
 
 $console->primary('You selected <magenta>' . $selection);

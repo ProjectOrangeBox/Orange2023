@@ -6,23 +6,31 @@ namespace dmyers\orange;
 
 use dmyers\orange\exceptions\InvalidValue;
 use dmyers\orange\interfaces\InputInterface;
+use dmyers\orange\exceptions\InvalidConfigurationValue;
 
 class Input implements InputInterface
 {
     private static InputInterface $instance;
+
+    protected array $config = [];
+
     protected array $input = [];
+    protected array $raw = [];
+
     protected string $requestType = '';
     protected string $requestMethod = '';
     protected bool $isHttps = false;
-    protected string $ipAddress = '';
-    protected array $config = [];
-    protected array $lowercaseServer = [];
+    protected bool $tempDefaultSet = false;
+    protected $tempDefault;
+
+    protected string $php_sapi;
+    protected bool $stdin;
 
     public function __construct(array $config)
     {
         $this->config = mergeDefaultConfig($config, __DIR__ . '/config/input.php', false);
 
-        $this->replace($this->config);
+        $this->initialize(true);
     }
 
     public static function getInstance(array $config): self
@@ -34,15 +42,82 @@ class Input implements InputInterface
         return self::$instance;
     }
 
-    public function requestUri(): string
+    public function replace(array $input): self
     {
-        $path = $this->getServer('request_uri');
+        foreach ($input as $key => $value) {
+            $key = strtolower($key);
 
-        if ($path !== '') {
-            $path = parse_url($path, PHP_URL_PATH);
+            if (!in_array($key, ['post', 'get', 'files', 'cookie', 'request', 'server', 'body', 'get search keys', 'php_sapi', 'stdin'])) {
+                throw new InvalidValue('You can not replace "' . $key . '".');
+            }
+
+            $this->config[$key] = $value;
         }
 
-        return $path;
+        $this->initialize(false);
+
+        return $this;
+    }
+
+    /**
+     * replace the input
+     */
+    protected function initialize(bool $serverRequired): void
+    {
+        // work on copy
+        $input = array_change_key_case($this->config, CASE_LOWER);
+
+        // server is require on construct but not after that
+        if (!isset($input['server']) && $serverRequired) {
+            throw new InvalidConfigurationValue('server is a required configuration value for input.');
+        }
+
+        // default
+        $this->raw['body'] = '';
+
+        if (isset($input['body'])) {
+            if (!is_string($input['body'])) {
+                throw new InvalidConfigurationValue('body is set but it is not a string.');
+            }
+
+            $this->raw['body'] = $input['body'];
+        }
+
+        // let's try to convert it into an array or json object
+        $this->input['body'] = $this->getBody($this->raw['body']);
+
+        // load up all the other default input variable3s
+        foreach (['post', 'get', 'files', 'cookie', 'request','server'] as $key) {
+            $this->input[$key] = $input[$key] ?? [];
+        }
+
+        // most raw form of Get parameters
+        $this->raw['get'] = $this->getUrl(PHP_URL_QUERY);
+
+        $this->php_sapi = strtolower($input['php_sapi']) ?? ''; // string
+        $this->stdin = $input['stdin'] ?? false; // boolean
+
+        $this->requestType = $this->getRequestType();
+        $this->requestMethod = $this->getMethod();
+        $this->isHttps = $this->getHttp();
+    }
+
+    /**
+     * Get a copy of ONLY the input
+     */
+    public function copy(): array
+    {
+        $input = $this->input;
+
+        // put the raw body back into body as a string
+        $input['body'] = $this->rawBody();
+
+        return $input;
+    }
+
+    public function requestUri(): string
+    {
+        return $this->getUrl(PHP_URL_PATH);
     }
 
     public function uriSegement(int $int): string
@@ -50,6 +125,11 @@ class Input implements InputInterface
         $segs = explode('/', ltrim($this->requestUri(), '/'));
 
         return $segs[$int - 1] ?? '';
+    }
+
+    public function getUrl(int $component = -1): int|string|array|null|false
+    {
+        return parse_url($this->getServer('request_uri', ''), $component);
     }
 
     public function requestMethod(bool $lowercase = true): string
@@ -83,50 +163,14 @@ class Input implements InputInterface
         return $return;
     }
 
-    /**
-     * passing true for name will return the raw body
-     * if not it will try to detect the type of payload
-     * and return a matching key name
-     * or complete payload
+    /*
+     * extract post, get, request or really any other array passed in 
+     * as long at it's in 'valid input keys'
      */
-    public function body($name = null, $default = null): mixed
+    public function extract(string $type, ?string $name = null, mixed $default = null): mixed
     {
-        $return = $default;
+        $type = strtolower($type);
 
-        if ($name === true) {
-            $return = $this->input['body'];
-        } else {
-            $jsonObject = json_decode($this->input['body']);
-
-            if ($jsonObject !== null) {
-                if ($name === null) {
-                    $return = $jsonObject;
-                } elseif (isset($jsonObject->$name)) {
-                    $return = $jsonObject->$name;
-                }
-            } else {
-                parse_str($this->input['body'], $jsonArray);
-
-                if (is_array($jsonArray)) {
-                    if ($name === null) {
-                        $return = $jsonArray;
-                    } elseif (isset($jsonArray[$name])) {
-                        $return = $jsonArray[$name];
-                    }
-                }
-            }
-        }
-
-        return $return;
-    }
-
-    public function get(?string $name = null, $default = null): mixed
-    {
-        return $this->extract('get', $name, $default);
-    }
-
-    public function extract(string $type, ?string $name = null, $default = null)
-    {
         if (!isset($this->input[$type])) {
             throw new InvalidValue($type);
         }
@@ -142,68 +186,92 @@ class Input implements InputInterface
         return $value;
     }
 
-    public function server(string $name = null, $default = null): mixed
+    /**
+     * This will handle any injected array sets
+     * 
+     * GET, POST, REQUEST, SERVER, COOKIE, FILES, BODY
+     * 
+     * It of course needs to be set in 'valid input keys'
+     * in order for replace to attach it to $input
+     * 
+     * $value = $input->get('keyname',true);
+     */
+    public function __call(string $name, array $arguments): mixed
     {
-        return $this->extract('server', $name, $default);
+        $type = strtolower($name);
+        $name = $arguments[0] ?? null;
+        $default = $arguments[1] ?? null;
+
+        return $this->extract($type, $name, $default);
     }
 
-    public function file(string $name = null, $default = null): mixed
+    public function rawGet(): array
     {
-        return $this->extract('files', $name, $default);
+        return $this->raw['get'];
     }
 
-    public function cookie(string $name = null, $default = null): mixed
+    public function rawBody(): string
     {
-        return $this->extract('cookie', $name, $default);
+        return $this->raw['body'];
     }
 
     /**
-     * Get a copy of ONLY the input
+     * $value = $input->keyname;
+     * $value = $input->withDefault(true)->keyname;
      */
-    public function copy(): array
+    public function __get(string $name): mixed
     {
-        return $this->input;
+        $value = ($this->tempDefaultSet) ? $this->tempDefault : $this->default;
+        $this->tempDefaultSet = false;
+
+        $name = strtolower($name);
+
+        foreach ($this->config['get search keys'] as $key) {
+            if (isset($this->input[$key][$name])) {
+                $value = $this->input[$key][$name];
+                break;
+            }
+        }
+
+        return $value;
     }
 
-    /**
-     * replace the input
-     */
-    public function replace(array $input): self
+    public function withDefault($tempDefault): self
     {
-        foreach ($this->config['valid input keys'] as $key) {
-            $this->input[$key] = (isset($input[$key])) ? $input[$key] : [];
-        }
+        $this->tempDefaultSet = true;
 
-        $this->lowercaseServer = array_change_key_case($this->input['server'], CASE_LOWER);
-
-        // default
-        $this->requestType = 'html';
-        $this->requestMethod = $this->getMethod();
-
-        if (($this->getServer('http_x_requested_with') == 'xmlhttprequest') || (strpos($this->getServer('http_accept'), 'application/json') !== false)) {
-            $this->requestType = 'ajax';
-        } elseif ((!empty($input['PHP_SAPI']) && $input['PHP_SAPI'] === 'CLI') || (!empty($input['STDIN']) && $input['STDIN'] === true)) {
-            $this->requestType = 'cli';
-            $this->requestMethod = 'cli';
-        }
-
-        // is this https
-        $this->isHttps = $this->getHttp();
+        $this->tempDefault = $tempDefault;
 
         return $this;
     }
 
     /* protected */
+    protected function getRequestType(): string
+    {
+        $requestType = 'html';
+
+        if (($this->getServer('http_x_requested_with') == 'xmlhttprequest') || (strpos($this->getServer('http_accept'), 'application/json') !== false)) {
+            $requestType = 'ajax';
+        } elseif ($this->php_sapi === 'cli' || $this->stdin === true) {
+            $requestType = 'cli';
+        }
+
+        return $requestType;
+    }
+
     protected function getMethod(): string
     {
-        $method = $this->getServer('request_method');
-
         if ($this->getServer('http_x_http_method_override') !== '') {
             $method = $this->getServer('http_x_http_method_override');
-        } elseif ($this->get('_method') !== null) {
-            $method = $this->get('_method');
-        } elseif ($this->body('_method') !== null) {
-            $method = $this->body('_method');
+        } elseif ($this->extract('get', '_method', '') !== '') {
+            $method = $this->extract('get', '_method');
+        } elseif ($this->extract('body', '_method', '') !== '') {
+            $method = $this->extract('body', '_method');
+        } elseif ($this->getServer('request_method') !== '') {
+            $method = $this->getServer('request_method');
+        } else {
+            // I guess it's a CLI request?
+            $method = 'cli';
         }
 
         return strtolower($method);
@@ -224,10 +292,33 @@ class Input implements InputInterface
         return $isHttps;
     }
 
-    protected function getServer(string $name): string
+    protected function getBody(string $body): array
     {
-        $name = strtolower($name);
+        $array = [];
 
-        return (isset($this->lowercaseServer[$name])) ? strtolower($this->lowercaseServer[$name]) : '';
+        // try to convert to json object if it's JSON
+        $jsonObject = json_decode($body);
+
+        if ($jsonObject !== null) {
+            $array = $jsonObject;
+        } else {
+            // try to parse it like a string
+            // ie default
+            parse_str($body, $jsonArray);
+
+            if (is_array($jsonArray)) {
+                $array = $jsonArray;
+            }
+        }
+
+        return $array;
+    }
+
+    /**
+     * converts the value to lowercase
+     */
+    protected function getServer(string $name, $default = ''): string
+    {
+        return strtolower($this->extract('server', $name, $default));
     }
 }

@@ -35,14 +35,14 @@ if (!function_exists('config')) {
     function config(string $filename, string $key, mixed $default = null): mixed
     {
         // throws error if service missing
-        return container()->get('config')->get($filename, $key, $default);
+        return container()->config->get($filename, $key, $default);
     }
 }
 
 /* wrapper for router get url */
 if (!function_exists('getUrl')) {
-    function getUrl(string $searchName, array $arguments = [], bool $appendSiteUrl = false): string
+    function getUrl(string $searchName, array $arguments = [], bool $appendSiteUrl = false, bool $overrideRegex = false): string
     {
-        return container()->get('router')->getUrl($searchName, $arguments, $appendSiteUrl);
+        return container()->router->getUrl($searchName, $arguments, $appendSiteUrl, $overrideRegex);
     }
 }

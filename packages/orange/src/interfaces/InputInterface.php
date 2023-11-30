@@ -6,6 +6,7 @@ namespace dmyers\orange\interfaces;
 
 interface InputInterface
 {
+    public function getUrl(int $component = -1);
     public function requestUri(): string;
     public function uriSegement(int $int): string;
     public function requestMethod(bool $lowercase = true): string;
@@ -14,15 +15,20 @@ interface InputInterface
     public function isCliRequest(): bool;
     public function isHttpsRequest(bool $asString = false): mixed;
 
-    public function body($name = null, $default = null): mixed;
-    public function get(?string $name = null, $default = null): mixed;
+    // handle get, post, server, files, cookies, request, foo, bar
+    // as long as it matches a config value sent in and is in 'valid input keys'
+    public function __call(string $name, array $arguments): mixed;
+    public function __get(string $name);
+    public function withDefault($tempDefault): self;
+    public function extract(string $type, ?string $name = null, mixed $default = null): mixed;
 
-    public function extract(string $type, ?string $name = null, $default = null);
+    // get the most basic url based or body based input
+    public function rawGet(): array;
+    public function rawBody(): string;
 
-    public function server(string $name = null, $default = null): mixed;
-    public function file(string $name = null, $default = null): mixed;
-    public function cookie(string $name = null, $default = null): mixed;
-
+    // returns ENTIRE input array
     public function copy(): array;
+
+    // replaces input
     public function replace(array $input): self;
 }

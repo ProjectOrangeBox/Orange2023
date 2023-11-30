@@ -16,6 +16,3 @@
     <a  data-type="POST" data-form="#createForm" data-url="<?= getUrl('people-create-post') ?>" class="js-submit btn btn-primary">Submit</a>
   </div>
 </form>
-<script>
-<?php include 'script.js' ?>
-</script>

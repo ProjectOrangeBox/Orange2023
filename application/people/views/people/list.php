@@ -34,30 +34,15 @@
 <div class="modal fade" id="formModal" role="dialog">
     <div class="modal-dialog modal-dialog-scrollable modal-xl modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-body"></div>
+            <div id="modal-body" class="modal-body"></div>
         </div>
     </div>
 </div>
 <?php fig::end() ?>
 
-<?php fig::section('css') ?>
-<?php fig::end(fig::AFTER) ?>
-
-
-<?php fig::section('script') ?>
-// setup the form modal reference
-var formModal = new bootstrap.Modal('#formModal', {});
-
-$('.js-url-modal').on('click', function() {
-    $('.modal-body').load($(this).data('url'), function(responseText, textStatus, jqXHR) {
-        if (textStatus == 'success') {
-            formModal.show();
-        } else {
-            bootbox.alert('Could not load url.');
-        }
-    });
-});
-<?php fig::end(fig::AFTER) ?>
+<?php fig::section('script_src') ?>
+<script src="/js/rest_script.js"></script>
+<?php fig::end() ?>
 
 
 <?php fig::render() ?>

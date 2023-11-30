@@ -97,21 +97,21 @@ class Config extends ArrayObject implements ConfigInterface
         $this->storage[$this->normalizeName($filename)] = $array;
     }
 
-    public function get(string $filename, string $key = '__#NOVALUE#__', mixed $default = null): mixed
+    public function get(string $filename, string $key = null, mixed $default = null): mixed
     {
         // get entire config file array
         $value = $this->__get($filename);
 
         // if key is no value return the entire array
         // else just the single matching key if it exists
-        if ($key !== '__#NOVALUE#__') {
+        if ($key !== null) {
             $value = $value[$key] ?? $default;
         }
 
         return $value;
     }
 
-    public function set(string $filename, mixed $key = '__#NOVALUE#__', mixed $value = '__#NOVALUE#__'): void
+    public function set(string $filename, mixed $key = null, mixed $value = '__#NOVALUE#__'): void
     {
         if ($value !== '__#NOVALUE#__') {
             // get the entire array
@@ -125,17 +125,6 @@ class Config extends ArrayObject implements ConfigInterface
         }
 
         $this->__set($filename, $value);
-    }
-
-    /**
-     * if you are caching the entire config array on a production system for example
-     * use this to inject the entire storage array
-     */
-    public function setStorage(array $storage): self
-    {
-        $this->storage = $storage;
-
-        return $this;
     }
 
     /**

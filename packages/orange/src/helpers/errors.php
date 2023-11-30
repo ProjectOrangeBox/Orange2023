@@ -67,7 +67,7 @@ if (!function_exists('_lowleveldeath')) {
 
         // this is pretty low level so we just make the "default" output here to 
         if (fetchAppEnv('ENVIRONMENT', 'production') != 'production') {
-            if (php_sapi_name() === 'cli') {
+            if (strtolower(php_sapi_name()) === 'cli' || defined('STDIN')) {
                 // CLI
                 $folder = 'cli/';
                 $write .= $errorCode . PHP_EOL;

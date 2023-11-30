@@ -32,5 +32,6 @@
 <script>
 <?= fig::value('script') ?>
 </script>
+<?= fig::value('script_src') ?>
 
 </html>

@@ -10,6 +10,8 @@ chdir(__ROOT__);
 
 require_once __ROOT__ . '/vendor/autoload.php';
 
+mergeEnv(__DIR__ . '/.env', $_ENV);
+
 /* send config into application */
 $container = cli(include __ROOT__ . '/config/config.php');
 
