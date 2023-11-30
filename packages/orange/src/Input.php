@@ -15,7 +15,7 @@ class Input implements InputInterface
     protected array $config = [];
 
     protected array $input = [];
-    protected array $raw = [];
+    protected array $internal = [];
 
     protected string $requestType = '';
     protected string $requestMethod = '';
@@ -73,26 +73,28 @@ class Input implements InputInterface
         }
 
         // default
-        $this->raw['body'] = '';
+        $this->internal['body'] = '';
 
         if (isset($input['body'])) {
             if (!is_string($input['body'])) {
                 throw new InvalidConfigurationValue('body is set but it is not a string.');
             }
 
-            $this->raw['body'] = $input['body'];
+            $this->internal['body'] = $input['body'];
         }
 
         // let's try to convert it into an array or json object
-        $this->input['body'] = $this->getBody($this->raw['body']);
+        $this->input['body'] = $this->getBody($this->internal['body']);
 
         // load up all the other default input variable3s
-        foreach (['post', 'get', 'files', 'cookie', 'request','server'] as $key) {
+        foreach (['post', 'get', 'files', 'cookie', 'request', 'server'] as $key) {
             $this->input[$key] = $input[$key] ?? [];
         }
 
+        $this->internal['internal_server'] = array_change_key_case($this->input['server'], CASE_LOWER);
+
         // most raw form of Get parameters
-        $this->raw['get'] = $this->getUrl(PHP_URL_QUERY);
+        $this->internal['get'] = $this->getUrl(PHP_URL_QUERY);
 
         $this->php_sapi = strtolower($input['php_sapi']) ?? ''; // string
         $this->stdin = $input['stdin'] ?? false; // boolean
@@ -207,12 +209,12 @@ class Input implements InputInterface
 
     public function rawGet(): array
     {
-        return $this->raw['get'];
+        return $this->internal['get'];
     }
 
     public function rawBody(): string
     {
-        return $this->raw['body'];
+        return $this->internal['body'];
     }
 
     /**
@@ -317,8 +319,10 @@ class Input implements InputInterface
     /**
      * converts the value to lowercase
      */
-    protected function getServer(string $name, $default = ''): string
+    protected function getServer(string $key, mixed $default = ''): string
     {
-        return strtolower($this->extract('server', $name, $default));
+        $key = strtolower($key);
+
+        return (isset($this->internal['internal_server'][$key])) ? strtolower($this->internal['internal_server'][$key]) : $default;
     }
 }
