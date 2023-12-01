@@ -245,7 +245,7 @@ class Validate implements ValidateInterface
                 $human = $rules[1];
                 $rules = $rules[0];
             } else {
-                $human = $this->makeHumanLookNice(null, $key);
+                $human = $this->makeHumanLookNice(null, (string)$key);
             }
 
             if ($this->notationDelimiter == '') {

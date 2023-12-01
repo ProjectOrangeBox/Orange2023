@@ -73,9 +73,9 @@ class MainController extends BaseController
         // but if it wasn't we could do something like this
         // this would throw a exception on fail
 
-        var_export($this->filter->body());
+        # $this->filter->body('id','isGreaterThan[80]')
         
-        //$this->process('delete', '202');
+        $this->process('delete', '202');
     }
 
     protected function process(string $method, string $pass, string $fail = '406')
