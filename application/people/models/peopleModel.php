@@ -14,9 +14,9 @@ class peopleModel extends ModelAbstract
     protected string $primaryColumn = 'id';
     protected array $rules = [
         'id' => ['isInteger', 'Id'],
-        'firstname' => ['isString|isAlphaNumericSpace|maxLength[32]', 'First Name'],
-        'lastname' => ['isString|isAlphaNumericSpace|maxLength[32]', 'Last Name'],
-        'age' => ['isInteger|isGreaterThan[17]|isLessThan[111]', 'Age'],
+        'firstname' => ['isRequired|isString|isAlphaNumericSpace|maxLength[32]', 'First Name'],
+        'lastname' => ['isRequired|isString|isAlphaNumericSpace|maxLength[32]', 'Last Name'],
+        'age' => ['isRequired|isInteger|isGreaterThan[17]|isLessThan[111]', 'Age'],
     ];
     protected array $ruleSets = [
         'create' => ['firstname', 'lastname', 'age'],
@@ -62,8 +62,11 @@ class peopleModel extends ModelAbstract
     {
         $this->validate->reset();
 
+        // let's make sure this use can... Read, Create, Update, Delete
         if (isset($record['id'])) {
             $this->validate->input($record['id'], 'isPrimaryId|hasCan' . ucfirst($type));
+        } else {
+            //$this->validate->input('', 'hasCanCreate');
         }
 
         if (!$this->validate->hasErrors()) {

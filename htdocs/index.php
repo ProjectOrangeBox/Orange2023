@@ -8,15 +8,8 @@ declare(strict_types=1);
 define('__ROOT__', realpath(__DIR__ . '/../'));
 define('__WWW__', realpath(__DIR__));
 
-// change default directory to the ROOT folder when this file runs
+// change default directory to the ROOT folder
 chdir(__ROOT__);
-
-// Set timezone to default, falls back to system if php.ini not set
-date_default_timezone_set(@date_default_timezone_get());
-
-// Set internal encoding.
-@ini_set('default_charset', 'UTF-8');
-mb_internal_encoding('UTF-8');
 
 // standard composer auto loader
 require_once __ROOT__ . '/vendor/autoload.php';

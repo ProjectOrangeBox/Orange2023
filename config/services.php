@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use dmyers\orange\Log;
+use peels\asset\Asset;
 use dmyers\orange\Data;
 use dmyers\orange\View;
 use dmyers\orange\Event;
@@ -12,6 +13,7 @@ use dmyers\orange\Output;
 use dmyers\orange\Router;
 use peels\console\Console;
 use peels\session\Session;
+use peels\validate\Filter;
 use peels\cache\FilesCache;
 use peels\validate\Validate;
 use dmyers\orange\Dispatcher;
@@ -20,12 +22,14 @@ use peels\cache\CacheInterface;
 use peels\console\ConsoleInterface;
 use peels\session\SessionInterface;
 use dmyers\orange\interfaces\LogInterface;
+use peels\asset\Interfaces\AssetInterface;
 use dmyers\orange\interfaces\EventInterface;
 use dmyers\orange\interfaces\InputInterface;
 use dmyers\orange\interfaces\ConfigInterface;
 use dmyers\orange\interfaces\OutputInterface;
 use dmyers\orange\interfaces\RouterInterface;
 use dmyers\orange\interfaces\ViewerInterface;
+use peels\validate\interfaces\FilterInterface;
 use dmyers\orange\interfaces\ContainerInterface;
 use peels\validate\interfaces\ValidateInterface;
 use dmyers\orange\interfaces\DispatcherInterface;
@@ -100,12 +104,20 @@ return [
         return Validate::getInstance($container->config->validate);
     },
 
+    'filter' => function (ContainerInterface $container): FilterInterface {
+        return Filter::getInstance($container->validate, $container->input);
+    },
+
     'quickView' => function (ContainerInterface $container): QuickView {
         return QuickView::getInstance($container->config->quickview, $container->output);
     },
 
     'cache' => function (ContainerInterface $container): CacheInterface {
         return FilesCache::getInstance($container->config->cache);
+    },
+
+    'assets' => function (ContainerInterface $container): AssetInterface {
+        return Asset::getInstance($container->config->assets, $container->data);
     },
 
     /* merged content below */

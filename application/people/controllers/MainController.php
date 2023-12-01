@@ -8,12 +8,26 @@ use application\shared\controllers\BaseController;
 
 class MainController extends BaseController
 {
-    protected array $models = ['people' => 'model.people'];
+    protected array $services = [
+        'peopleModel' => 'model.people',
+        'cache' => 'cache',
+        'assets' => 'assets',
+        'filter' => 'filter'
+    ];
+
+    public function init()
+    {
+        $this->assets->scriptFile('/js/rest_script.js');
+    }
 
     // GUI - Gets
     public function index()
     {
-        $this->data['people'] = cacheGetOr('people_list', $this->model->people, 'getAll', [], 1000);
+        if (!$this->data['people'] = $this->cache->get('people_list')) {
+            $this->data['people'] = $this->peopleModel->getAll();
+
+            $this->cache->set('people_list', $this->data['people']);
+        }
 
         return $this->view->render('people/list');
     }
@@ -25,14 +39,19 @@ class MainController extends BaseController
 
     public function updateForm(string $recordId)
     {
-        $this->data['record'] = $this->model->people->getById($recordId);
+        // $recordId was already "filtered" by the regular expression on the route
+        // but if it wasn't we could do something like this
+        // this would throw a exception on fail
+        $recordId = $this->filter->input($recordId,'isRequired|isInteger');
+
+        $this->data['record'] = $this->peopleModel->getById($recordId);
 
         return $this->view->render('people/edit');
     }
 
     public function deleteForm(string $recordId)
     {
-        $this->data['record'] = $this->model->people->getById($recordId);
+        $this->data['record'] = $this->peopleModel->getById($recordId);
 
         return $this->view->render('people/delete');
     }
@@ -49,15 +68,22 @@ class MainController extends BaseController
 
     public function delete()
     {
-        $this->process('delete', '202');
+        // the posted data is filtered by the model 
+        // because the model knows what the column values are suppose to be
+        // but if it wasn't we could do something like this
+        // this would throw a exception on fail
+
+        var_export($this->filter->body());
+        
+        //$this->process('delete', '202');
     }
 
     protected function process(string $method, string $pass, string $fail = '406')
     {
-        if (!$this->model->people->$method($this->request->body())) {
-            container()->quickView->show($fail, ['json' => ['size' => 'large', 'title' => 'Your Form Has The Following Errors', 'message' => wrapArray($this->model->people->errors(), '', '</br>')]]);
+        if (!$this->peopleModel->$method($this->request->body())) {
+            container()->quickView->show($fail, ['json' => ['size' => 'large', 'title' => 'Your Form Has The Following Errors', 'message' => wrapArray($this->peopleModel->errors(), '', '</br>')]]);
         } else {
-            cacheDelete('people_list');
+            $this->cache->delete('people_list');
 
             container()->quickView->show($pass);
         }

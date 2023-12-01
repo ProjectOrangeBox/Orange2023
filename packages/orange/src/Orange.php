@@ -82,14 +82,19 @@ if (!function_exists('cli')) {
 if (!function_exists('bootstrap')) {
     function bootstrap(array $config): ContainerInterface
     {
-        if (isset($config['timezone'])) {
-            date_default_timezone_set($config['timezone']);
-        } else {
-            date_default_timezone_set('UTC');
-        }
-
         define('DEBUG', $config['debug'] ?? false);
         define('ENVIRONMENT', $config['environment'] ?? 'production');
+
+        date_default_timezone_set($config['timezone'] ?? 'UTC');
+
+        // Set internal encoding.
+        $encoding = $config['encoding'] ?? 'UTF-8';
+
+        @ini_set('default_charset', $encoding);
+        mb_internal_encoding($encoding);
+
+        // set umask to a known state
+        umask(0000);
 
         // load user constants if present
         if (file_exists($config['config folder'] . '/constants.php')) {
@@ -100,9 +105,6 @@ if (!function_exists('bootstrap')) {
         if (file_exists($config['config folder'] . '/' . ENVIRONMENT . '/constants.php')) {
             require_once($config['config folder'] . '/' . ENVIRONMENT . '/constants.php');
         }
-
-        // set umask to a known state
-        umask(0000);
 
         switch (ENVIRONMENT) {
             case 'phpunit':
@@ -120,7 +122,7 @@ if (!function_exists('bootstrap')) {
                 ini_set('display_startup_errors', '1');
                 error_reporting(E_ALL ^ E_NOTICE);
                 break;
-            default: //production
+            default: //fail back to production
                 ini_set('display_errors', '0');
                 ini_set('display_startup_errors', '0');
         }

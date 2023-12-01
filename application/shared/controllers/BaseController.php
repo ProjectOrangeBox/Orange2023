@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace application\shared\controllers;
 
-use stdClass;
 use dmyers\orange\exceptions\FileNotFound;
 use dmyers\orange\interfaces\DataInterface;
 use dmyers\orange\interfaces\InputInterface;
+use dmyers\orange\exceptions\ServiceNotFound;
 use dmyers\orange\interfaces\ConfigInterface;
 use dmyers\orange\interfaces\OutputInterface;
 use dmyers\orange\interfaces\ViewerInterface;
@@ -18,18 +18,10 @@ use dmyers\orange\interfaces\ViewerInterface;
 abstract class BaseController
 {
     protected string $contentType = '';
-
-    // global functions
     protected array $libraries = [];
-
-    // attached to $this object
     protected array $services = [];
 
-    // attached to $model (see below);
-    protected array $models = [];
-
-    // attach models here
-    protected stdClass $model;
+    protected array $attached = [];
 
     // auto injection based on variable name is service name
     public function __construct(public OutputInterface $response, public InputInterface $request, public ConfigInterface $config, public  ViewerInterface $view, public DataInterface $data)
@@ -44,12 +36,9 @@ abstract class BaseController
             $this->response->contentType($this->contentType);
         }
 
-        // preload some models for this controller and attach to model local property
-        $this->model = new stdClass();
-
-        foreach ($this->models as $name => $serviceName) {
+        foreach ($this->services as $name => $serviceName) {
             // throws it's own exception if service not found
-            $this->model->$name = container()->get($serviceName);
+            $this->attached[$name] = container()->get($serviceName);
         }
 
         foreach ($this->libraries as $filename) {
@@ -62,15 +51,25 @@ abstract class BaseController
             include $libraryFilePath;
         }
 
-        foreach ($this->models as $name => $serviceName) {
-            // throws it's own exception if service not found
-            $this->model->$name = container()->get($serviceName);
-        }
-
         // add this base controllers local views path
         $this->view->addPath(__CHILDDIR__ . '/views');
 
         // add the child files view path
         $this->view->addPath(__DIR__ . '/../views');
+
+        $this->init();
+    }
+
+    public function init() {
+        // place holder override in child if nessesary
+    }
+
+    public function __get(string $name): mixed
+    {
+        if (!isset($this->attached[$name])) {
+            throw new ServiceNotFound($name);
+        }
+
+        return $this->attached[$name];
     }
 }

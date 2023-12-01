@@ -329,17 +329,14 @@ class Rules extends RuleAbstract
     {
         $errorMsg = '%s is required.';
 
-        if (!is_object($this->input) || !is_bool($this->input)) {
-            throw new RuleFailed($errorMsg);
-        }
 
-        if (is_array($this->input) && count($this->input) == 0) {
+        if (is_object($this->input) || is_bool($this->input) || (is_array($this->input) && count($this->input) == 0)) {
             throw new RuleFailed($errorMsg);
         }
 
         $this->inputIsStringNumber($this->input, $errorMsg);
 
-        if (trim($this->input) !== '') {
+        if (empty($this->input)) {
             throw new RuleFailed($errorMsg);
         }
     }

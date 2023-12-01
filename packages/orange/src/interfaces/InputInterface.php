@@ -20,7 +20,6 @@ interface InputInterface
     public function __call(string $name, array $arguments): mixed;
     public function __get(string $name);
     public function withDefault($tempDefault): self;
-    public function extract(string $type, ?string $name = null, mixed $default = null): mixed;
 
     // get the most basic url based or body based input
     public function rawGet(): array;

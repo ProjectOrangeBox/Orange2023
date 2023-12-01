@@ -11,4 +11,8 @@ return [
     'debug' => fetchAppEnv('DEBUG', false),
     // where is the services file
     'services' => __ROOT__ . '/config/services.php',
+
+    'timezone' => @date_default_timezone_get(),
+
+    'encoding' => 'UTF-8',
 ];

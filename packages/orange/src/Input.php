@@ -165,29 +165,6 @@ class Input implements InputInterface
         return $return;
     }
 
-    /*
-     * extract post, get, request or really any other array passed in 
-     * as long at it's in 'valid input keys'
-     */
-    public function extract(string $type, ?string $name = null, mixed $default = null): mixed
-    {
-        $type = strtolower($type);
-
-        if (!isset($this->input[$type])) {
-            throw new InvalidValue($type);
-        }
-
-        $value = $default;
-
-        if ($name === null) {
-            $value = $this->input[$type];
-        } elseif (isset($this->input[$type][$name])) {
-            $value = $this->input[$type][$name];
-        }
-
-        return $value;
-    }
-
     /**
      * This will handle any injected array sets
      * 
@@ -248,6 +225,29 @@ class Input implements InputInterface
     }
 
     /* protected */
+    /*
+     * extract post, get, request or really any other array passed in 
+     * as long at it's in 'valid input keys'
+     */
+    protected function extract(string $type, ?string $name = null, mixed $default = null): mixed
+    {
+        $type = strtolower($type);
+
+        if (!isset($this->input[$type])) {
+            throw new InvalidValue($type);
+        }
+
+        $value = $default;
+
+        if ($name === null) {
+            $value = $this->input[$type];
+        } elseif (isset($this->input[$type][$name])) {
+            $value = $this->input[$type][$name];
+        }
+
+        return $value;
+    }
+
     protected function getRequestType(): string
     {
         $requestType = 'html';

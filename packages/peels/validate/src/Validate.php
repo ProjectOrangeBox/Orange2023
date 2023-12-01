@@ -126,6 +126,10 @@ class Validate implements ValidateInterface
         // reset class
         $this->reset();
 
+        if (is_string($rules)) {
+            $rules = explode($this->ruleDelimiter, $rules);
+        }
+
         // save raw input and create a variable so we can pass by reference
         $this->currentInput = $input;
 
@@ -222,7 +226,7 @@ class Validate implements ValidateInterface
     }
 
     // a single value with rules
-    protected function processSingleValue(string $rules, ?string $human = null): self
+    protected function processSingleValue(array $rules, ?string $human = null): self
     {
         // validate a single value against 1 or more rules
         // arg1 passed by reference
@@ -261,12 +265,12 @@ class Validate implements ValidateInterface
 
     // process input with 1 or more rules
     // return input
-    protected function validateSingleValueMultipleRules(mixed $input, string $rules, string $human = null): mixed
+    protected function validateSingleValueMultipleRules(mixed $input, array $rules, string $human = null): mixed
     {
         // continue processing rules
         $this->stopProcessing = false;
 
-        foreach (explode($this->ruleDelimiter, $rules) as $rule) {
+        foreach ($rules as $rule) {
             // input passed by reference
             $input = $this->validateSingleValueSingleRule($input, $rule, $human);
 
