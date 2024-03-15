@@ -1,0 +1,79 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * This copy's assets from
+ * bin, htdocs, support, var, config inside a package into the global equivalent
+ * 
+ * for bin this could be a shell script
+ * for htdocs this can include css, js, images, etc...
+ * for support this could be a migration
+ * for var a additional folder
+ * for config this can include any configuration file except these are merged into a matching config file between the comments / * merged content below * / and / * end merged contents * /
+ *   (added spaced in the above code to not break the comment line)
+ * 
+ * use: ./copyAsset.php /application/welcome/assets
+ * 
+ * the contents in assets folder must then match the absolute path from the root folder of the matching folder or file
+ */
+
+declare(strict_types=1);
+
+use peels\console\ConsoleInterface;
+
+/* bootstrap the cli system */
+
+define('__ROOT__', realpath(__DIR__ . '/../'));
+
+chdir(__ROOT__);
+
+require_once __ROOT__ . '/vendor/autoload.php';
+
+$_ENV = array_replace_recursive($_ENV, parse_ini_file(__DIR__ . '/.env', true, INI_SCANNER_TYPED));
+
+/* send config into application */
+$container = cli(include __ROOT__ . '/config/config.php');
+
+// cli application is now set up so away we go!
+$console = $container->console;
+
+$console->minimumArguments(1, 'Please include a package path.');
+
+$arg1 = trim($console->getLastArgument(), '/');
+
+$folder = __ROOT__ . DIRECTORY_SEPARATOR . 'packages' . DIRECTORY_SEPARATOR . $arg1;
+
+if (file_exists($folder)) {
+    echo 'Directory "' . $folder . '" already exists.' . PHP_EOL;
+    exit(1);
+}
+
+if (count(explode('/', $arg1)) != 2) {
+    echo 'Your package path must be exactly 2 segments.' . PHP_EOL;
+    exit(1);
+}
+
+mkdir($folder, 0777, true);
+
+mkdir($folder . '/bin', 0777, true);
+mkdir($folder . '/src', 0777, true);
+mkdir($folder . '/tests', 0777, true);
+
+$php = [];
+
+$php[] = '<?php';
+$php[] = '';
+$php[] = 'declare(strict_types=1);';
+$php[] = '';
+$php[] = 'namespace ' . str_replace('/', '\\', $arg1) . ';';
+$php[] = '';
+$php[] = 'class Example';
+$php[] = '{';
+$php[] = '';
+$php[] = '}';
+
+file_put_contents($folder . '/src/Example.php', implode(PHP_EOL, $php));
+
+echo 'Add to "composer.json"' . PHP_EOL;
+echo '"' . str_replace('/', '\\\\', $arg1) . '\\\\": "packages/' . $arg1 . '/src"' . PHP_EOL;
+echo PHP_EOL;

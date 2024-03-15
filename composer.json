@@ -1,0 +1,56 @@
+{
+    "name": "orange/framework",
+    "authors": [{
+        "name": "Don Myers",
+        "email": "donmyers@me.com"
+    }],
+    "autoload": {
+        "psr-4": {
+            "application\\welcome\\": "application/welcome",
+            "application\\people\\": "application/people",
+            "application\\food\\": "application/food",
+            "application\\rest\\": "application/rest",
+            "application\\shared\\": "application/shared",
+            "application\\acl\\": "application/acl",
+
+            "orange\\framework\\": "packages/orange/src",
+
+            "peels\\cache\\": "packages/peels/cache/src",
+            "peels\\console\\": "packages/peels/console/src",
+            "peels\\session\\": "packages/peels/session/src",
+            "peels\\asset\\": "packages/peels/asset/src",
+            "peels\\flashmsg\\": "packages/peels/flashmsg/src",
+            "peels\\stash\\": "packages/peels/stash/src",
+            "peels\\validate\\": "packages/peels/validate/src",
+            "peels\\quickview\\": "packages/peels/quickView/src",
+            "peels\\model\\": "packages/peels/model/src",
+            "peels\\mergeView\\": "packages/peels/mergeView/src",
+            "peels\\auth\\": "packages/peels/auth/src",
+            "peels\\acl\\": "packages/peels/acl/src",
+            "peels\\snippets\\": "packages/peels/snippets/src",
+            "peels\\disc\\": "packages/peels/disc/src",
+            "peels\\handlebars\\": "packages/peels/handlebars/src"
+        },
+        "files": [
+            "packages/orange/src/Orange.php",
+            "packages/peels/cache/src/CacheHelper.php",
+            "packages/peels/disc/src/Disc.php",
+            "packages/peels/fig/src/Loader.php"
+        ]
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9",
+        "phpunit/php-code-coverage": "^9.2",
+        "squizlabs/php_codesniffer": "3.*"
+    },
+    "require": {
+        "nesbot/carbon": "^2.68",
+        "monolog/monolog": "^3.4",
+        "larapack/dd": "^1.1",
+        "aplus/session": "^3.2",
+        "aplus/cache": "^3.0",
+        "michelf/php-markdown": "^2.0",
+        "zordius/lightncandy": "dev-master",
+        "robmorgan/phinx": "^0.15.2"
+    }
+}
