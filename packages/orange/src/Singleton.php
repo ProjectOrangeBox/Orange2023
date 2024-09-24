@@ -1,0 +1,86 @@
+<?php
+
+declare(strict_types=1);
+
+namespace orange\framework;
+
+use orange\framework\exceptions\container\CannotUnserializeSingleton;
+
+class Singleton
+{
+    /**
+     * The actual singleton's instance almost always resides inside a static
+     * field. In this case, the static field is an array, where each subclass of
+     * the Singleton stores its own instance.
+     */
+    private static array $instances = [];
+
+    /**
+     * Singleton's constructor should not be public. However, it can't be
+     * private either if we want to allow subclassing.
+     */
+    protected function __construct()
+    {
+    }
+
+    /**
+     * Cloning and unserialization are not permitted for singletons.
+     */
+    protected function __clone()
+    {
+    }
+
+    public function __wakeup()
+    {
+        throw new CannotUnserializeSingleton();
+    }
+
+    /**
+     * The method you use to get the Singleton's instance.
+     */
+    public static function getInstance(): mixed
+    {
+        $subclass = static::class;
+
+        if (!isset(self::$instances[$subclass])) {
+            // Note that here we use the "static" keyword instead of the actual
+            // class name. In this context, the "static" keyword means "the name
+            // of the current class". That detail is important because when the
+            // method is called on the subclass, we want an instance of that
+            // subclass to be created here.
+            $args = func_get_args();
+
+            if (empty($args)) {
+                self::$instances[$subclass] = new static();
+            } else {
+                self::$instances[$subclass] = new static(...$args);
+            }
+        }
+
+        return self::$instances[$subclass];
+    }
+
+    /**
+     * For unit testing
+     */
+    public static function destroyInstance(): void
+    {
+        unset(self::$instances[static::class]);
+    }
+
+    /**
+     * Allow the creation of a new instance for testing etc...
+     */
+    public static function newInstance(): mixed
+    {
+        $args = func_get_args();
+
+        if (empty($args)) {
+            $service = new static();
+        } else {
+            $service = new static(...$args);
+        }
+
+        return $service;
+    }
+}
