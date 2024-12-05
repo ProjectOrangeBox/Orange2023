@@ -1,0 +1,27 @@
+<?php fig::extends('templates/base') ?>
+
+<?php fig::block('body') ?>
+<div class="masthead container" data-autoload="true" data-property="record" data-url="<?= getUrl($view . '_one', $id) ?>">
+    <form id="form">
+        <input type="hidden" name="id" rv-value="record.id">
+        <div class="mb-3">
+            <label for="frm_firstname" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="frm_firstname" name="firstname" rv-value="record.firstname">
+        </div>
+        <div class="mb-3">
+            <label for="frm_lastname" class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="frm_lastname" name="lastname" rv-value="record.lastname">
+        </div>
+        <div class="mb-3">
+            <label for="frm_age" class="form-label">Age</label>
+            <input type="text" class="form-control" id="frm_age" name="age" rv-value="record.age">
+        </div>
+        <div class="mb-3 float-end">
+            <a rv-on-click="actions.cancel" data-redirect="<?= getUrl($view . '_get_read_list') ?>" class="btn">Cancel</a>
+            <a rv-on-click="actions.submit" data-url="<?= getUrl($view . '_put', $id) ?>" data-redirect="<?= getUrl($view . '_get_read_list') ?>" data-type="put" data-form="form" class="btn btn-primary">Submit</a>
+        </div>
+    </form>
+</div>
+<?php fig::end() ?>
+
+<?php fig::render() ?>
