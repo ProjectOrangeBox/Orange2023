@@ -4,7 +4,6 @@ The Orange MVC framework does not replace the other first-rate PHP frameworks, a
 It started as a proof concept for a customer, running on just a few Raspberry Pis (model 3). Even the older model could efficiently serve over 1000 requests per second, winning me my first contract. 
 
 It has been continually updated ever since. While I also work with other PHP frameworks, I would love to hear from you if this is the quality of code you are looking for or if you would like to learn more about this framework.
-My orange MVC framework aims to provide a unified way to access the standard MVC workflow in as few classes as possible.
 
 ## Unit Testing
 
