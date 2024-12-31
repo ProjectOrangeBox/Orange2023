@@ -1,0 +1,194 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+define('__ROOT__', realpath(__DIR__ . '/../../../../'));
+
+$_ENV = array_replace_recursive($_ENV, parse_ini_file(__ROOT__ . '/.env', true, INI_SCANNER_TYPED));
+
+$config = include __ROOT__ . '/config/config.php';
+
+require_once __ROOT__ . '/vendor/autoload.php';
+
+/* send config into application */
+$container = \orange\framework\Application::cli($config);
+
+$argc = $_SERVER['argc'];
+$argv = $_SERVER['argv'];
+
+echo PHP_EOL;
+
+if ($argc != 2) {
+    die('Please provide view directory relative to ' . __ROOT__ . PHP_EOL . PHP_EOL);
+}
+
+/**
+ * Convert
+ * # [route(get,/peopledropdown,peopledropdown)]
+ *
+ * method(s), url, name (optional)
+ * callback auto detected
+ *
+ * to
+ *
+ * ['method' => 'get', 'url' => '/peopledropdown', 'callback' => [\application\people\controllers\MainController::class, 'dropdown'], 'name' => 'peopledropdown'],
+ */
+
+
+$path = __ROOT__ . DIRECTORY_SEPARATOR . trim(trim($argv[1]), '/');
+
+if (!$path = realpath($path)) {
+    die('Can not locate ' . $path . PHP_EOL);
+}
+
+$found = [];
+
+foreach (rglob($path, '*.php') as $file) {
+    $source = file_get_contents($file);
+
+    if ($f = token($source)) {
+        $found[$file] = $f;
+    }
+}
+
+// ok now let's create some output
+
+echo PHP_EOL . 'Found Routes:' . PHP_EOL;
+echo PHP_EOL . '*** copy & paste as needed ***' . PHP_EOL . PHP_EOL;
+
+foreach ($found as $filename => $records) {
+    echo PHP_EOL . '// ' . substr($filename, strlen(__ROOT__) + 1, -4) . PHP_EOL;
+
+    foreach ($records as $record) {
+        $entry = [];
+
+        foreach ($record['attr'] as $name => $value) {
+            $entry[] = "'" . $name . "' => '" . $value . "'";
+        }
+
+        if (isset($record['fullclass'])) {
+            $entry[] = "'callback' => [" . $record['fullclass'] . "::class, '" . $record['function'] . "']";
+        }
+
+        // now build PHP
+        // ['method' => 'get', 'url' => '/people', 'callback' => [\application\people\controllers\MainController::class, 'readList'], 'name' => 'people'],
+
+        echo '[' . implode(', ', $entry) . '],' . PHP_EOL;
+    }
+}
+
+echo PHP_EOL . PHP_EOL;
+exit;
+
+function rglob($path = '', $pattern = '*', $flags = 0)
+{
+    $paths = glob($path . '*', GLOB_MARK | GLOB_ONLYDIR | GLOB_NOSORT);
+    $files = glob($path . $pattern, $flags);
+
+    foreach ($paths as $path) {
+        $files = array_merge($files, rglob($path, $pattern, $flags));
+    }
+
+    return $files;
+}
+
+function token(string $source): array|false
+{
+    $collected = [];
+    $tokens = null;
+    $namespace = '';
+    $classname = '';
+    $comment = '';
+    $function = '';
+
+    try {
+        $tokens = token_get_all($source, TOKEN_PARSE);
+    } catch (Throwable $e) {
+    }
+
+    if ($tokens) {
+        /*
+        single character
+         - or -
+        the token index in element 0
+        the string content of the original token in element 1
+        the line number in element 2
+        */
+
+        foreach ($tokens as $index => $token) {
+            if (is_array($token)) {
+                switch (token_name($token[0])) {
+                    case 'T_NAMESPACE':
+                        $namespace = $tokens[$index + 2][1];
+                        break;
+                    case 'T_CLASS':
+                        $classname = $tokens[$index + 2][1];
+                        break;
+                    case 'T_COMMENT':
+                        // these ARE NOT real PHP 8 attrubutes they only "look" like them
+                        // comment must start with "# [route("
+                        if (substr(strtolower(trim($token[1])), 0, 9) == '# [route(') {
+                            if (token_name($tokens[$index + 2][0]) == 'T_PUBLIC') {
+                                if (token_name($tokens[$index + 4][0]) == 'T_FUNCTION') {
+                                    $comment = $token[1];
+                                    $function = $tokens[$index + 6][1];
+                                    $attr = splitAttr($comment);
+
+                                    $collected[] = [
+                                        'namespace' => $namespace,
+                                        'classname' => $classname,
+                                        'fullclass' => chr(92) . $namespace . chr(92) . $classname,
+                                        'comment' => $comment,
+                                        'function' => $function,
+                                        'attr' => $attr,
+                                    ];
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        // line number, token name, token id, contents
+                        //echo $token[2] . ' ' . token_name($token[0]) . ' [' . $token[0] . '] "' . $token[1] . '"' . PHP_EOL;
+                }
+            } else {
+                //echo $token . PHP_EOL;
+            }
+        }
+    }
+
+    return count($collected) ? $collected : false;
+}
+
+function splitAttr(string $comment): array
+{
+    $comment = trim($comment);
+
+    $x = strpos($comment, '(');
+
+    if ($x) {
+        $comment = substr($comment, $x  + 1);
+    }
+
+    $x = strrpos($comment, ')');
+
+    if ($x) {
+        $comment = substr($comment, 0, $x);
+    }
+
+    $args = str_getcsv($comment);
+
+    $return = [];
+
+    if (isset($args[0])) {
+        $return['method'] = trim($args[0]);
+    }
+    if (isset($args[1])) {
+        $return['url'] = trim($args[1]);
+    }
+    if (isset($args[2])) {
+        $return['name'] = trim($args[2]);
+    }
+
+    return $return;
+}
