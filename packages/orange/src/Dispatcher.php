@@ -24,8 +24,6 @@ class Dispatcher extends Singleton implements DispatcherInterface
 {
     /**
      * The dependency injection container instance.
-     *
-     * @var ContainerInterface
      */
     protected ContainerInterface $container;
 
@@ -38,6 +36,7 @@ class Dispatcher extends Singleton implements DispatcherInterface
     protected function __construct(ContainerInterface $container)
     {
         logMsg('INFO', __METHOD__);
+
         $this->container = $container;
     }
 

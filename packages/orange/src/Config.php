@@ -25,19 +25,16 @@ use orange\framework\exceptions\config\InvalidConfigurationValue;
 class Config extends SingletonArrayObject implements ConfigInterface
 {
     /**
-     * @var array $configuration
      * Stores loaded configurations indexed by filename.
      */
     protected array $configuration = [];
 
     /**
-     * @var array $searchPaths
      * Array of directories to search for configuration files, in order of priority.
      */
     protected array $searchPaths = [];
 
     /**
-     * @var array $foundConfigFiles
      * Maps configuration filenames to their absolute file paths.
      */
     protected array $foundConfigFiles = [];

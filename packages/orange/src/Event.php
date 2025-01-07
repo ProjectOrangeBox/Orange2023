@@ -41,10 +41,14 @@ class Event extends Singleton implements EventInterface
     /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
-    /** @var array Stores all registered events grouped by triggers. */
+    /**
+     * Stores all registered events grouped by triggers.
+     */
     protected array $events = [];
 
-    /** @var bool Indicates whether the event manager is disabled. */
+    /**
+     * Indicates whether the event manager is disabled.
+     */
     protected bool $disabled = false;
 
     /**

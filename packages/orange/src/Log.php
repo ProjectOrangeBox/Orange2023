@@ -29,22 +29,16 @@ class Log extends Singleton implements LogInterface, LoggerInterface
 
     /**
      * Logging handler instance (PSR-3 compatible or internal handler).
-     *
-     * @var LoggerInterface|self
      */
     protected $handler;
 
     /**
      * Determines whether logging is enabled.
-     *
-     * @var bool
      */
     protected bool $enabled = false;
 
     /**
      * Logging threshold level.
-     *
-     * @var int
      */
     protected int $threshold = 0;
 

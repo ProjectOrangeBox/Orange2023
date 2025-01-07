@@ -28,7 +28,7 @@ class Container extends Singleton implements ContainerInterface
     use ConfigurationTrait;
 
     /**
-     * @var array $registeredServices List of registered services.
+     * List of registered services.
      */
     protected array $registeredServices = [];
 

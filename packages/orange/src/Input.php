@@ -23,32 +23,32 @@ class Input extends Singleton implements InputInterface
     use ConfigurationTrait;
 
     /**
-     * @var array Stores input data.
+     * Stores input data.
      */
     protected array $input = [];
 
     /**
-     * @var array Stores internal values such as server and raw body.
+     * Stores internal values such as server and raw body.
      */
     protected array $internal = [];
 
     /**
-     * @var string Type of the request (e.g., AJAX, CLI, etc.).
+     * Type of the request (e.g., AJAX, CLI, etc.).
      */
     protected string $requestType = '';
 
     /**
-     * @var string HTTP method used for the request (e.g., GET, POST).
+     * HTTP method used for the request (e.g., GET, POST).
      */
     protected string $requestMethod = '';
 
     /**
-     * @var bool Indicates whether the request is HTTPS.
+     * Indicates whether the request is HTTPS.
      */
     protected bool $isHttps = false;
 
     /**
-     * @var array Stores remapped keys for normalization.
+     * Stores remapped keys for normalization.
      */
     protected array $remapKeys = [];
 

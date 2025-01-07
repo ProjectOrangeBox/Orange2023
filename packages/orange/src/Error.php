@@ -27,40 +27,64 @@ class Error extends Singleton
     /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
-    /** @var DataInterface Data service instance */
+    /**
+     * Data service instance
+     */
     public DataInterface $data;
 
-    /** @var InputInterface Input service instance */
+    /**
+     * Input service instance
+     */
     public InputInterface $input;
 
-    /** @var ViewInterface View service instance */
+    /**
+     * View service instance
+     */
     public ViewInterface $view;
 
-    /** @var OutputInterface Output service instance */
+    /**
+     * Output service instance
+     */
     public OutputInterface $output;
 
-    /** @var int Default error code */
+    /**
+     * Default error code
+     */
     public int $code = 500;
 
-    /** @var int HTTP status code */
+    /**
+     * HTTP status code
+     */
     public int $httpCode = 0;
 
-    /** @var string Request type (e.g., 'cli', 'html', 'ajax') */
+    /**
+     * Request type (e.g., 'cli', 'html', 'ajax')
+     */
     public string $requestType = '';
 
-    /** @var string Directory for error views */
+    /**
+     * Directory for error views
+     */
     public string $errorViewDirectory = '';
 
-    /** @var string Directory for environment-specific views */
+    /**
+     * Directory for environment-specific views
+     */
     public string $envDirectory = '';
 
-    /** @var string Directory for request type-specific views */
+    /**
+     * Directory for request type-specific views
+     */
     public string $requestTypeDirectory = '';
 
-    /** @var string The view file used for rendering */
+    /** 
+     * The view file used for rendering
+     */
     public string $viewFile = '';
 
-    /** @var string Content to be sent as output */
+    /**
+     * Content to be sent as output
+     */
     public string $outputContent = '';
 
     /**

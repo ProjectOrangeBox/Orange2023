@@ -37,13 +37,11 @@ class Security extends Singleton implements SecurityInterface
     use ConfigurationTrait;
 
     /**
-     * @var int $hmacMinimumLength
      * Minimum required length for HMAC keys.
      */
     protected int $hmacMinimumLength;
 
     /**
-     * @var string $hmacHashingAlgorithm
      * Hashing algorithm used for HMAC generation (e.g., SHA256).
      */
     protected string $hmacHashingAlgorithm;

@@ -31,31 +31,49 @@ abstract class ViewAbstract extends Singleton implements ViewInterface
     /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
-    /** @var DirectorySearch View file search utility */
+    /**
+     * View file search utility
+     */
     public DirectorySearch $search;
 
-    /** @var DataInterface|null Data source for the view */
+    /**
+     * Data source for the view
+     */
     protected ?DataInterface $data;
 
-    /** @var RouterInterface Router instance for dynamic view resolution */
+    /**
+     * Router instance for dynamic view resolution
+     */
     protected RouterInterface $router;
 
-    /** @var bool Debug mode toggle */
+    /**
+     * Debug mode toggle
+     */
     protected bool $debug = false;
 
-    /** @var bool Allow dynamic views toggle */
+    /**
+     * Allow dynamic views toggle
+     */
     protected bool $allowDynamicViews = false;
 
-    /** @var string Temporary directory for cached view files */
+    /**
+     * Temporary directory for cached view files
+     */
     protected string $tempDirectory = '';
 
-    /** @var array Aliases for view names */
+    /**
+     * Aliases for view names
+     */
     protected array $alias = [];
 
-    /** @var int Number of characters for sub-directory path hashing */
+    /**
+     * Number of characters for sub-directory path hashing
+     */
     protected int $subPathSize = 6;
 
-    /** @var array Validations for changeable properties */
+    /**
+     * Validations for changeable properties
+     */
     protected array $changeableTypeCheck = [
         'tempDirectory' => 'is_string',
         'debug' => 'is_bool',

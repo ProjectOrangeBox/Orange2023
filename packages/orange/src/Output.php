@@ -29,28 +29,44 @@ class Output extends Singleton implements OutputInterface
     /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
-    /** @var string $output Stores the output content to be sent to the client */
+    /**
+     * Stores the output content to be sent to the client
+     */
     protected string $output = '';
 
-    /** @var array $headers Stores HTTP headers to be sent */
+    /**
+     * Stores HTTP headers to be sent
+     */
     protected array $headers = [];
 
-    /** @var int $responseCode The HTTP response status code */
+    /**
+     * The HTTP response status code
+     */
     protected int $responseCode = 200;
 
-    /** @var array $responseCodesInternalStringKeys Maps internal string keys to HTTP status codes */
+    /**
+     * Maps internal string keys to HTTP status codes
+     */
     protected array $responseCodesInternalStringKeys = [];
 
-    /** @var string $contentType The Content-Type of the HTTP response */
+    /**
+     * The Content-Type of the HTTP response
+     */
     protected string $contentType = '';
 
-    /** @var string $charSet The character set of the HTTP response */
+    /**
+     * The character set of the HTTP response
+     */
     protected string $charSet = '';
 
-    /** @var array $mimes MIME type mappings for content types */
+    /**
+     * MIME type mappings for content types
+     */
     protected array $mimes = [];
 
-    /** @var InputInterface $input Input interface for managing request details */
+    /**
+     * $input Input interface for managing request details
+     */
     protected InputInterface $input;
 
     /**
