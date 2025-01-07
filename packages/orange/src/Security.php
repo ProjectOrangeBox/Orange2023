@@ -59,8 +59,8 @@ class Security extends Singleton implements SecurityInterface
 
         $this->config = $this->mergeWithDefault($config);
 
-        $this->hmacMinimumLength = $this->config['hmac minumum length'] ?? 0;
-        $this->hmacHashingAlgorithm = $this->config['hmac hashing algorithm'] ?? '';
+        $this->hmacMinimumLength = $this->config['hmac minumum length'];
+        $this->hmacHashingAlgorithm = $this->config['hmac hashing algorithm'];
     }
 
     /**
@@ -120,7 +120,7 @@ class Security extends Singleton implements SecurityInterface
      */
     public function encrypt(string $data): string
     {
-        return base64_encode(sodium_crypto_box_seal($data, $this->getKeyFilePath('public')));
+        return sodium_bin2base64(sodium_crypto_box_seal($data, $this->getKeyFilePath('public')), SODIUM_BASE64_VARIANT_ORIGINAL);
     }
 
     /**
@@ -158,23 +158,24 @@ class Security extends Singleton implements SecurityInterface
     /**
      * Generates an HMAC for given data.
      *
-     * @param string $data Data to hash.
+     * @param string $data Message to be hashed.
      * @return string The generated HMAC.
      */
     public function hmac(string $data): string
     {
-        return hash_hmac($this->hmacHashingAlgorithm, $data, $this->getHmacKey());
+        return hash_hmac($this->hmacHashingAlgorithm, $data, $this->getHmacKey(), false);
     }
 
     /**
      * Verifies an HMAC signature.
      *
-     * @param string $data Data with HMAC to verify.
+     * @param string $signature HMAC string you are testing the text against
+     * @param string $data Message you want to verify against signature
      * @return bool True if the HMAC is valid, false otherwise.
      */
-    public function verifyHmac(string $data): bool
+    public function verifyHmac(string $signature, string $data): bool
     {
-        return hash_hmac($this->hmacHashingAlgorithm, $data, $this->getHmacKey()) === $data;
+        return hash_equals($this->hmac($data), $signature);
     }
 
     /**
@@ -261,6 +262,11 @@ class Security extends Singleton implements SecurityInterface
 
         if (strlen($this->config['hmac key']) < $this->hmacMinimumLength || $this->hmacMinimumLength === 0) {
             throw new InvalidValue('minimum length for a hmac key is ' . $this->hmacMinimumLength . ' characters.');
+        }
+
+        // we will also verify the that we have a hmac algorithm
+        if (!in_array($this->hmacHashingAlgorithm, hash_hmac_algos(), true)) {
+            throw new InvalidValue('Unknown hmac algorithm.');
         }
 
         return $this->config['hmac key'];

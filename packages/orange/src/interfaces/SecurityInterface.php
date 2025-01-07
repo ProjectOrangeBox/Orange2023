@@ -14,8 +14,8 @@ interface SecurityInterface
     public function encrypt(string $data): string;
     public function decrypt(string $data): string;
 
-    public function hmac(string $data): string;
-    public function verifyHmac(string $data): bool;
+    public function hmac(string $text): string;
+    public function verifyHmac(string $hmac, string $data): bool;
 
     public function removeInvisibleCharacters(string $string): string;
     public function cleanFilename(string $filename): string;
