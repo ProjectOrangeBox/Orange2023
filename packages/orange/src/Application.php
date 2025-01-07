@@ -98,9 +98,9 @@ class Application
         return self::bootstrap('cli');
     }
 
-    /** 
+    /**
      * Protected method for shared bootstrapping functionality.
-     * 
+     *
      * This method is responsible for setting up the environment, loading configuration files,
      * defining constants, checking extensions, and initializing the container.
      *

@@ -28,6 +28,7 @@ use orange\framework\exceptions\IncorrectInterface;
  */
 abstract class ViewAbstract extends Singleton implements ViewInterface
 {
+    /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
     /** @var DirectorySearch View file search utility */
@@ -395,9 +396,9 @@ abstract class ViewAbstract extends Singleton implements ViewInterface
                 // Break controller namespace into segments
                 foreach (explode('/', str_replace('\\', '/', $namespacedController)) as $index => $segment) {
                     $view = str_replace($prefix . ($index + 1), $segment, $view);
-                    
+
                     // Store the last segment
-                    $controllerName = $segment; 
+                    $controllerName = $segment;
                 }
 
                 // Replace the controller placeholder with the final segment

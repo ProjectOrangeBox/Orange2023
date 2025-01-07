@@ -17,7 +17,7 @@ use orange\framework\exceptions\filesystem\DirectoryNotWritable;
  * Class Security
  *
  * Provides cryptographic utilities, including encryption, decryption,
- * HMAC generation and verification, public/private key management, 
+ * HMAC generation and verification, public/private key management,
  * signature verification, and data sanitization.
  *
  * Key Responsibilities:
@@ -33,6 +33,7 @@ use orange\framework\exceptions\filesystem\DirectoryNotWritable;
  */
 class Security extends Singleton implements SecurityInterface
 {
+    /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
     /**
@@ -270,7 +271,7 @@ class Security extends Singleton implements SecurityInterface
     /**
      * Retrieves the contents of a key file (public or private).
      *
-     * This method validates the key type (`public` or `private`), ensures the key exists 
+     * This method validates the key type (`public` or `private`), ensures the key exists
      * in the configuration, and checks if the file exists before reading its contents.
      *
      * @param string $which Specifies the type of key to retrieve (`public` or `private`).

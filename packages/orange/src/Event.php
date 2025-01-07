@@ -38,6 +38,7 @@ use orange\framework\traits\ConfigurationTrait;
  */
 class Event extends Singleton implements EventInterface
 {
+    /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
     /** @var array Stores all registered events grouped by triggers. */

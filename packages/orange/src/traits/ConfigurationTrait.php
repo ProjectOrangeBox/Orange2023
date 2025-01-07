@@ -10,7 +10,7 @@ use orange\framework\exceptions\config\ConfigFileNotFound;
 
 trait ConfigurationTrait
 {
-    private static array $included = [];
+    private static array $alreadyIncludedFiles = [];
 
     /**
      * Merge the passed config array with the default configuration in the file provided by absolute path
@@ -53,17 +53,17 @@ trait ConfigurationTrait
 
         logMsg('INFO', $absolutePath . ' ' . ($recursive ? 'recursive' : 'non-recursive'));
 
-        if (!isset(self::$included[$absolutePath])) {
+        if (!isset(self::$alreadyIncludedFiles[$absolutePath])) {
             logMsg('INFO', 'INCLUDE FILE "' . $absolutePath . '"');
 
-            self::$included[$absolutePath] = include $absolutePath;
+            self::$alreadyIncludedFiles[$absolutePath] = include $absolutePath;
 
-            if (!is_array(self::$included[$absolutePath])) {
+            if (!is_array(self::$alreadyIncludedFiles[$absolutePath])) {
                 throw new InvalidValue('"' . $absolutePath . '" did not return an array.');
             }
         }
 
-        return ($recursive) ? array_replace_recursive(self::$included[$absolutePath], $config) : array_replace(self::$included[$absolutePath], $config);
+        return ($recursive) ? array_replace_recursive(self::$alreadyIncludedFiles[$absolutePath], $config) : array_replace(self::$alreadyIncludedFiles[$absolutePath], $config);
     }
 
     /**

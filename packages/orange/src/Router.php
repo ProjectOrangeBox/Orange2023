@@ -29,6 +29,7 @@ use orange\framework\exceptions\router\RouterNameNotFound;
  */
 class Router extends Singleton implements RouterInterface
 {
+    /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
     /**
@@ -260,7 +261,7 @@ class Router extends Singleton implements RouterInterface
      * - Include or exclude the HTTP/HTTPS prefix.
      * - Manually specify a custom prefix.
      *
-     * @param bool|string $appendHttp 
+     * @param bool|string $appendHttp
      *      - `true`: Automatically determines `http` or `https` based on the request.
      *      - `false`: Returns only the base URL without any protocol prefix.
      *      - `string`: Allows specifying a custom protocol prefix (e.g., `'ftp://'`).

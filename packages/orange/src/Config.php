@@ -15,7 +15,7 @@ use orange\framework\exceptions\config\InvalidConfigurationValue;
  * Manages configuration files in a structured and hierarchical manner.
  * Implements the Singleton pattern to ensure a single instance manages configurations.
  * Supports configuration merging across multiple environments and directories.
- * 
+ *
  * Features:
  * - Dynamic configuration loading
  * - Environment-specific configurations

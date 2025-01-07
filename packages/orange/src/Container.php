@@ -24,6 +24,7 @@ use orange\framework\exceptions\container\ServiceNotFound;
  */
 class Container extends Singleton implements ContainerInterface
 {
+    /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
     /**

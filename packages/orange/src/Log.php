@@ -24,6 +24,7 @@ use orange\framework\exceptions\filesystem\DirectoryNotWritable;
  */
 class Log extends Singleton implements LogInterface, LoggerInterface
 {
+    /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
     /**

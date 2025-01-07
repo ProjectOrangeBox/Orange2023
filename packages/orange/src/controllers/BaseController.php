@@ -94,9 +94,9 @@ abstract class BaseController
     /**
      * This lets you use loaded services as if they were
      * attached directly to the controller
-     * 
+     *
      * $this->output
-     * 
+     *
      */
     public function __get(string $name): mixed
     {

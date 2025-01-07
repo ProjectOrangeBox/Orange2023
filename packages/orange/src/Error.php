@@ -24,6 +24,7 @@ use orange\framework\interfaces\OutputInterface;
  */
 class Error extends Singleton
 {
+    /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
     /** @var DataInterface Data service instance */

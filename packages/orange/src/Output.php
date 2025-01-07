@@ -13,8 +13,8 @@ use orange\framework\exceptions\output\Output as OutputException;
 /**
  * Class Output
  *
- * Handles HTTP output operations, including response codes, headers, 
- * content types, character sets, and output buffering. Implements 
+ * Handles HTTP output operations, including response codes, headers,
+ * content types, character sets, and output buffering. Implements
  * Singleton design pattern and OutputInterface.
  *
  * This class ensures proper HTTP response management, including:
@@ -26,6 +26,7 @@ use orange\framework\exceptions\output\Output as OutputException;
  */
 class Output extends Singleton implements OutputInterface
 {
+    /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
     /** @var string $output Stores the output content to be sent to the client */
@@ -55,7 +56,7 @@ class Output extends Singleton implements OutputInterface
     /**
      * Constructor is protected to enforce Singleton pattern.
      * Use Singleton::getInstance() to obtain an instance.
-     * 
+     *
      * @param array $config Configuration array.
      * @param InputInterface $input Input interface instance.
      */
@@ -113,7 +114,7 @@ class Output extends Singleton implements OutputInterface
 
     /**
      * Flushes all headers and content.
-     * 
+     *
      * @return self
      */
     public function flushAll(): self
@@ -124,7 +125,7 @@ class Output extends Singleton implements OutputInterface
 
     /**
      * Sends the output content and headers to the client.
-     * 
+     *
      * @param bool|int $exit Whether to exit after sending the output.
      */
     public function send(bool|int $exit = false): void
@@ -147,7 +148,7 @@ class Output extends Singleton implements OutputInterface
 
     /**
      * Clears the output content.
-     * 
+     *
      * @return self
      */
     public function flush(): self
@@ -159,7 +160,7 @@ class Output extends Singleton implements OutputInterface
 
     /**
      * Writes content to the output buffer.
-     * 
+     *
      * @param string $string Content to write.
      * @param bool $append Whether to append or overwrite the buffer.
      * @return self
@@ -175,7 +176,7 @@ class Output extends Singleton implements OutputInterface
 
     /**
      * Gets the current output buffer.
-     * 
+     *
      * @return string
      */
     public function get(): string
@@ -185,7 +186,7 @@ class Output extends Singleton implements OutputInterface
 
     /**
      * Sets the Content-Type header.
-     * 
+     *
      * @param string $type MIME type.
      * @param string $fallback Fallback MIME type.
      * @return self
@@ -229,7 +230,7 @@ class Output extends Singleton implements OutputInterface
 
     /**
      * Sets the character set.
-     * 
+     *
      * @param string $charSet Character set to use.
      * @return self
      */
@@ -246,7 +247,7 @@ class Output extends Singleton implements OutputInterface
 
     /**
      * Gets the current character set.
-     * 
+     *
      * @return string
      */
     public function getCharSet(): string
@@ -433,7 +434,7 @@ class Output extends Singleton implements OutputInterface
     /**
      * Sends an HTTP header.
      *
-     * This method serves as a wrapper for PHP's native `header()` function, 
+     * This method serves as a wrapper for PHP's native `header()` function,
      * allowing easier testing and overriding in unit tests.
      *
      * @param string $header The header string to send.

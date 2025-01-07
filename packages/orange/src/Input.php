@@ -19,6 +19,7 @@ use orange\framework\traits\ConfigurationTrait;
  */
 class Input extends Singleton implements InputInterface
 {
+    /** include ConfigurationTrait methods */
     use ConfigurationTrait;
 
     /**

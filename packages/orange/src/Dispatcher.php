@@ -13,11 +13,11 @@ use orange\framework\exceptions\dispatcher\ControllerClassNotFound;
 
 /**
  * Class Dispatcher
- * 
- * A dispatcher responsible for handling route-matched callbacks and invoking 
+ *
+ * A dispatcher responsible for handling route-matched callbacks and invoking
  * the appropriate controller methods. Implements the singleton pattern.
  * Use Singleton::getInstance() to obtain an instance.
- * 
+ *
  * @package orange\framework
  */
 class Dispatcher extends Singleton implements DispatcherInterface
@@ -32,7 +32,7 @@ class Dispatcher extends Singleton implements DispatcherInterface
     /**
      * Constructor is protected to enforce singleton usage.
      * Use Singleton::getInstance() to obtain the instance.
-     * 
+     *
      * @param ContainerInterface $container Dependency injection container.
      */
     protected function __construct(ContainerInterface $container)
@@ -43,12 +43,12 @@ class Dispatcher extends Singleton implements DispatcherInterface
 
     /**
      * Calls the matched route's callback with the provided arguments.
-     * 
+     *
      * @param array $routeMatched An array containing route match information, including
      *                            the controller, method, arguments, and additional metadata.
-     * 
+     *
      * @return string The output of the controller's method, expected to be a string.
-     * 
+     *
      * @throws ControllerClassNotFound If the specified controller class does not exist.
      * @throws MethodNotFound If the specified method does not exist in the controller class.
      * @throws InvalidValue If the controller's method does not return a string.
