@@ -4,4 +4,5 @@ Security
  [x] Auth
  [x] Remove invisible characters
  [x] Clean filename
+ [x] Password hash
 

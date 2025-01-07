@@ -17,6 +17,9 @@ interface SecurityInterface
     public function hmac(string $text): string;
     public function verifyHmac(string $hmac, string $data): bool;
 
+    public function createPassword(string $password): string;
+    public function verifyPassword(string $hash, string $userEntered): bool;
+
     public function removeInvisibleCharacters(string $string): string;
     public function cleanFilename(string $filename): string;
 }

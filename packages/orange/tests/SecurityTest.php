@@ -94,4 +94,14 @@ final class SecurityTest extends unitTestHelper
         $this->assertEquals('This is a test 2004-10-31 103100', $this->instance->cleanFilename('This is a test 2004-10-31 10:31:00'));
         $this->assertEquals('This is a test <2004-10-31 103100>', $this->instance->cleanFilename('This is a test <2004-10-31 10:31:00>'));
     }
+
+    public function testPasswordHash(): void
+    {
+        $password = 'MyDogHasFleas&12Bees';
+
+        $savedInDb = $this->instance->createPassword($password);
+
+        $this->assertTrue($this->instance->verifyPassword($savedInDb,$password));
+        $this->assertFalse($this->instance->verifyPassword($savedInDb,'foobar'));
+    }
 }

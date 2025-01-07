@@ -120,7 +120,7 @@ class Security extends Singleton implements SecurityInterface
     public function decrypt(string $data): string
     {
         $key = file_get_contents($this->getKeyFilePath('private'));
-        
+
         if (!ctype_xdigit($data)) {
             throw new SecurityException('decrypt data argument invalid');
         }
@@ -209,6 +209,25 @@ class Security extends Singleton implements SecurityInterface
 
         sodium_memzero($signature);
         sodium_memzero($message);
+
+        return $isValid;
+    }
+
+    public function createPassword(string $password): string
+    {
+        $encoded = sodium_crypto_pwhash_str($password,SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE);
+
+        sodium_memzero($password);
+
+        return $encoded;
+    }
+
+    public function verifyPassword(string $hash, string $userEntered): bool
+    {
+        $isValid = sodium_crypto_pwhash_str_verify($hash, $userEntered);
+
+        sodium_memzero($hash);
+        sodium_memzero($userEntered);
 
         return $isValid;
     }
