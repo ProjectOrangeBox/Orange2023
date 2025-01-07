@@ -1,5 +1,8 @@
 <?php
 
 return [
-    'hmac key' => $_ENV['security']['hmac'],
+    /* file locations */
+    'public key' => '',
+    'private key' => '',
+    'auth key' => '',
 ];

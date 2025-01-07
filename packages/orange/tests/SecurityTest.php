@@ -10,6 +10,7 @@ final class SecurityTest extends unitTestHelper
 
     private $publicKeyFile = WORKINGDIR . '/writeable/public.key';
     private $privateKeyFile = WORKINGDIR . '/writeable/private.key';
+    private $authKeyFile = WORKINGDIR . '/writeable/auth.key';
 
     protected function setUp(): void
     {
@@ -18,6 +19,7 @@ final class SecurityTest extends unitTestHelper
         $this->instance = Security::getInstance([
             'public key' => $this->publicKeyFile,
             'private key' => $this->privateKeyFile,
+            'auth key' => $this->authKeyFile,
         ]);
 
         $this->instance->createKeys();
@@ -31,6 +33,9 @@ final class SecurityTest extends unitTestHelper
         if (file_exists($this->privateKeyFile)) {
             unlink($this->privateKeyFile);
         }
+        if (file_exists($this->authKeyFile)) {
+            unlink($this->authKeyFile);
+        }
     }
 
     public function createKeys(): void
@@ -38,6 +43,7 @@ final class SecurityTest extends unitTestHelper
         // created in setup
         $this->assertFileExists($this->publicKeyFile);
         $this->assertFileExists($this->privateKeyFile);
+        $this->assertFileExists($this->authKeyFile);
     }
 
     public function testVerifySig(): void
@@ -53,6 +59,16 @@ final class SecurityTest extends unitTestHelper
         $text = 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.';
 
         $this->assertEquals($text, $this->instance->decrypt($this->instance->encrypt($text)));
+    }
+
+    public function testAuth(): void
+    {
+        $text = 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.';
+
+        $sig = $this->instance->hmac($text);
+
+        $this->assertTrue($this->instance->verifyHmac($sig, $text));
+        $this->assertFalse($this->instance->verifyHmac('', 'foobar'));
     }
 
     public function testRemoveInvisibleCharacters(): void

@@ -6,7 +6,7 @@ namespace orange\framework;
 
 use orange\framework\base\Singleton;
 use orange\framework\exceptions\InvalidValue;
-use orange\framework\traits\ConfigurationTrait;
+use orange\framework\exceptions\security\Security as SecurityException;
 use orange\framework\interfaces\SecurityInterface;
 use orange\framework\exceptions\config\ConfigNotFound;
 use orange\framework\exceptions\filesystem\FileNotFound;
@@ -33,19 +33,6 @@ use orange\framework\exceptions\filesystem\DirectoryNotWritable;
  */
 class Security extends Singleton implements SecurityInterface
 {
-    /** include ConfigurationTrait methods */
-    use ConfigurationTrait;
-
-    /**
-     * Minimum required length for HMAC keys.
-     */
-    protected int $hmacMinimumLength;
-
-    /**
-     * Hashing algorithm used for HMAC generation (e.g., SHA256).
-     */
-    protected string $hmacHashingAlgorithm;
-
     /**
      * Protected constructor to enforce Singleton pattern.
      *
@@ -57,10 +44,7 @@ class Security extends Singleton implements SecurityInterface
     {
         logMsg('INFO', __METHOD__);
 
-        $this->config = $this->mergeWithDefault($config);
-
-        $this->hmacMinimumLength = $this->config['hmac minumum length'];
-        $this->hmacHashingAlgorithm = $this->config['hmac hashing algorithm'];
+        $this->config = $config;
     }
 
     /**
@@ -76,40 +60,36 @@ class Security extends Singleton implements SecurityInterface
      */
     public function createKeys(): bool
     {
-        if (!isset($this->config['public key'])) {
-            throw new ConfigNotFound('private key');
-        }
-
-        if (!isset($this->config['private key'])) {
-            throw new ConfigNotFound('private key');
-        }
-
-        $publicKeyFileLocation = $this->config['public key'];
-        $privateKeyFileLocation = $this->config['private key'];
-
-        if (!is_writable(dirname($publicKeyFileLocation))) {
-            throw new DirectoryNotWritable(dirname($publicKeyFileLocation));
-        }
-
-        if (!is_writable(dirname($privateKeyFileLocation))) {
-            throw new DirectoryNotWritable(dirname($privateKeyFileLocation));
-        }
-
-        if (file_exists($publicKeyFileLocation)) {
-            throw new FileAlreadyExists($publicKeyFileLocation);
-        }
-
-        if (file_exists($privateKeyFileLocation)) {
-            throw new FileAlreadyExists($privateKeyFileLocation);
+        // checks
+        foreach (['public key', 'private key', 'auth key'] as $key) {
+            if (!isset($this->config[$key])) {
+                throw new ConfigNotFound($key);
+            }
+            if (!is_writable(dirname($this->config[$key]))) {
+                throw new DirectoryNotWritable(dirname($this->config[$key]));
+            }
+            if (file_exists($this->config[$key])) {
+                throw new FileAlreadyExists($this->config[$key]);
+            }
         }
 
         // Generate private key pair
         $privateKey = sodium_crypto_box_keypair();
 
-        $success1 = file_put_contents($privateKeyFileLocation, $privateKey);
-        $success2 = file_put_contents($publicKeyFileLocation, sodium_crypto_box_publickey($privateKey));
+        $success1 = file_put_contents($this->config['private key'], $privateKey);
+        $success2 = file_put_contents($this->config['public key'], sodium_crypto_box_publickey($privateKey));
 
-        return ($success1 > 0 && $success2 > 0);
+        // clean up
+        sodium_memzero($privateKey);
+
+        $authKey = sodium_crypto_auth_keygen();
+
+        $success3 = file_put_contents($this->config['auth key'], $authKey);
+
+        // clean up
+        sodium_memzero($authKey);
+
+        return ($success1 > 0 && $success2 > 0 && $success3 > 0);
     }
 
     /**
@@ -120,7 +100,15 @@ class Security extends Singleton implements SecurityInterface
      */
     public function encrypt(string $data): string
     {
-        return sodium_bin2base64(sodium_crypto_box_seal($data, $this->getKeyFilePath('public')), SODIUM_BASE64_VARIANT_ORIGINAL);
+        $key = file_get_contents($this->getKeyFilePath('public'));
+
+        $encrypted = sodium_bin2hex(sodium_crypto_box_seal($data, $key));
+
+        // make sure we clean up
+        sodium_memzero($key);
+        sodium_memzero($data);
+
+        return $encrypted;
     }
 
     /**
@@ -131,7 +119,21 @@ class Security extends Singleton implements SecurityInterface
      */
     public function decrypt(string $data): string
     {
-        return sodium_crypto_box_seal_open(base64_decode($data), $this->getKeyFilePath('private'));
+        $key = file_get_contents($this->getKeyFilePath('private'));
+        
+        if (!ctype_xdigit($data)) {
+            throw new SecurityException('decrypt data argument invalid');
+        }
+
+        $data = sodium_hex2bin($data);
+
+        $decrypt = sodium_crypto_box_seal_open($data, $key);
+
+        // make sure we clean up
+        sodium_memzero($key);
+        sodium_memzero($data);
+
+        return $decrypt;
     }
 
     /**
@@ -141,7 +143,14 @@ class Security extends Singleton implements SecurityInterface
      */
     public function publicSig(): string
     {
-        return sha1($this->getKeyFilePath('public'), false);
+        $key = file_get_contents($this->getKeyFilePath('public'));
+
+        $sig = sha1($key, false);
+
+        // make sure we clean up
+        sodium_memzero($key);
+
+        return $sig;
     }
 
     /**
@@ -158,24 +167,50 @@ class Security extends Singleton implements SecurityInterface
     /**
      * Generates an HMAC for given data.
      *
-     * @param string $data Message to be hashed.
-     * @return string The generated HMAC.
+     * @param string $message Message to be hashed.
+     * @return string The generated HMAC signature.
      */
-    public function hmac(string $data): string
+    public function hmac(string $message): string
     {
-        return hash_hmac($this->hmacHashingAlgorithm, $data, $this->getHmacKey(), false);
+        $key = file_get_contents($this->getKeyFilePath('auth'));
+
+        $signature = sodium_bin2hex(sodium_crypto_auth($message, $key));
+
+        // make sure we clean up
+        sodium_memzero($key);
+        sodium_memzero($message);
+
+        return $signature;
     }
 
     /**
      * Verifies an HMAC signature.
      *
-     * @param string $signature HMAC string you are testing the text against
-     * @param string $data Message you want to verify against signature
+     * @param string $signature signature you are testing the text against
+     * @param string $message Message you want to verify against signature
      * @return bool True if the HMAC is valid, false otherwise.
      */
-    public function verifyHmac(string $signature, string $data): bool
+    public function verifyHmac(string $signature, string $message): bool
     {
-        return hash_equals($this->hmac($data), $signature);
+        $isValid = false;
+
+        if (ctype_xdigit($signature)) {
+            $signature = sodium_hex2bin($signature);
+
+            if (mb_strlen($signature, '8bit') === SODIUM_CRYPTO_AUTH_BYTES) {
+                $key = file_get_contents($this->getKeyFilePath('auth'));
+
+                $isValid = sodium_crypto_auth_verify($signature, $message, $key);
+
+                // make sure we clean up
+                sodium_memzero($key);
+            }
+        }
+
+        sodium_memzero($signature);
+        sodium_memzero($message);
+
+        return $isValid;
     }
 
     /**
@@ -249,37 +284,16 @@ class Security extends Singleton implements SecurityInterface
     }
 
     /**
-     * Retrieves the HMAC key from configuration.
+     * Retrieves the path of a key files (public, private or auth).
      *
-     * @return string HMAC key.
-     * @throws InvalidValue If the key is missing or too short.
-     */
-    protected function getHmacKey(): string
-    {
-        if (!isset($this->config['hmac key'])) {
-            throw new InvalidValue('hmac key must be passed to security service.');
-        }
-
-        if (strlen($this->config['hmac key']) < $this->hmacMinimumLength || $this->hmacMinimumLength === 0) {
-            throw new InvalidValue('minimum length for a hmac key is ' . $this->hmacMinimumLength . ' characters.');
-        }
-
-        // we will also verify the that we have a hmac algorithm
-        if (!in_array($this->hmacHashingAlgorithm, hash_hmac_algos(), true)) {
-            throw new InvalidValue('Unknown hmac algorithm.');
-        }
-
-        return $this->config['hmac key'];
-    }
-
-    /**
-     * Retrieves the contents of a key file (public or private).
-     *
-     * This method validates the key type (`public` or `private`), ensures the key exists
-     * in the configuration, and checks if the file exists before reading its contents.
+     * This method validates the key type (`public`, `private` or `auth`), ensures the key exists
+     * in the configuration, and checks if the file exists before reading its file path.
+     * 
+     * These are only necessary if you need the key
+     * These are not all required when you create the instance
      *
      * @param string $which Specifies the type of key to retrieve (`public` or `private`).
-     * @return string The contents of the requested key file.
+     * @return string The path of the requested key file.
      *
      * @throws InvalidValue If the key type is not 'public' or 'private'.
      * @throws ConfigNotFound If the key path is missing from the configuration.
@@ -288,11 +302,11 @@ class Security extends Singleton implements SecurityInterface
     protected function getKeyFilePath(string $which): string
     {
         // Validate that the key type is either 'public' or 'private'.
-        if (!in_array($which, ['public', 'private'])) {
-            throw new InvalidValue('Unknown key file [' . $which . '].');
+        if (!in_array($which, ['public', 'private', 'auth'])) {
+            throw new InvalidValue($which . ' is an unknown key file type.');
         }
 
-        // Build the configuration key (e.g., 'public key' or 'private key').
+        // Build the configuration key (e.g., 'public key', 'private key' or 'auth key').
         $configKey = $which . ' key';
 
         // Ensure the key path exists in the configuration.
@@ -305,7 +319,7 @@ class Security extends Singleton implements SecurityInterface
             throw new FileNotFound($this->config[$configKey]);
         }
 
-        // Return the contents of the key file.
-        return file_get_contents($this->config[$configKey]);
+        // return only the path
+        return $this->config[$configKey];
     }
 }
