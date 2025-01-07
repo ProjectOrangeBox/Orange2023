@@ -215,7 +215,7 @@ class Security extends Singleton implements SecurityInterface
 
     public function createPassword(string $password): string
     {
-        $encoded = sodium_crypto_pwhash_str($password,SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE);
+        $encoded = sodium_crypto_pwhash_str($password, SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE, SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE);
 
         sodium_memzero($password);
 
