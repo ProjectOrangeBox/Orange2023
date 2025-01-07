@@ -1,0 +1,61 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+define('__ROOT__', realpath(__DIR__ . '/../../../../'));
+
+$_ENV = array_replace_recursive($_ENV, parse_ini_file(__ROOT__ . '/.env', true, INI_SCANNER_TYPED));
+
+$config = include __ROOT__ . '/config/config.php';
+
+require_once __ROOT__ . '/vendor/autoload.php';
+
+/* send config into application */
+$container = \orange\framework\Application::cli($config);
+
+$argc = $_SERVER['argc'];
+$argv = $_SERVER['argv'];
+
+$match = '/views/';
+
+echo PHP_EOL;
+
+if ($argc != 2) {
+    die('Please provide view directory relative to ' . __ROOT__ . PHP_EOL . PHP_EOL);
+}
+
+$path = __ROOT__ . DIRECTORY_SEPARATOR . trim(trim($argv[1]), '/');
+
+if (!$path = realpath($path)) {
+    die('Can not locate ' . $path . PHP_EOL);
+}
+
+echo PHP_EOL . 'Found Views:' . PHP_EOL;
+echo PHP_EOL . '*** copy & paste as needed ***' . PHP_EOL . PHP_EOL;
+
+foreach (globr($path . '/*.php') as $absPath) {
+    $directoryPos = strpos($absPath, $match);
+    
+    if ($directoryPos > 0) {
+        $name = substr($absPath, $directoryPos + 1);
+        $key = substr($name, strlen($match) - 1, -4);
+
+        echo '"' . $key . '" => "' . $absPath . '",' . PHP_EOL;
+    }
+}
+
+echo PHP_EOL . PHP_EOL;
+
+/* functions */
+
+function globr($pattern, $flags = 0)
+{
+    $files = glob($pattern, $flags);
+
+    foreach (glob(dirname($pattern) . '/*', GLOB_ONLYDIR | GLOB_NOSORT) as $dir) {
+        $files = array_merge($files, globr($dir . '/' . basename($pattern), $flags));
+    }
+
+    return $files;
+}

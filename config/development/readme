@@ -1,0 +1,35 @@
+include any config envirnemental configurations
+
+These are auto merged over the defaults in the config directory.
+
+for example if your have
+
+file: foobar.php
+
+return [
+    'key'=>'dev_key',
+    'name'=>'Johnny Appleseed',
+    'age'=>23,
+];
+
+in your default config directory
+
+foobar.php
+
+return [
+    'key'=>'live_key',
+    'name'=>'Jenny Appleseed',
+];
+
+in the production directory
+
+If your environment is production foobar config would be
+
+
+return [
+    'key'=>'live_key',
+    'name'=>'Johnny Appleseed',
+    'age'=>23,
+];
+
+Of course .env configs are still avaiable to keep secrets really secret. 
