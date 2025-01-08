@@ -41,11 +41,9 @@ class StringBuilder
         return $this;
     }
 
-    public function get(string $prefix = '', string $suffix = '', ?string $separator = null): string
+    public function get(string $prefix = '', string $suffix = '', string $separator = null): string
     {
-        $separator = $separator === null ? $this->separator : $separator;
-
-        return $prefix . implode($separator, $this->append) . $suffix;
+        return $prefix . implode($separator ?? $this->separator, $this->append) . $suffix;
     }
 
     public function getIfHas(string $prefix = '', string $suffix = '', string $separator = null): string
