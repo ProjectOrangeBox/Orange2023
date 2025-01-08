@@ -10,6 +10,7 @@ use PDOStatement;
 use peels\model\StringBuilder;
 use orange\framework\exceptions\InvalidValue;
 use orange\framework\exceptions\SqlBuilderException;
+use peels\model\exceptions\Sql as ExceptionsSql;
 
 /**
  * Basic SQL abstraction layer
@@ -152,7 +153,7 @@ class Sql
             default:
                 throw new InvalidValue('Unknown SQL statement "' . $this->sqlStatement . '".');
         }
-
+echo trim($builder->get());
         return trim($builder->get());
     }
 
@@ -577,17 +578,17 @@ class Sql
 
     public function getFrom(): string
     {
-        return 'FROM ' . $this->getTable();
+        return ' FROM ' . $this->getTable();
     }
 
     public function getInto(): string
     {
-        return 'INTO ' . $this->getTable();
+        return ' INTO ' . $this->getTable();
     }
 
     public function getTable(): string
     {
-        return trim($this->escapeTableColumn($this->tablename));
+        return ' '.trim($this->escapeTableColumn($this->tablename)).' ';
     }
 
     public function getJoins(): string
@@ -720,7 +721,7 @@ class Sql
         $this->errorMsg = $e->getMessage();
 
         if ($this->throwException) {
-            throw new SqlBuilderException((string)$e->getMessage(), (int)$e->getCode());
+            throw new ExceptionsSql((string)$e->getMessage(), (int)$e->getCode());
         }
     }
 
