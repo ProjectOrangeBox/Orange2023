@@ -28,7 +28,9 @@ abstract class BaseController
         $this->attachedServices['input'] = $input;
         $this->attachedServices['output'] = $output;
 
-        $this->loadServices($config->get('app', 'default services', []));
+        $appServices = $config->get('app', 'default services', []);
+
+        $this->loadServices($appServices);
 
         // path to the parent directory of the parent class
         $parentPath = dirname(dirname((new \ReflectionClass(get_class($this)))->getFileName()));
@@ -87,7 +89,7 @@ abstract class BaseController
                 $key = $name;
             }
 
-            $this->attachedServices[$key] = container()->get($name);
+            $this->attachedServices[strtolower($key)] = container()->get($name);
         }
     }
 
@@ -98,12 +100,14 @@ abstract class BaseController
      * $this->output
      *
      */
-    public function __get(string $name): mixed
+    public function __get(string $key): mixed
     {
-        if (!isset($this->attachedServices[$name])) {
-            throw new ServiceNotFound($name);
+        $key = strtolower($key);
+
+        if (!isset($this->attachedServices[$key])) {
+            throw new ServiceNotFound($key);
         }
 
-        return $this->attachedServices[$name];
+        return $this->attachedServices[$key];
     }
 }
