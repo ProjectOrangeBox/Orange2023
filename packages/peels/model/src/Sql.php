@@ -153,7 +153,6 @@ class Sql
             default:
                 throw new InvalidValue('Unknown SQL statement "' . $this->sqlStatement . '".');
         }
-echo trim($builder->get());
         return trim($builder->get());
     }
 
@@ -578,17 +577,17 @@ echo trim($builder->get());
 
     public function getFrom(): string
     {
-        return ' FROM ' . $this->getTable();
+        return 'FROM ' . $this->getTable();
     }
 
     public function getInto(): string
     {
-        return ' INTO ' . $this->getTable();
+        return 'INTO ' . $this->getTable();
     }
 
     public function getTable(): string
     {
-        return ' '.trim($this->escapeTableColumn($this->tablename)).' ';
+        return trim($this->escapeTableColumn($this->tablename));
     }
 
     public function getJoins(): string
