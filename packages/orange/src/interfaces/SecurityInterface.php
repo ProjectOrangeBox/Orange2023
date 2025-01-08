@@ -8,16 +8,13 @@ interface SecurityInterface
 {
     public function createKeys(): bool;
 
-    public function publicSig(): string;
-    public function verifySig(string $sig): bool;
-
     public function encrypt(string $data): string;
     public function decrypt(string $data): string;
 
-    public function hmac(string $text): string;
-    public function verifyHmac(string $hmac, string $data): bool;
+    public function createSignature(string $text): string;
+    public function verifySignature(string $hmac, string $data): bool;
 
-    public function createPassword(string $password): string;
+    public function encodePassword(string $password): string;
     public function verifyPassword(string $hash, string $userEntered): bool;
 
     public function removeInvisibleCharacters(string $string): string;

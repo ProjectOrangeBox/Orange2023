@@ -16,51 +16,52 @@ use orange\framework\exceptions\filesystem\DirectoryNotWritable;
 /**
  * Class Security
  *
- * Provides cryptographic utilities, including encryption, decryption,
- * HMAC generation and verification, public/private key management,
- * signature verification, and data sanitization.
+ * This class provides a suite of cryptographic and security-related utilities,
+ * including key pair generation, encryption, decryption, HMAC signature
+ * generation and verification, password hashing, and input sanitization.
  *
- * Key Responsibilities:
- * - Generate cryptographic key pairs.
+ * Key Features:
+ * - Generate public/private key pairs.
  * - Encrypt and decrypt data securely.
  * - Generate and verify HMAC signatures.
- * - Validate public key signatures.
  * - Sanitize filenames and remove invisible characters.
+ * - Secure password hashing and verification.
  *
- * Implements Singleton and SecurityInterface patterns.
+ * Implements Singleton and SecurityInterface patterns to ensure a single
+ * instance and a consistent interface across the application.
  *
  * @package orange\framework
  */
 class Security extends Singleton implements SecurityInterface
 {
     /**
-     * Protected constructor to enforce Singleton pattern.
+     * Constructor for the Security class.
      *
-     * Initializes configuration and sets up HMAC-related settings.
+     * This protected constructor enforces the Singleton pattern by preventing
+     * direct instantiation. It initializes the configuration settings.
      *
-     * @param array $config Configuration settings for the Security service.
+     * @param array $config Security configuration settings.
      */
     protected function __construct(array $config)
     {
         logMsg('INFO', __METHOD__);
-
         $this->config = $config;
     }
 
     /**
-     * Creates a public/private key pair for encryption.
+     * Generates public, private, and authentication keys.
      *
-     * Validates file paths, ensures directories are writable,
-     * and prevents overwriting existing keys.
+     * Validates file paths, ensures directories are writable, and prevents
+     * overwriting existing key files.
      *
-     * @return bool True if keys are successfully created.
-     * @throws ConfigNotFound If public or private key paths are not defined.
-     * @throws DirectoryNotWritable If key directories are not writable.
+     * @return bool Returns true if all keys are successfully created.
+     *
+     * @throws ConfigNotFound If key paths are missing from the configuration.
+     * @throws DirectoryNotWritable If the directories for keys are not writable.
      * @throws FileAlreadyExists If key files already exist.
      */
     public function createKeys(): bool
     {
-        // checks
         foreach (['public key', 'private key', 'auth key'] as $key) {
             if (!isset($this->config[$key])) {
                 throw new ConfigNotFound($key);
@@ -73,30 +74,26 @@ class Security extends Singleton implements SecurityInterface
             }
         }
 
-        // Generate private key pair
         $privateKey = sodium_crypto_box_keypair();
 
         $success1 = file_put_contents($this->config['private key'], $privateKey);
         $success2 = file_put_contents($this->config['public key'], sodium_crypto_box_publickey($privateKey));
 
-        // clean up
         sodium_memzero($privateKey);
 
         $authKey = sodium_crypto_auth_keygen();
-
         $success3 = file_put_contents($this->config['auth key'], $authKey);
 
-        // clean up
         sodium_memzero($authKey);
 
-        return ($success1 > 0 && $success2 > 0 && $success3 > 0);
+        return $success1 > 0 && $success2 > 0 && $success3 > 0;
     }
 
     /**
      * Encrypts data using the public key.
      *
      * @param string $data Data to encrypt.
-     * @return string Encrypted data (base64-encoded).
+     * @return string Encrypted data in hexadecimal format.
      */
     public function encrypt(string $data): string
     {
@@ -104,7 +101,6 @@ class Security extends Singleton implements SecurityInterface
 
         $encrypted = sodium_bin2hex(sodium_crypto_box_seal($data, $key));
 
-        // make sure we clean up
         sodium_memzero($key);
         sodium_memzero($data);
 
@@ -112,10 +108,12 @@ class Security extends Singleton implements SecurityInterface
     }
 
     /**
-     * Decrypts data using the private key.
+     * Decrypts encrypted data using the private key.
      *
-     * @param string $data Encrypted data (base64-encoded).
-     * @return string Decrypted data.
+     * @param string $data Encrypted data in hexadecimal format.
+     * @return string Decrypted plain text data.
+     *
+     * @throws SecurityException If the data format is invalid.
      */
     public function decrypt(string $data): string
     {
@@ -129,7 +127,6 @@ class Security extends Singleton implements SecurityInterface
 
         $decrypt = sodium_crypto_box_seal_open($data, $key);
 
-        // make sure we clean up
         sodium_memzero($key);
         sodium_memzero($data);
 
@@ -137,60 +134,31 @@ class Security extends Singleton implements SecurityInterface
     }
 
     /**
-     * Generates a SHA-1 signature of the public key.
+     * Generates an HMAC signature for a given message.
      *
-     * @return string The SHA-1 signature of the public key.
+     * @param string $message The message to sign.
+     * @return string HMAC signature in hexadecimal format.
      */
-    public function publicSig(): string
-    {
-        $key = file_get_contents($this->getKeyFilePath('public'));
-
-        $sig = sha1($key, false);
-
-        // make sure we clean up
-        sodium_memzero($key);
-
-        return $sig;
-    }
-
-    /**
-     * Verifies the SHA-1 signature of the public key.
-     *
-     * @param string $sig Signature to verify.
-     * @return bool True if the signature matches, false otherwise.
-     */
-    public function verifySig(string $sig): bool
-    {
-        return $sig === $this->publicSig();
-    }
-
-    /**
-     * Generates an HMAC for given data.
-     *
-     * @param string $message Message to be hashed.
-     * @return string The generated HMAC signature.
-     */
-    public function hmac(string $message): string
+    public function createSignature(string $message): string
     {
         $key = file_get_contents($this->getKeyFilePath('auth'));
 
-        $signature = sodium_bin2hex(sodium_crypto_auth($message, $key));
+        $token = sodium_bin2hex(sodium_crypto_auth($message, $key));
 
-        // make sure we clean up
         sodium_memzero($key);
         sodium_memzero($message);
 
-        return $signature;
+        return $token;
     }
 
     /**
-     * Verifies an HMAC signature.
+     * Verifies an HMAC signature against a message.
      *
-     * @param string $signature signature you are testing the text against
-     * @param string $message Message you want to verify against signature
-     * @return bool True if the HMAC is valid, false otherwise.
+     * @param string $signature HMAC signature to verify.
+     * @param string $message Original message.
+     * @return bool True if the signature is valid, false otherwise.
      */
-    public function verifyHmac(string $signature, string $message): bool
+    public function verifySignature(string $signature, string $message): bool
     {
         $isValid = false;
 
@@ -202,7 +170,6 @@ class Security extends Singleton implements SecurityInterface
 
                 $isValid = sodium_crypto_auth_verify($signature, $message, $key);
 
-                // make sure we clean up
                 sodium_memzero($key);
             }
         }
@@ -213,7 +180,13 @@ class Security extends Singleton implements SecurityInterface
         return $isValid;
     }
 
-    public function createPassword(string $password): string
+    /**
+     * Hashes a password securely using Argon2.
+     *
+     * @param string $password Plain text password.
+     * @return string Hashed password.
+     */
+    public function encodePassword(string $password): string
     {
         $encoded = sodium_crypto_pwhash_str($password, SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE, SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE);
 
@@ -222,6 +195,13 @@ class Security extends Singleton implements SecurityInterface
         return $encoded;
     }
 
+    /**
+     * Verifies a password against its hash.
+     *
+     * @param string $hash Password hash.
+     * @param string $userEntered User-entered password.
+     * @return bool True if the password is valid, false otherwise.
+     */
     public function verifyPassword(string $hash, string $userEntered): bool
     {
         $isValid = sodium_crypto_pwhash_str_verify($hash, $userEntered);
@@ -236,7 +216,7 @@ class Security extends Singleton implements SecurityInterface
      * Removes invisible characters from a string.
      *
      * @param string $string Input string.
-     * @return string Cleaned string without invisible characters.
+     * @return string Sanitized string.
      */
     public function removeInvisibleCharacters(string $string): string
     {
@@ -250,10 +230,10 @@ class Security extends Singleton implements SecurityInterface
     }
 
     /**
-     * Sanitizes a filename by removing potentially dangerous characters.
+     * Sanitizes a filename by removing malicious characters.
      *
      * @param string $filename Input filename.
-     * @return string Cleaned filename.
+     * @return string Sanitized filename.
      */
     public function cleanFilename(string $filename): string
     {
@@ -303,42 +283,31 @@ class Security extends Singleton implements SecurityInterface
     }
 
     /**
-     * Retrieves the path of a key files (public, private or auth).
+     * Retrieves the file path of a specified key type.
      *
-     * This method validates the key type (`public`, `private` or `auth`), ensures the key exists
-     * in the configuration, and checks if the file exists before reading its file path.
-     * 
-     * These are only necessary if you need the key
-     * These are not all required when you create the instance
+     * @param string $which Key type: public, private, or auth.
+     * @return string Path to the specified key.
      *
-     * @param string $which Specifies the type of key to retrieve (`public` or `private`).
-     * @return string The path of the requested key file.
-     *
-     * @throws InvalidValue If the key type is not 'public' or 'private'.
-     * @throws ConfigNotFound If the key path is missing from the configuration.
-     * @throws FileNotFound If the key file does not exist at the specified path.
+     * @throws InvalidValue
+     * @throws ConfigNotFound
+     * @throws FileNotFound
      */
     protected function getKeyFilePath(string $which): string
     {
-        // Validate that the key type is either 'public' or 'private'.
         if (!in_array($which, ['public', 'private', 'auth'])) {
             throw new InvalidValue($which . ' is an unknown key file type.');
         }
 
-        // Build the configuration key (e.g., 'public key', 'private key' or 'auth key').
         $configKey = $which . ' key';
 
-        // Ensure the key path exists in the configuration.
         if (!isset($this->config[$configKey])) {
             throw new ConfigNotFound($configKey);
         }
 
-        // Ensure the key file actually exists at the specified path.
         if (!file_exists($this->config[$configKey])) {
             throw new FileNotFound($this->config[$configKey]);
         }
 
-        // return only the path
         return $this->config[$configKey];
     }
 }

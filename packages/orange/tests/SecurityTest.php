@@ -46,14 +46,6 @@ final class SecurityTest extends unitTestHelper
         $this->assertFileExists($this->authKeyFile);
     }
 
-    public function testVerifySig(): void
-    {
-        $sig = $this->instance->publicSig();
-
-        $this->assertMatchesRegularExpression('/^[a-f0-9]{40}$/', $sig);
-        $this->assertTrue($this->instance->verifySig($sig));
-    }
-
     public function testEncrypt(): void
     {
         $text = 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.';
@@ -65,10 +57,10 @@ final class SecurityTest extends unitTestHelper
     {
         $text = 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.';
 
-        $sig = $this->instance->hmac($text);
+        $sig = $this->instance->createSignature($text);
 
-        $this->assertTrue($this->instance->verifyHmac($sig, $text));
-        $this->assertFalse($this->instance->verifyHmac('', 'foobar'));
+        $this->assertTrue($this->instance->verifySignature($sig, $text));
+        $this->assertFalse($this->instance->verifySignature('', 'foobar'));
     }
 
     public function testRemoveInvisibleCharacters(): void
@@ -99,7 +91,7 @@ final class SecurityTest extends unitTestHelper
     {
         $password = 'MyDogHasFleas&12Bees';
 
-        $savedInDb = $this->instance->createPassword($password);
+        $savedInDb = $this->instance->encodePassword($password);
 
         $this->assertTrue($this->instance->verifyPassword($savedInDb,$password));
         $this->assertFalse($this->instance->verifyPassword($savedInDb,'foobar'));
