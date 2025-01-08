@@ -9,7 +9,7 @@ use peels\validate\interfaces\ValidateInterface;
 
 abstract class Model
 {
-    private static $instance;
+    private static array $instances = [];
 
     protected PDO $pdo;
     protected array $config = [];
@@ -53,7 +53,7 @@ abstract class Model
     {
         $this->config = $config ?? [];
 
-        if (empty($this->tablename)) {
+        if (!isset($this->tablename)) {
             $this->tablename = $this->generateTablename();
         }
 
@@ -82,13 +82,13 @@ abstract class Model
 
     public static function getInstance(array $config, PDO $pdo, ValidateInterface $validate): self
     {
-        if (!isset(self::$instance)) {
-            $extendingClass = get_called_class();
+        $subclass = static::class;
 
-            self::$instance = new $extendingClass($config, $pdo, $validate);
+        if (!isset(self::$instances[$subclass])) {
+            self::$instances[$subclass] = new static($config, $pdo, $validate);
         }
 
-        return self::$instance;
+        return self::$instances[$subclass];
     }
 
     public function getRules(string $set): array
