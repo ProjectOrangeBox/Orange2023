@@ -38,6 +38,7 @@ return [
         ['method' => 'get', 'url' => '/peopledropdown', 'callback' => [\application\people\controllers\MainController::class, 'dropdown'], 'name' => 'peopledropdown'],
         ['method' => 'get', 'url' => '/peopledropdown2', 'callback' => [\application\people\controllers\MainController::class, 'dropdown2'], 'name' => 'peopledropdown2'],
 
+        ['method' => 'get', 'url' => '/colordropdown', 'callback' => [\application\people\controllers\MainController::class, 'colordropdown'], 'name' => 'colordropdown'],
 
         // gui - get
         ['method' => 'get', 'url' => '/people', 'callback' => [\application\people\controllers\MainController::class, 'readList'], 'name' => 'people'],
@@ -62,6 +63,7 @@ return [
         // rest
         ['method' => 'get', 'url' => '/people/all', 'callback' => [\application\people\controllers\MainController::class, 'readAll'], 'name' => 'people_all'],
         ['method' => 'get', 'url' => '/people/(\d+)', 'callback' => [\application\people\controllers\MainController::class, 'readOne'], 'name' => 'people_one'],
+        ['method' => 'get', 'url' => '/people/new', 'callback' => [\application\people\controllers\MainController::class, 'readNew'], 'name' => 'people_new'],
         ['method' => 'post', 'url' => '/people', 'callback' => [\application\people\controllers\MainController::class, 'create'], 'name' => 'people_post'],
         ['method' => 'put', 'url' => '/people/(\d+)', 'callback' => [\application\people\controllers\MainController::class, 'update'], 'name' => 'people_put'],
         ['method' => 'delete', 'url' => '/people/(\d+)', 'callback' => [\application\people\controllers\MainController::class, 'delete'], 'name' => 'people_del'],

@@ -15,6 +15,10 @@
       <label for="frm_age" class="form-label">Age</label>
       <input type="text" readonly class="form-control" id="frm_age" name="age" rv-value="record.age">
     </div>
+    <div class="mb-3">
+      <label for="frm_color" class="form-label">Color</label>
+      <input type="text" readonly class="form-control" id="frm_age" name="colorname" rv-value="record.colorname">
+    </div>
     <div class="mb-3 float-end">
       <a rv-on-click="actions.cancel" data-redirect="<?=getUrl('people') ?>" class="btn btn-primary">Done</a>
     </div>

@@ -13,6 +13,7 @@ abstract class CrudController extends BaseController
 {
     // method to responds code
     protected array $restSuccessMap = [
+        'getNew' => 200,
         'getAll' => 200,
         'getById' => 200,
         'create' => 201,
@@ -22,6 +23,7 @@ abstract class CrudController extends BaseController
 
     // method to json response key
     protected array $restGetMap = [
+        'getNew' => 'record',
         'getById' => 'record',
         'getAll' => 'records',
     ];

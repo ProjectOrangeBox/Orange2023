@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use PDO;
 use peels\acl\Acl;
 use peels\acl\User;
 use peels\disc\Disc;
@@ -29,6 +28,7 @@ use peels\acl\interfaces\AclInterface;
 use peels\collector\CollectorInterface;
 use peels\negotiate\NegotiateInterface;
 use application\child\models\ChildModel;
+use application\people\models\ColorModel;
 use application\people\models\PeopleModel;
 use peels\asset\Interfaces\AssetInterface;
 use peels\acl\interfaces\UserEntityInterface;
@@ -105,6 +105,10 @@ return [
 
     'model.people' => function (ContainerInterface $container) {
         return PeopleModel::getInstance([], $container->pdo, $container->validate);
+    },
+
+    'model.color' => function (ContainerInterface $container) {
+        return ColorModel::getInstance([], $container->pdo, $container->validate);
     },
 
     'model.child' => function (ContainerInterface $container) {

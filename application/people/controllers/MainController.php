@@ -16,6 +16,7 @@ class MainController extends CrudController
 
     protected array $services = [
         'peopleModel' => 'model.people',
+        'colorModel' => 'model.color',
         'cache',
         'assets',
         'filter',
@@ -27,12 +28,20 @@ class MainController extends CrudController
     {
         $this->assets->scriptFiles([
             '/js/tinybind.js',
+            '/js/sprintf.min.js',
             '/js/app.js',
+            '/js/orangeBind/orangeFormatters.js',
             //'<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>',
         ]);
         $this->assets->linkFiles([
             //'<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />',
         ]);
+    }
+
+    # [route(get,/colordropdown,colordropdown)]
+    public function colordropdown(): string
+    {
+        return $this->preformCRUD('colorModel', 'getAll', [], 'colors');
     }
 
     # [route(get,/peopledropdown,peopledropdown)]
@@ -42,11 +51,11 @@ class MainController extends CrudController
         $this->data['contentType'] = 'json';
 
         $this->data['json']['dropdown'] = [
-            'selected'=>'two',
-            'friends'=>[
-                ['name'=>'one'],
-                ['name'=>'two'],
-                ['name'=>'three'],
+            'selected' => 'two',
+            'friends' => [
+                ['name' => 'one'],
+                ['name' => 'two'],
+                ['name' => 'three'],
             ],
         ];
 
@@ -60,7 +69,7 @@ class MainController extends CrudController
         $this->data['contentType'] = 'json';
 
         $this->data['json']['dropdown2'] = [
-            'selected'=>'two',
+            'selected' => 'two',
         ];
 
         return $this->restResponse();
@@ -108,6 +117,11 @@ class MainController extends CrudController
     public function readOne(string $id): string
     {
         return $this->preformCRUD($this->defaultModel, 'getById', [(int)$id]);
+    }
+
+    public function readNew(): string
+    {
+        return $this->preformCRUD($this->defaultModel, 'getNew');
     }
 
     # [route(post, /people, people_post)]

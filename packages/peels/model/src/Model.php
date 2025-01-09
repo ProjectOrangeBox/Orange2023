@@ -70,7 +70,7 @@ abstract class Model
             'throwException' => $config['throwException'] ?? $this->throwException,
         ];
 
-        // validateService should throw exceptions for failed rules so we can catch them
+        // validateService should throw exceptions for all failed rules so we can catch them
         $this->validateService->throwExceptionOnFailure(true);
 
         // setup our own personal versions
@@ -97,13 +97,13 @@ abstract class Model
         return array_intersect_key($this->rules, array_flip($this->ruleSets[$set]));
     }
 
-    public function filterFields(string $set, array $fields): array
+    public function filterFields(string $set, array &$fields): array
     {
         // we only need these columns (any additional are removed!)
         return array_intersect_key($fields, array_flip($this->ruleSets[$set]));
     }
 
-    public function validateFields(string $set, array $fields): bool
+    public function validateFields(string $set, array $fields): bool|array
     {
         // now let's validation the input against the models column rules
         $this->validateService->reset();
@@ -115,10 +115,11 @@ abstract class Model
         $fields = $this->filterFields($set, $fields);
 
         // validate our record and get out our values
+        // above we request that an exception is thrown containing all failed rules
         $fields = $this->validateService->input($fields, $rules)->values();
 
-        // return bool
-        return $this->validateService->hasNoErrors();
+        // if any rules failed technically we shouldn't get here
+        return $this->validateService->hasNoErrors() ? $fields : false;
     }
 
     public function generateTablename(): string

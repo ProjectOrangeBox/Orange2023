@@ -14,6 +14,5 @@ class ValidationError
         public string $options,
         public string $rule,
         public mixed $input
-    ) {
-    }
+    ) {}
 }

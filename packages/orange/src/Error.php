@@ -138,13 +138,13 @@ class Error extends Singleton
             ]);
 
             // if the thrown exceptions error code
-            // if great than 0 then use that as the code
+            // is great than 0 then use that as the code
             if ($thrown->getCode() > 0) {
                 $this->code = $thrown->getCode();
             }
 
             // if the thrown exception has the method getHttpCode
-            // then call it and put it's output in httpCode
+            // then call it and use it's output as the httpCode
             if (method_exists($thrown, 'getHttpCode')) {
                  /** @disregard */
                 $this->httpCode = $thrown->getHttpCode();

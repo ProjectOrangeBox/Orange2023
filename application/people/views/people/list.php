@@ -18,6 +18,7 @@
                 <th scope="col">First</th>
                 <th scope="col">Last</th>
                 <th scope="col">Age</th>
+                <th scope="col">Color</th>
                 <th scope="col">
                     <button type="button" rv-on-click="actions.redirect" data-redirect="<?= getUrl('people_create') ?>" class="btn btn-primary"><i class="fa-solid fa-square-plus"></i></button>
                 </th>
@@ -29,6 +30,7 @@
                 <td>{row.firstname}</td>
                 <td>{row.lastname}</td>
                 <td>{row.age}</td>
+                <td>{row.colorname}</td>
                 <td>
                     <button type="button" rv-on-click="actions.redirect" data-redirect="<?= getUrl('people_show', '-1') ?>" rv-data-id="row.id" class="btn btn-primary"><i class="fa-solid fa-eye"></i></button>
                     <button type="button" rv-on-click="actions.loadModal" data-modal="<?= getUrl('people_update', '-1') ?>" rv-data-id="row.id" data-size="modal-xl" class="btn btn-primary"><i class="fa-solid fa-square-pen"></i></button>
