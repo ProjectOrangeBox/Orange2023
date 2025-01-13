@@ -7,7 +7,7 @@ define('__ROOT__', realpath(__DIR__ . '/../../../../'));
 
 $_ENV = array_replace_recursive($_ENV, parse_ini_file(__ROOT__ . '/.env', true, INI_SCANNER_TYPED));
 
-$mergeAbove = '/* end merged above this line */';
+$mergeAbove = '/* merge above this line */';
 
 $config = include __ROOT__ . '/config/config.php';
 
@@ -63,6 +63,7 @@ if (strtolower($c) == 'y') {
     $routerContents = file_get_contents($routesFile);
 
     $find = $mergeAbove;
+
     if (strpos($routerContents, $find) === false) {
         die('Could not find "' . $find . '"' . PHP_EOL);
     }
@@ -70,7 +71,12 @@ if (strtolower($c) == 'y') {
     $newFile = [];
 
     foreach (explode(PHP_EOL, $routerContents) as $line) {
-        if (strpos($line, $find) !== false) {
+        $normalize = [chr(9), ' '];
+
+        $findNoSpace = str_replace($normalize, '', trim($find));
+        $lineNoSpace = str_replace($normalize, '', trim($line));
+
+        if (strpos($lineNoSpace, $findNoSpace) !== false) {
             // found the end contents line start merge
             $identSize = strlen(rtrim($line)) - strlen(ltrim($line));
 

@@ -80,7 +80,7 @@ return [
         ['method' => 'delete', 'url' => '/child/(\d+)', 'name' => 'child_delete', 'callback' => [\application\child\controllers\MainController::class, 'delete']],
         // --------------------------------------------
 
-        /* end merged above this line */
+        /* merge above this line */
 
         // these are used to get paths router::getUrl(...)
         // then if you need to change a path you simply need to change it here and not in mutiple files
