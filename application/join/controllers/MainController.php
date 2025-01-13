@@ -40,62 +40,62 @@ class MainController extends BaseController
     }
 
     // GUI urls
-    # [route(get,/join,join_get_read_list)]
+    # [route(get,/join,joinReadList)]
     public function readList(): string
     {
         return $this->view->render($this->viewDirectory . 'list');
     }
 
-    # [route(get, /join/show/(\D+), join_get_read_form)]
+    # [route(get, /join/show/(\d+), joinReadForm)]
     public function readForm(string $id): string
     {
         return $this->view->render($this->viewDirectory . 'read', ['id' => (int)$id]);
     }
 
-    # [route(get, /join/create, join_get_create_form)]
+    # [route(get, /join/create, joinCreateForm)]
     public function createForm(): string
     {
         return $this->view->render($this->viewDirectory . 'create', ['id' => -1]);
     }
 
-    # [route(get, /join/update/(\d+), join_update)]
+    # [route(get, /join/update/(\d+), joinUpdateForm)]
     public function updateForm(string $id): string
     {
         return $this->view->render($this->viewDirectory . 'update', ['id' => (int)$id]);
     }
 
-    # [route(get, /join/delete/(\d+), join_delete)]
+    # [route(get, /join/delete/(\d+), joinDeleteForm)]
     public function deleteForm(string $id): string
     {
         return $this->view->render($this->viewDirectory . 'delete', ['id' => (int)$id]);
     }
 
     // rest end points
-    # [route(get, /join/all, join_all)]
+    # [route(get, /join/all, joinReadAll)]
     public function readAll(): string
     {
         return $this->preformCRUD($this->defaultModel, 'getAll');
     }
 
-    # [route(get, /join/(\d+), join_one)]
+    # [route(get, /join/(\d+), joinReadOne)]
     public function readOne(string $id): string
     {
         return $this->preformCRUD($this->defaultModel, 'getById', [(int)$id]);
     }
 
-    # [route(post, /join, join_post)]
+    # [route(post, /join, joinCreate)]
     public function create(): string
     {
         return $this->preformCRUD($this->defaultModel, 'create', [$this->input->body()]);
     }
 
-    # [route(put, /join/(\d+), join_put)]
+    # [route(put, /join/(\d+), joinUpdate)]
     public function update(): string
     {
         return $this->preformCRUD($this->defaultModel, 'update', [$this->input->body()]);
     }
 
-    # [route(delete, /join/(\d+), join_delete)]
+    # [route(delete, /join/(\d+), joinDelete)]
     public function delete(): string
     {
         return $this->preformCRUD($this->defaultModel, 'delete', [$this->input->body()]);

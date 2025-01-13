@@ -38,7 +38,7 @@ class MainController extends CrudController
         ]);
     }
 
-    # [route(get,/colordropdown,colordropdown)]
+    # [route(get,/colordropdown,peoplecolordropdown)]
     public function colordropdown(): string
     {
         return $this->preformCRUD('colorModel', 'getAll', [], 'colors');
@@ -76,68 +76,68 @@ class MainController extends CrudController
     }
 
     // GUI urls
-    # [route(get,/people,people_get_read_list)]
+    # [route(get,/people,peopleReadList)]
     public function readList(): string
     {
         return $this->view->render($this->viewDirectory . 'list');
     }
 
-    # [route(get, /people/show/(\d+), people_get_read_form)]
+    # [route(get, /people/show/(\d+), peopleReadForm)]
     public function readForm(string $id): string
     {
         return $this->view->render($this->viewDirectory . 'read', ['id' => (int)$id]);
     }
 
-    # [route(get, /people/create, people_get_create_form)]
+    # [route(get, /people/create, peopleCreateForm)]
     public function createForm(): string
     {
         return $this->view->render($this->viewDirectory . 'create', ['id' => -1]);
     }
 
-    # [route(get, /people/update/(\d+), people_update)]
+    # [route(get, /people/update/(\d+), peopleUpdateForm)]
     public function updateForm(string $id): string
     {
         return $this->view->render($this->viewDirectory . 'update', ['id' => (int)$id]);
     }
 
-    # [route(get, /people/delete/(\d+), people_delete)]
+    # [route(get, /people/delete/(\d+), peopleDeleteForm)]
     public function deleteForm(string $id): string
     {
         return $this->view->render($this->viewDirectory . 'delete', ['id' => (int)$id]);
     }
 
     // rest end points
-    # [route(get, /people/all, people_all)]
+    # [route(get, /people/all, peopleReadAll)]
     public function readAll(): string
     {
         return $this->preformCRUD($this->defaultModel, 'getAll');
     }
 
-    # [route(get, /people/(\d+), people_one)]
+    # [route(get, /people/(\d+), peopleReadOne)]
     public function readOne(string $id): string
     {
         return $this->preformCRUD($this->defaultModel, 'getById', [(int)$id]);
     }
 
-    # [route(get, /people/new, people_new)]
+    # [route(get, /people/new, peopleReadNew)]
     public function readNew(): string
     {
         return $this->preformCRUD($this->defaultModel, 'getNew');
     }
 
-    # [route(post, /people, people_post)]
+    # [route(post, /people, peopleCreate)]
     public function create(): string
     {
         return $this->preformCRUD($this->defaultModel, 'create', [$this->input->body()]);
     }
 
-    # [route(put, /people/(\d+), people_put)]
+    # [route(put, /people/(\d+), peopleUpdate)]
     public function update(): string
     {
         return $this->preformCRUD($this->defaultModel, 'update', [$this->input->body()]);
     }
 
-    # [route(delete, /people/(\d+), people_delete)]
+    # [route(delete, /people/(\d+), peopleDelete)]
     public function delete(): string
     {
         return $this->preformCRUD($this->defaultModel, 'delete', [$this->input->body()]);

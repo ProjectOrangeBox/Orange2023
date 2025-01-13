@@ -1,4 +1,4 @@
-<div data-autoload="true" data-property="record" data-url="<?= getUrl('people_one', $id) ?>">
+<div data-autoload="true" data-property="record" data-url="<?= getUrl('peopleReadOne', $id) ?>">
     <form id="form">
         <input type="hidden" name="id" rv-value="record.id">
         <div class="mb-3">
@@ -16,14 +16,14 @@
         <div class="mb-3">
             <div class="form-group">
                 <label for="frm_color" class="form-label">Color</label>
-                <select class="form-control" name="color" rv-value="record.color | default 1" data-preload="true" data-url="<?= getUrl('colordropdown') ?>" data-property="colors">
+                <select class="form-control" name="color" rv-value="record.color | default 1" data-preload="true" data-url="<?= getUrl('peoplecolordropdown') ?>" data-property="colors">
                     <option rv-each-row="colors" rv-value="row.id" rv-text="row.name"></option>
                 </select>
             </div>
         </div>
         <div class="mb-3 float-end">
             <a rv-on-click="actions.cancel" data-modal="true" class="btn">Cancel</a>
-            <a rv-on-click="actions.submit" data-refresh="true" data-modal="true" data-url="<?= getUrl('people_put', $id) ?>" data-type="put" data-form="form" class="btn btn-primary">Submit</a>
+            <a rv-on-click="actions.submit" data-refresh="true" data-modal="true" data-url="<?= getUrl('peopleUpdate', $id) ?>" data-type="put" data-form="form" class="btn btn-primary">Submit</a>
         </div>
     </form>
 </div>

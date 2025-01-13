@@ -1,7 +1,7 @@
 <?php fig::extends('templates/base') ?>
 
 <?php fig::block('body') ?>
-<div class="masthead container" data-autoload="true" data-property="record"  data-url="<?=getUrl('people_one', $id) ?>">
+<div class="masthead container" data-autoload="true" data-property="record"  data-url="<?=getUrl('peopleReadOne', $id) ?>">
   <form id="form">
     <div class="mb-3">
       <label for="frm_firstname" class="form-label">First Name</label>
@@ -20,7 +20,7 @@
       <input type="text" readonly class="form-control" id="frm_age" name="colorname" rv-value="record.colorname">
     </div>
     <div class="mb-3 float-end">
-      <a rv-on-click="actions.cancel" data-redirect="<?=getUrl('people') ?>" class="btn btn-primary">Done</a>
+      <a rv-on-click="actions.cancel" data-redirect="<?=getUrl('peopleReadList') ?>" class="btn btn-primary">Done</a>
     </div>
   </form>
 </div>

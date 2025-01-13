@@ -2,7 +2,7 @@
 
 <?php fig::block('body') ?>
 
-<div class="masthead container" data-autoload="true" data-url="<?= getUrl('people_all') ?>" data-property="records">
+<div class="masthead container" data-autoload="true" data-url="<?= getUrl('peopleReadAll') ?>" data-property="records">
 
     <div data-preload="true" data-url="<?= getUrl('peopledropdown') ?>" data-property="dropdown">
         <span>Selected Friend: {dropdown2.selected}</span>
@@ -20,7 +20,7 @@
                 <th scope="col">Age</th>
                 <th scope="col">Color</th>
                 <th scope="col">
-                    <button type="button" rv-on-click="actions.redirect" data-redirect="<?= getUrl('people_create') ?>" class="btn btn-primary"><i class="fa-solid fa-square-plus"></i></button>
+                    <button type="button" rv-on-click="actions.redirect" data-redirect="<?= getUrl('peopleCreateForm') ?>" class="btn btn-primary"><i class="fa-solid fa-square-plus"></i></button>
                 </th>
             </tr>
         </thead>
@@ -32,9 +32,9 @@
                 <td>{row.age}</td>
                 <td>{row.colorname}</td>
                 <td>
-                    <button type="button" rv-on-click="actions.redirect" data-redirect="<?= getUrl('people_show', '-1') ?>" rv-data-id="row.id" class="btn btn-primary"><i class="fa-solid fa-eye"></i></button>
-                    <button type="button" rv-on-click="actions.loadModal" data-modal="<?= getUrl('people_update', '-1') ?>" rv-data-id="row.id" data-size="modal-xl" class="btn btn-primary"><i class="fa-solid fa-square-pen"></i></button>
-                    <button type="button" rv-on-click="actions.loadModal" data-modal="<?= getUrl('people_delete', '-1') ?>" rv-data-id="row.id" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button>
+                    <button type="button" rv-on-click="actions.redirect" data-redirect="<?= getUrl('peopleReadForm', '-1') ?>" rv-data-id="row.id" class="btn btn-primary"><i class="fa-solid fa-eye"></i></button>
+                    <button type="button" rv-on-click="actions.loadModal" data-modal="<?= getUrl('peopleUpdateForm', '-1') ?>" rv-data-id="row.id" data-size="modal-xl" class="btn btn-primary"><i class="fa-solid fa-square-pen"></i></button>
+                    <button type="button" rv-on-click="actions.loadModal" data-modal="<?= getUrl('peopleDeleteForm', '-1') ?>" rv-data-id="row.id" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button>
                 </td>
             </tr>
         </tbody>
