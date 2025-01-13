@@ -119,6 +119,7 @@ class MainController extends CrudController
         return $this->preformCRUD($this->defaultModel, 'getById', [(int)$id]);
     }
 
+    # [route(get, /people/new, people_new)]
     public function readNew(): string
     {
         return $this->preformCRUD($this->defaultModel, 'getNew');

@@ -39,47 +39,133 @@ if ($argc != 2) {
 $path = __ROOT__ . DIRECTORY_SEPARATOR . trim(trim($argv[1]), '/');
 
 if (!$path = realpath($path)) {
-    die('Can not locate ' . $path . PHP_EOL);
+    die('Can not locate "' . $path . '"' . PHP_EOL);
 }
 
-$found = [];
+if (is_dir($path)) {
+    $found = [];
 
-foreach (rglob($path, '*.php') as $file) {
-    $source = file_get_contents($file);
+    foreach (rglob($path, '*.php') as $filepath) {
+        $source = file_get_contents($filepath);
 
-    if ($f = token($source)) {
-        $found[$file] = $f;
+        if ($f = token($source)) {
+            $found[$filepath] = $f;
+        }
     }
+} elseif (is_file($path)) {
+    $source = file_get_contents($path);
+    $lines = token($source);
+
+    if (!$lines) {
+        die('error trying to tokenize "' . $path . '".' . PHP_EOL);
+    }
+
+    $found[$path] = $lines;
+} else {
+    die($path . ' is not a Directory or File.');
 }
 
-// ok now let's create some output
+$entries = [];
+$conflicts = [];
+$urlConflicts = [];
+$nameConflicts = [];
 
-echo PHP_EOL . 'Found Routes:' . PHP_EOL;
-echo PHP_EOL . '*** copy & paste as needed ***' . PHP_EOL . PHP_EOL;
+foreach ($found as $filepath => $lines) {
+    $controller = substr($filepath, strlen(__ROOT__) + 1, -4);
+    $entries[] = '// ' . $controller;
 
-foreach ($found as $filename => $records) {
-    echo PHP_EOL . '// ' . substr($filename, strlen(__ROOT__) + 1, -4) . PHP_EOL;
-
-    foreach ($records as $record) {
+    foreach ($lines as $line) {
         $entry = [];
 
-        foreach ($record['attr'] as $name => $value) {
+        $nameKey = 'name: ' . ($line['attr']['name'] ?? hrtime(true));
+        $urlKey = ($line['attr']['method'] ?? '') . '->' . ($line['attr']['url'] ?? '');
+
+        if (in_array($urlKey, $urlConflicts)) {
+            $conflicts[$urlKey] = $conflicts[$urlKey] ?? 1;
+            $conflicts[$urlKey] = $conflicts[$urlKey] + 1;
+        }
+        $urlConflicts[$urlKey] = $urlKey;
+
+        if (in_array($nameKey, $nameConflicts)) {
+            $conflicts[$nameKey] = $conflicts[$nameKey] ?? 1;
+            $conflicts[$nameKey] = $conflicts[$nameKey] + 1;
+        }
+        $nameConflicts[$nameKey] = $nameKey;
+
+        foreach ($line['attr'] as $name => $value) {
             $entry[] = "'" . $name . "' => '" . $value . "'";
         }
 
-        if (isset($record['fullclass'])) {
-            $entry[] = "'callback' => [" . $record['fullclass'] . "::class, '" . $record['function'] . "']";
+        if (isset($line['fullclass'])) {
+            $entry[] = "'callback' => [" . $line['fullclass'] . "::class, '" . $line['function'] . "']";
         }
 
         // now build PHP
         // ['method' => 'get', 'url' => '/people', 'callback' => [\application\people\controllers\MainController::class, 'readList'], 'name' => 'people'],
 
-        echo '[' . implode(', ', $entry) . '],' . PHP_EOL;
+        $entries[] = '[' . implode(', ', $entry) . '],';
+    }
+
+    $entries[] = '// ' . str_repeat('-', strlen($controller)) . PHP_EOL;
+}
+
+// ok now let's create some output
+echo PHP_EOL . 'Found Files: ' . count($found) . PHP_EOL;
+echo PHP_EOL . 'Found Routes:' . PHP_EOL;
+echo PHP_EOL . '*** copy & paste as needed ***' . PHP_EOL . PHP_EOL;
+
+echo implode(PHP_EOL, $entries);
+
+echo PHP_EOL . PHP_EOL;
+
+echo PHP_EOL . 'Conflicts: ' . count($conflicts) . PHP_EOL;
+foreach ($conflicts as $string => $count) {
+    echo $string . ' used ' . $count . ' times' . PHP_EOL;
+}
+echo PHP_EOL . PHP_EOL;
+
+if (strtolower(readline('Merge? Y/(N)')) == 'y') {
+    $routesFile = __ROOT__ . '/config/routes.php';
+    if (!file_exists($routesFile)) {
+        die('Can not find ' . $routesFile . PHP_EOL);
+    }
+
+    $routerContents = file_get_contents($routesFile);
+
+    $find = '/* end merged contents */';
+    if (strpos($routerContents, $find) === false) {
+        die('Could not find "' . $find . '"' . PHP_EOL);
+    }
+
+    $newFile = [];
+
+    foreach (explode(PHP_EOL, $routerContents) as $line) {
+        if (strpos($line, $find) !== false) {
+            // found the end contents line start merge
+            $identSize = strlen(rtrim($line)) - strlen(ltrim($line));
+
+            doMerge($entries, $routerContents, $newFile, str_repeat(' ', $identSize));
+        }
+        $newFile[] = $line;
+    }
+
+    $text = implode(PHP_EOL, $newFile) . PHP_EOL;
+
+    echo $text;
+
+    if (strtolower(readline('Write? Y/(N)')) == 'y') {
+        file_put_contents($routesFile, $text);
     }
 }
 
-echo PHP_EOL . PHP_EOL;
-exit;
+function doMerge(array $entries, string $routerContents, array &$newFile, string $indent): void
+{
+    foreach ($entries as $entry) {
+        if (strpos($routerContents, $entry) === false) {
+            $newFile[] = $indent . $entry;
+        }
+    }
+}
 
 function rglob($path = '', $pattern = '*', $flags = 0)
 {
