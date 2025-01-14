@@ -225,14 +225,14 @@ class Router extends Singleton implements RouterInterface
 
         $this->matchedUrl = '';
 
-        $searchName = $this->normalize($searchName);
+        $normalizedSearchName = $this->normalize($searchName);
 
-        foreach ($this->routes as $record) {
+        foreach ($this->routes as $route) {
             $matches = [];
 
             // do we have a name and url? with && if the first test is false the second isn't even tested
-            if (isset($record['name'], $record['url']) && $this->normalize($record['name']) == $searchName && preg_match_all('/\((.*?)\)/m', $record['url'], $matches, PREG_SET_ORDER, 0) !== false) {
-                $this->matchedUrl = $this->processMatchedUrl($searchName, $arguments, $record['url'], $matches);
+            if (isset($route['name'], $route['url']) && $this->normalize($route['name']) == $normalizedSearchName && preg_match_all('/\((.*?)\)/m', $route['url'], $matches, PREG_SET_ORDER, 0) !== false) {
+                $this->matchedUrl = $this->processMatchedUrl($normalizedSearchName, $arguments, $route['url'], $matches);
 
                 // leave for loop on first solid match
                 break;
@@ -241,7 +241,7 @@ class Router extends Singleton implements RouterInterface
 
         // if we are still empty then it's a complete fail
         if (empty($this->matchedUrl)) {
-            throw new RouterNameNotFound('url route named "' . $searchName . '" not found');
+            throw new RouterNameNotFound($searchName);
         }
 
         logMsg('INFO', __METHOD__ . ' matched Url ' . $this->matchedUrl);

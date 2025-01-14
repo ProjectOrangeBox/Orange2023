@@ -27,10 +27,10 @@ class MainController extends CrudController
     protected function beforeMethodCalled()
     {
         $this->assets->scriptFiles([
-            '/js/tinybind.js',
-            '/js/sprintf.min.js',
-            '/js/app.js',
-            '/js/orangeBind/orangeFormatters.js',
+            getUrl('javascript') . '/tinybind.js',
+            getUrl('javascript') . '/sprintf.min.js',
+            getUrl('javascript') . '/app.js',
+            getUrl('javascript') . '/orangeBind/orangeFormatters.js',
             //'<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>',
         ]);
         $this->assets->linkFiles([

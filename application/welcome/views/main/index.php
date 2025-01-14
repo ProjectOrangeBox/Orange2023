@@ -341,7 +341,7 @@
 <?php fig::end(fig::AFTER) ?>
 
 <?php fig::block('css') ?>
-<link href="css/styles.css" rel="stylesheet" />
+<link href="<?=getUrl('css') ?>/styles.css" rel="stylesheet" />
 <?php fig::end(fig::AFTER) ?>
 
 <?php fig::render() ?>

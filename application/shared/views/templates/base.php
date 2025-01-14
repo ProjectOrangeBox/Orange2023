@@ -13,7 +13,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap5-dialog@5.0.1/dist/css/bootstrap-dialog.min.css" rel="stylesheet" integrity="sha256-kC2MyQPRJYHLSRXblBTMbN5U/bNzAdNA+x1g8DfGIyk=" crossorigin="anonymous">
     <?= fig::value('css') ?>
-    <link href="/css/styles.css" rel="stylesheet" />
+    <link href="<?=getUrl('css') ?>/styles.css" rel="stylesheet" />
 </head>
 
 <body id="app">
@@ -26,7 +26,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/6.0.0/bootbox.min.js" integrity="sha512-oVbWSv2O4y1UzvExJMHaHcaib4wsBMS5tEP3/YkMP6GmkwRJAa79Jwsv+Y/w7w2Vb/98/Xhvck10LyJweB8Jsw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <?= fig::value('script') ?>
-    <script src="/js/theme_scripts.js"></script>
+    <script src="<?=getUrl('javascript') ?>/theme_scripts.js"></script>
     <?= fig::value('js') ?>
 </body>
 

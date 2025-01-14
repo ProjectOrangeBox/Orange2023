@@ -87,15 +87,9 @@ return [
         ['name' => 'assets', 'url' => '/assets'],
         ['name' => 'product', 'url' => '/product/([a-z]+)/(\d+)'],
         ['name' => 'javascript', 'url' => '/assets/js'],
-        ['name' => 'css', 'url', '/assets/css'],
+        ['name' => 'css', 'url' => '/assets/css'],
         ['name' => 'images', 'url' => '/images'],
         ['name' => 'home', 'url' => '/'],
-
-        ['name' => 'assets', 'url' => '/assets'],
-        ['name' => 'javascript', 'url' => '/assets/js'],
-        ['name' => 'css', 'url', '/assets/css'],
-        ['name' => 'images', 'url' => '/images'],
-
     ],
 ];
 
