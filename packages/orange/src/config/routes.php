@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     // when they try to resolve a name to a url skip matching if the name contains
-    'getUrlSkip' => false,
+    'skip checking type' => false,
     'routes' => [],
     'matchAll' => ['get', 'post', 'put', 'delete'],
     // 404 catch all
