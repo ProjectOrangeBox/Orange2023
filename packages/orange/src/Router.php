@@ -63,6 +63,11 @@ class Router extends Singleton implements RouterInterface
     protected string $matchedUrl = '';
 
     /**
+     * Routes array where the route name is the array key for fast searching in getUrl
+     */
+    protected array $routesByName = [];
+
+    /**
      * Protected constructor to enforce Singleton usage.
      *
      * @param array $config Configuration array for routing settings.
@@ -87,8 +92,18 @@ class Router extends Singleton implements RouterInterface
         $this->siteUrl = $this->config['site'];
         $this->getUrlSkip = $this->config['getUrlSkip'];
 
-        $this->addRoutes($this->config['default routes']);
+        // add 404 first which makes it the last in the search
+        $this->addRoute($this->config['404']);
+
+        // add our default home - this could get overwritten by another home
+        $this->addRoute($this->config['home']);
+
+        // add the user supplied routes
         $this->addRoutes($this->config['routes']);
+
+        // we do very little extra processing when adding routes to keep this quick
+        // since this array is built with each page load.
+        // This would be an excellent place for caching in production for example
 
         $this->matched = [
             'request method' => null,
@@ -114,8 +129,12 @@ class Router extends Singleton implements RouterInterface
     {
         logMsg('DEBUG', __METHOD__, $options);
 
-        // last in first "found"
+        // FILO stack
         array_unshift($this->routes, $options);
+
+        // create our routes by name array for the getUrl search
+        // if it doesn't have an name then we just use a bogus record key to keep this quick
+        $this->routesByName[$this->normalize($options['name'] ?? UNDEFINED)] = $options;
 
         return $this;
     }
@@ -131,6 +150,7 @@ class Router extends Singleton implements RouterInterface
         logMsg('INFO', __METHOD__);
         logMsg('INFO', 'Routes ' . count($routes));
 
+        // put them in the array as seen in the file top to bottom
         foreach (array_reverse($routes) as $route) {
             $this->addRoute($route);
         }
@@ -152,15 +172,15 @@ class Router extends Singleton implements RouterInterface
 
         $url = false;
         $argv = [];
-        $requestMethod = strtoupper($requestMethod);
+        $requestMethodUpperCase = strtoupper($requestMethod);
 
         // main loop
         foreach ($this->routes as $route) {
-            if (isset($route['method'])) {
-                $routeMethods = (is_array($route['method'])) ? array_map('strtoupper', $route['method']) : [0 => strtoupper($route['method'])];
+            if (isset($route['method'], $route['url'])) {
+                $routeMethods = is_array($route['method']) ? array_map('strtoupper', $route['method']) : [0 => strtoupper($route['method'])];
 
                 // check if the current request method matches and the expression matches
-                if ((in_array($requestMethod, $routeMethods) || $route['method'] == '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
+                if ((in_array($requestMethodUpperCase, $routeMethods) || $route['method'] == '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
                     // remove the first arg
                     $url = array_shift($argv);
 
@@ -176,7 +196,7 @@ class Router extends Singleton implements RouterInterface
         }
 
         $this->matched = [
-            'request method' => $requestMethod,
+            'request method' => $requestMethodUpperCase,
             'request uri' => $requestUri,
             'matched uri' => $route['url'] ?? null,
             'matched method' => $routeMethods[0] ?? null,
@@ -224,20 +244,25 @@ class Router extends Singleton implements RouterInterface
         logMsg('INFO', __METHOD__ . ' ' . $searchName);
         logMsg('DEBUG', '', ['searchName' => $searchName, 'arguments' => $arguments]);
 
-        $this->matchedUrl = '';
-
         $normalizedSearchName = $this->normalize($searchName);
 
-        foreach ($this->routes as $route) {
-            $matches = [];
+        if (!isset($this->routesByName[$normalizedSearchName])) {
+            throw new RouterNameNotFound($searchName);
+        }
 
-            // do we have a name and url? with && if the first test is false the second isn't even tested
-            if (isset($route['name'], $route['url']) && $this->normalize($route['name']) == $normalizedSearchName && preg_match_all('/\((.*?)\)/m', $route['url'], $matches, PREG_SET_ORDER, 0) !== false) {
-                $this->matchedUrl = $this->processMatchedUrl($normalizedSearchName, $arguments, $route['url'], $matches);
+        $options = $this->routesByName[$normalizedSearchName];
 
-                // leave for loop on first solid match
-                break;
-            }
+        if (!isset($options['url'])) {
+            throw new InvalidValue('missing "url" for route named ' . $searchName);
+        }
+
+        $matches = [];
+
+        $this->matchedUrl = '';
+
+        // merge the arguments with the available parameters
+        if (preg_match_all('/\((.*?)\)/m', $options['url'], $matches, PREG_SET_ORDER, 0) !== false) {
+            $this->matchedUrl = $this->processMatchedUrl($searchName, $arguments, $options['url'], $matches);
         }
 
         // if we are still empty then it's a complete fail
