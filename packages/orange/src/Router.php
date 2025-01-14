@@ -168,47 +168,44 @@ class Router extends Singleton implements RouterInterface
      */
     public function match(string $requestUri, string $requestMethod): self
     {
-        logMsg('DEBUG', __METHOD__, ['requestUri' => $requestUri, 'requestMethod' => $requestMethod]);
+        logMsg('DEBUG', __METHOD__, compact('requestUri', 'requestMethod'));
 
-        $url = false;
-        $argv = [];
-        $requestMethodUpperCase = strtoupper($requestMethod);
+        $requestMethodUpper = strtoupper($requestMethod);
 
-        // main loop
         foreach ($this->routes as $route) {
-            if (isset($route['method'], $route['url'])) {
-                $routeMethods = is_array($route['method']) ? array_map('strtoupper', $route['method']) : [0 => strtoupper($route['method'])];
+            // if the route doesn't have a method or url then just skip it
+            if (!isset($route['method'], $route['url'])) {
+                continue;
+            }
 
-                // check if the current request method matches and the expression matches
-                if ((in_array($requestMethodUpperCase, $routeMethods) || $route['method'] == '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
-                    // remove the first arg
-                    $url = array_shift($argv);
+            $methods = array_map('strtoupper', (array)$route['method']);
 
-                    // pop out of foreach loop
-                    break;
-                }
+            if ((in_array($requestMethodUpper, $methods) || $route['method'] === '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
+                $url = array_shift($argv);
+
+                $this->matched = [
+                    'request method' => $requestMethodUpper,
+                    'request uri' => $requestUri,
+                    'matched uri' => $route['url'],
+                    'matched method' => $route['method'],
+                    'url' => $url,
+                    'argv' => $argv,
+                    'argc' => count($argv),
+                    'args' => !empty($argv),
+                    'name' => $route['name'] ?? null,
+                    'callback' => $route['callback'] ?? null,
+                ];
+
+                logMsg('DEBUG', 'Route matched.', $this->matched);
+
+                // we found a match break from foreach loop
+                break;
             }
         }
 
-        // did we match a url?
-        if (!$url) {
-            throw new RouteNotFound('[' . $requestMethod . ']' . $requestUri);
+        if (!$this->matched['matched uri']) {
+            throw new RouteNotFound("[$requestMethod] $requestUri");
         }
-
-        $this->matched = [
-            'request method' => $requestMethodUpperCase,
-            'request uri' => $requestUri,
-            'matched uri' => $route['url'] ?? null,
-            'matched method' => $routeMethods[0] ?? null,
-            'url' => $url,
-            'argv' => $argv,
-            'argc' => count($argv),
-            'args' => (bool)count($argv),
-            'name' => $route['name'] ?? null,
-            'callback' => $route['callback'] ?? null,
-        ];
-
-        logMsg('DEBUG', 'matched', $this->matched);
 
         return $this;
     }
@@ -289,24 +286,11 @@ class Router extends Singleton implements RouterInterface
      *
      * @return string The generated base URL with the specified prefix.
      */
-    public function siteUrl(bool|string $appendHttp = true): string
+    public function siteUrl(bool|string $prefix = true): string
     {
-        logMsg('INFO', __METHOD__ . ' ' . $appendHttp);
-
-        $prefix = '';
-
-        if ($appendHttp === true) {
-            $s = $this->input->isHttpsRequest() ? 's' : '';
-            $prefix = ($appendHttp) ? 'http' . $s . '://' : '';
-        } elseif (is_string($appendHttp)) {
-            $prefix = $appendHttp;
-        }
-
-        $complete = $prefix . $this->siteUrl;
-
-        logMsg('INFO', $complete);
-
-        return $complete;
+        $scheme = is_string($prefix) ? $prefix : ($this->input->isHttpsRequest() ? 'https://' : 'http://');
+        
+        return $prefix ? $scheme . $this->siteUrl : $this->siteUrl;
     }
 
     /**

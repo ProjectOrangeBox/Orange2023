@@ -18,8 +18,7 @@ final class RouterTest extends unitTestHelper
     {
         $config = [
             'site' => 'www.example.com',
-            'routes' => [],
-            'default routes' => [
+            'routes' => [
                 ['method' => '*', 'name' => 'product', 'url' => '/product/([a-z]+)/(\d+)'],
 
                 ['method' => 'get', 'name' => 'productg', 'url' => '/getter/([a-z]+)/(\d+)', 'callback' => $this->callback],
@@ -28,8 +27,12 @@ final class RouterTest extends unitTestHelper
                 ['method' => 'delete', 'name' => 'productd', 'url' => '/remove/([a-z]+)', 'callback' => $this->callback],
                 ['method' => 'header', 'name' => 'producth', 'url' => '/view/([a-z]+)', 'callback' => $this->callback],
             ],
+            // remove the defaults!!
+            '404'=>[],
+            'home'=>[],
         ];
 
+        // don't force a https switch in the input service
         $this->instance = Router::getInstance($config, Input::getInstance([
             'force https' => false,
         ]));
@@ -112,42 +115,42 @@ final class RouterTest extends unitTestHelper
 
         $this->expectException(InvalidValue::class);
 
-        $this->assertNull($this->instance->getMatched('foobar')); // there is no value foobar
+        $this->instance->getMatched('foobar');
     }
 
     public function testGetUrlInvalidValueException(): void
     {
         $this->expectException(InvalidValue::class);
 
-        $this->assertNull($this->instance->getUrl('product', [890], false));
+        $this->instance->getUrl('product', [890], false);
     }
 
     public function testGetUrlParameterInvalidValueException(): void
     {
         $this->expectException(InvalidValue::class);
 
-        $this->assertNull($this->instance->getUrl('product', ['abc', 'xyz'], false));
+        $this->instance->getUrl('product', ['abc', 'xyz'], false);
     }
 
     public function testMatchRouteNotFoundException1(): void
     {
         $this->expectException(RouteNotFound::class);
 
-        $this->assertNull($this->instance->match('/bla/bla/bla', 'GET'));
+        $this->instance->match('/bla/bla/bla', 'GET');
     }
 
     public function testMatchRouteNotFoundException2(): void
     {
         $this->expectException(RouteNotFound::class);
 
-        $this->assertNull($this->instance->match('/poster', 'GET'));
+        $this->instance->match('/poster', 'GET');
     }
 
     public function testGetUrlRouterNameNotFound(): void
     {
         $this->expectException(RouterNameNotFound::class);
 
-        $this->assertNull($this->instance->getUrl('notreal'));
+        $this->instance->getUrl('notreal');
     }
 
     public function testConfigNotFoundException(): void
@@ -156,8 +159,6 @@ final class RouterTest extends unitTestHelper
 
         $this->expectException(MissingRequired::class);
 
-        $this->assertNull(Router::getInstance([
-            'site' => null // REQUIRED!
-        ], Input::getInstance([])));
+        Router::getInstance(['site' => null], Input::getInstance([]));
     }
 }
