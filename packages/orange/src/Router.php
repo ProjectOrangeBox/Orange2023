@@ -87,8 +87,8 @@ class Router extends Singleton implements RouterInterface
         $this->siteUrl = $this->config['site'];
         $this->getUrlSkip = $this->config['getUrlSkip'];
 
-        $this->addRoutes($this->config['routes']);
         $this->addRoutes($this->config['default routes']);
+        $this->addRoutes($this->config['routes']);
 
         $this->matched = [
             'request method' => null,
@@ -114,7 +114,8 @@ class Router extends Singleton implements RouterInterface
     {
         logMsg('DEBUG', __METHOD__, $options);
 
-        $this->routes[] = $options;
+        // last in first "found"
+        array_unshift($this->routes, $options);
 
         return $this;
     }
@@ -130,7 +131,7 @@ class Router extends Singleton implements RouterInterface
         logMsg('INFO', __METHOD__);
         logMsg('INFO', 'Routes ' . count($routes));
 
-        foreach ($routes as $route) {
+        foreach (array_reverse($routes) as $route) {
             $this->addRoute($route);
         }
 
@@ -176,7 +177,7 @@ class Router extends Singleton implements RouterInterface
         $this->matched = [
             'request method' => $requestMethod,
             'request uri' => $requestUri,
-            'matched uri' => $route['url'],
+            'matched uri' => $route['url'] ?? null,
             'matched method' => $matchedMethod[0],
             'url' => $url,
             'argv' => $argv,

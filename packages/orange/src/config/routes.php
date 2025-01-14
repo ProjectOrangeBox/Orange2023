@@ -12,10 +12,5 @@ return [
 
         // 404 catch all
         ['method' => '*', 'url' => '(.*)', 'callback' => [\orange\framework\controllers\FourohfourController::class, 'index'], 'name' => 'fourohfour'],
-
-        ['name' => 'assets', 'url' => '/assets'],
-        ['name' => 'javascript', 'url' => '/assets/js'],
-        ['name' => 'css', 'url', '/assets/css'],
-        ['name' => 'images', 'url' => '/images'],
     ],
 ];

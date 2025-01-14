@@ -90,6 +90,12 @@ return [
         ['name' => 'css', 'url', '/assets/css'],
         ['name' => 'images', 'url' => '/images'],
         ['name' => 'home', 'url' => '/'],
+
+        ['name' => 'assets', 'url' => '/assets'],
+        ['name' => 'javascript', 'url' => '/assets/js'],
+        ['name' => 'css', 'url', '/assets/css'],
+        ['name' => 'images', 'url' => '/images'],
+
     ],
 ];
 
