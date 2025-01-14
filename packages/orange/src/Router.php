@@ -151,15 +151,16 @@ class Router extends Singleton implements RouterInterface
         logMsg('DEBUG', __METHOD__, ['requestUri' => $requestUri, 'requestMethod' => $requestMethod]);
 
         $url = false;
+        $argv = [];
         $requestMethod = strtoupper($requestMethod);
 
         // main loop
         foreach ($this->routes as $route) {
             if (isset($route['method'])) {
-                $matchedMethod = (is_array($route['method'])) ? array_map('strtoupper', $route['method']) : [0 => strtoupper($route['method'])];
+                $routeMethods = (is_array($route['method'])) ? array_map('strtoupper', $route['method']) : [0 => strtoupper($route['method'])];
 
                 // check if the current request method matches and the expression matches
-                if ((in_array($requestMethod, $matchedMethod) || $route['method'] == '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
+                if ((in_array($requestMethod, $routeMethods) || $route['method'] == '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
                     // remove the first arg
                     $url = array_shift($argv);
 
@@ -169,16 +170,16 @@ class Router extends Singleton implements RouterInterface
             }
         }
 
+        // did we match a url?
         if (!$url) {
             throw new RouteNotFound('[' . $requestMethod . ']' . $requestUri);
         }
 
-        /* What is returned by getMatched() if no key is provided */
         $this->matched = [
             'request method' => $requestMethod,
             'request uri' => $requestUri,
             'matched uri' => $route['url'] ?? null,
-            'matched method' => $matchedMethod[0],
+            'matched method' => $routeMethods[0] ?? null,
             'url' => $url,
             'argv' => $argv,
             'argc' => count($argv),
