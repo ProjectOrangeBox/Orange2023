@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace orange\framework;
 
+use peels\cache\CacheInterface;
 use orange\framework\base\Singleton;
 use orange\framework\exceptions\InvalidValue;
 use orange\framework\interfaces\InputInterface;
@@ -58,7 +59,7 @@ class Router extends Singleton implements RouterInterface
     protected bool $skipCheckingType = false;
 
     /**
-     * Routes array where the route name is the array key for fast searching in getUrl
+     * Array of routes sorted by the route name
      */
     protected array $routesByName = [];
 
@@ -69,7 +70,7 @@ class Router extends Singleton implements RouterInterface
      * @param InputInterface $input Provides request-related data.
      * @throws MissingRequired If the 'site' configuration is missing.
      */
-    protected function __construct(array $config, InputInterface $input)
+    protected function __construct(array $config, InputInterface $input, ?CacheInterface $cache)
     {
         logMsg('INFO', __METHOD__);
 
@@ -128,7 +129,7 @@ class Router extends Singleton implements RouterInterface
         array_unshift($this->routes, $options);
 
         // create our routes by name array for the getUrl search
-        // if it doesn't have an name then we just use a bogus record key to keep this quick
+        // if it doesn't have a name then we just use a bogus array key to keep this quick without additional logic
         $this->routesByName[$this->normalize($options['name'] ?? UNDEFINED)] = $options;
 
         return $this;
@@ -145,7 +146,7 @@ class Router extends Singleton implements RouterInterface
         logMsg('INFO', __METHOD__);
         logMsg('INFO', 'Routes ' . count($routes));
 
-        // put them in the array as seen in the file top to bottom
+        // put them in the array the same way they where sent in - top to bottom
         foreach (array_reverse($routes) as $route) {
             $this->addRoute($route);
         }
@@ -259,23 +260,22 @@ class Router extends Singleton implements RouterInterface
         if (count($matches) != count($arguments)) {
             throw new InvalidValue('Parameter count mismatch. Expecting ' . count($matches) . ' got ' . count($arguments) . ' route named "' . $searchName . '".');
         }
-        
+
         $matchedUrl = $url;
 
         if ($hasArgs) {
             foreach ($matches as $index => $match) {
                 // convert to a string
                 $value = (string)$arguments[$index];
-    
+
                 // make sure the argument matches the regular expression for that segement
                 if (!$this->skipCheckingType && !preg_match('@' . $match[0] . '@m', $value)) {
                     throw new InvalidValue('Parameter mismatch. Expecting ' . $match[1] . ' got ' . $value);
                 }
-    
+
                 // replace the segement with the passed argument
                 $matchedUrl = preg_replace('/' . preg_quote($match[0], '/') . '/', $value, $matchedUrl, 1);
             }
-    
         }
 
         // if we are still empty then it's a complete fail
