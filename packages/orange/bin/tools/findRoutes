@@ -208,13 +208,21 @@ function splitAttr(string $comment, array $options): array
     $return = [];
 
     if (isset($args[0])) {
-        $return['method'] = trim($args[0]);
+        $method = trim($args[0]);
+
+        if (strpos($method, '|')) {
+            $methods = explode('|', $method);
+
+            $return['method'] = "['" . implode("','", $methods) . "']";
+        } else {
+            $return['method'] = "'" . $method . "'";
+        }
     }
     if (isset($args[1])) {
-        $return['url'] = trim($args[1]);
+        $return['url'] = "'" . trim($args[1]) . "'";
     }
     if (isset($args[2])) {
-        $return['name'] = trim($args[2]);
+        $return['name'] = "'" . trim($args[2]) . "'";
     }
 
     return $return;
@@ -293,20 +301,30 @@ function process(array $found): array
                 $conflicts[$urlKey] = $conflicts[$urlKey] ?? 1;
                 $conflicts[$urlKey] = $conflicts[$urlKey] + 1;
             }
+
             $urlConflicts[$urlKey] = $urlKey;
 
             if (in_array($nameKey, $nameConflicts)) {
                 $conflicts[$nameKey] = $conflicts[$nameKey] ?? 1;
                 $conflicts[$nameKey] = $conflicts[$nameKey] + 1;
             }
+
             $nameConflicts[$nameKey] = $nameKey;
 
-            foreach ($line['attr'] as $name => $value) {
-                $entry[] = "'" . $name . "' => '" . $value . "'";
+            if (isset($line['attr']['method'])) {
+                $entry[] = "'method' => " . $line['attr']['method'];
+            }
+
+            if (isset($line['attr']['url'])) {
+                $entry[] = "'url' => " . $line['attr']['url'];
             }
 
             if (isset($line['fullclass'])) {
                 $entry[] = "'callback' => [" . $line['fullclass'] . "::class, '" . $line['function'] . "']";
+            }
+
+            if (isset($line['attr']['name'])) {
+                $entry[] = "'name' => " . $line['attr']['name'];
             }
 
             // now build PHP
