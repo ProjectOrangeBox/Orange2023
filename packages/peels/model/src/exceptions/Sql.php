@@ -8,5 +8,4 @@ use peels\model\exceptions\Model;
 
 class Sql extends Model
 {
-
 }

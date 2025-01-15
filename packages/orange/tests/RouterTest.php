@@ -28,8 +28,8 @@ final class RouterTest extends unitTestHelper
                 ['method' => 'header', 'name' => 'producth', 'url' => '/view/([a-z]+)', 'callback' => $this->callback],
             ],
             // remove the defaults!!
-            '404'=>[],
-            'home'=>[],
+            '404' => [],
+            'home' => [],
         ];
 
         // don't force a https switch in the input service

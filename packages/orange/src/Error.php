@@ -77,7 +77,7 @@ class Error extends Singleton
      */
     public string $requestTypeDirectory = '';
 
-    /** 
+    /**
      * The view file used for rendering
      */
     public string $viewFile = '';

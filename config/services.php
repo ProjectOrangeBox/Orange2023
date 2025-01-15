@@ -48,7 +48,7 @@ use orange\framework\interfaces\ContainerInterface;
  * 6. create service alias if for example you use the same database connection on development but different ones on production
  *
  * This saves resources and makes faster applications
- * 
+ *
  * These are merged over the default services
  * If you want to replace a default service simply redeclare it here
  * you can see the defaults in packages/orange/src/config/services.php

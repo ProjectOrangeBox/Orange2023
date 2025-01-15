@@ -64,7 +64,7 @@ final class ViewerTest extends unitTestHelper
     public function testRenderViewNotFoundException(): void
     {
         $this->expectException(ViewNotFound::class);
-        
+
         $this->assertNull($this->instance->render('dummy'));
     }
 

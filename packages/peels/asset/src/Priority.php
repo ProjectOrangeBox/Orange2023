@@ -69,7 +69,7 @@ class Priority implements PriorityInterface
     {
         foreach ($array as $name => $value) {
             if (!is_string($name) || !is_string($value)) {
-                throw new \InvalidArgumentException("Invalid name or value type.");            
+                throw new \InvalidArgumentException("Invalid name or value type.");
             } else {
                 $this->add($name, $value, $append, $priority);
             }

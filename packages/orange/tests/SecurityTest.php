@@ -93,7 +93,7 @@ final class SecurityTest extends unitTestHelper
 
         $savedInDb = $this->instance->encodePassword($password);
 
-        $this->assertTrue($this->instance->verifyPassword($savedInDb,$password));
-        $this->assertFalse($this->instance->verifyPassword($savedInDb,'foobar'));
+        $this->assertTrue($this->instance->verifyPassword($savedInDb, $password));
+        $this->assertFalse($this->instance->verifyPassword($savedInDb, 'foobar'));
     }
 }

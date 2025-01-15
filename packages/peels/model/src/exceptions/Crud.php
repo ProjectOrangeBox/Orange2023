@@ -8,5 +8,4 @@ use peels\model\exceptions\Model;
 
 class Crud extends Model
 {
-
 }
