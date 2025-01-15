@@ -70,7 +70,7 @@ class Router extends Singleton implements RouterInterface
      * @param InputInterface $input Provides request-related data.
      * @throws MissingRequired If the 'site' configuration is missing.
      */
-    protected function __construct(array $config, InputInterface $input, ?CacheInterface $cache)
+    protected function __construct(array $config, InputInterface $input)
     {
         logMsg('INFO', __METHOD__);
 
@@ -82,8 +82,6 @@ class Router extends Singleton implements RouterInterface
         }
 
         $this->input = $input;
-
-        $this->routes = [];
 
         $this->siteUrl = $this->config['site'];
         $this->skipCheckingType = $this->config['skip checking type'];
@@ -244,25 +242,27 @@ class Router extends Singleton implements RouterInterface
             throw new RouterNameNotFound($searchName);
         }
 
-        $options = $this->routesByName[$normalizedSearchName];
-
-        if (!isset($options['url'])) {
+        if (!isset($this->routesByName[$normalizedSearchName]['url'])) {
             throw new InvalidValue('missing "url" for route named ' . $searchName);
         }
 
-        $url = $options['url'];
+        // let's begin
+        $url = $this->routesByName[$normalizedSearchName]['url'];
 
         $matches = [];
 
         // merge the arguments with the available parameters
         $hasArgs = preg_match_all('/\((.*?)\)/m', $url, $matches, PREG_SET_ORDER, 0);
 
+        // do the number of arguments passed in match the number of arguments in the url?
         if (count($matches) != count($arguments)) {
             throw new InvalidValue('Parameter count mismatch. Expecting ' . count($matches) . ' got ' . count($arguments) . ' route named "' . $searchName . '".');
         }
 
+        // ok let's start off with the url
         $matchedUrl = $url;
 
+        // does this url have any arguments?
         if ($hasArgs) {
             foreach ($matches as $index => $match) {
                 // convert to a string
@@ -278,7 +278,7 @@ class Router extends Singleton implements RouterInterface
             }
         }
 
-        // if we are still empty then it's a complete fail
+        // is the matchedUrl now empty?
         if (empty($matchedUrl)) {
             throw new RouterNameNotFound($searchName);
         }
