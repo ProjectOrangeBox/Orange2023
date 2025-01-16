@@ -327,7 +327,11 @@ class Router extends Singleton implements RouterInterface
      */
     public function siteUrl(bool|string $prefix = true): string
     {
-        $scheme = is_string($prefix) ? $prefix : ($this->input->isHttpsRequest() ? 'https://' : 'http://');
+        if (is_string($prefix)) {
+            $scheme = $prefix;
+        } else {
+            $scheme = ($this->input->isHttpsRequest() ? 'https://' : 'http://');
+        }
 
         return $prefix ? $scheme . $this->siteUrl : $this->siteUrl;
     }
