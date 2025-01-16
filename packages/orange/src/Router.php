@@ -142,20 +142,18 @@ class Router extends Singleton implements RouterInterface
             $methods = $options['method'] == '*' ? $this->matchAll : (array)$options['method'];
 
             foreach ($methods as $method) {
-                $methodUpper = strtoupper($method);
+                $methodUpper = mb_strtoupper($method);
 
-                $current = $this->routes[$methodUpper] ?? [];
+                $this->routes[$methodUpper] = $this->routes[$methodUpper] ?? [];
 
                 // FILO stack
-                array_unshift($current, $options);
-
-                $this->routes[$methodUpper] = $current;
+                array_unshift($this->routes[$methodUpper], $options);
             }
         }
 
-        // create our routes by name array for the getUrl search
-        // if it doesn't have a name then we just use a bogus array key to keep this quick without additional logic
-        $this->routesByName[$this->normalize($options['name'] ?? UNDEFINED)] = $options;
+        if (isset($options['name'])) {
+            $this->routesByName[mb_strtolower($options['name'])] = $options;
+        }
 
         return $this;
     }
@@ -191,17 +189,15 @@ class Router extends Singleton implements RouterInterface
     {
         logMsg('DEBUG', __METHOD__, compact('requestUri', 'requestMethod'));
 
-        $requestMethodUpper = strtoupper($requestMethod);
+        $requestMethodUpper = mb_strtoupper($requestMethod);
 
         foreach ($this->routes[$requestMethodUpper] ?? [] as $route) {
             // if the route doesn't have a method or url then just skip it
-            if (!isset($route['method'], $route['url'])) {
+            if (!isset($route['url'])) {
                 continue;
             }
 
-            $methods = array_map('strtoupper', (array)$route['method']);
-
-            if ((in_array($requestMethodUpper, $methods) || $route['method'] === '*') && preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
+            if (preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
                 $url = array_shift($argv);
 
                 $this->matched = [
@@ -263,18 +259,18 @@ class Router extends Singleton implements RouterInterface
         logMsg('INFO', __METHOD__ . ' ' . $searchName);
         logMsg('DEBUG', '', ['searchName' => $searchName, 'arguments' => $arguments]);
 
-        $normalizedSearchName = $this->normalize($searchName);
+        $lowercaseSearchName = mb_strtolower($searchName);
 
-        if (!isset($this->routesByName[$normalizedSearchName])) {
+        if (!isset($this->routesByName[$lowercaseSearchName])) {
             throw new RouterNameNotFound($searchName);
         }
 
-        if (!isset($this->routesByName[$normalizedSearchName]['url'])) {
+        if (!isset($this->routesByName[$lowercaseSearchName]['url'])) {
             throw new InvalidValue('missing "url" for route named ' . $searchName);
         }
 
         // let's begin
-        $url = $this->routesByName[$normalizedSearchName]['url'];
+        $url = $this->routesByName[$lowercaseSearchName]['url'];
 
         $matches = [];
 

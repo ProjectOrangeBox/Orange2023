@@ -53,6 +53,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
         if (isset($config['config directory'])) {
             // Validate and add the default configuration directory
             if ($configDirectory = realpath($config['config directory'])) {
+                // first searched
                 $this->searchPaths[] = $configDirectory;
             } else {
                 throw new DirectoryNotFound($config['config directory']);
@@ -61,6 +62,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
             // Setup environment-specific configuration directory
             if (!($config['skip env'] ?? false)) {
                 if (defined('ENVIRONMENT') && $envDirectory = realpath($config['config directory'] . DIRECTORY_SEPARATOR . ENVIRONMENT)) {
+                    // second searched
                     $this->searchPaths[] = $envDirectory;
                 }
             }
