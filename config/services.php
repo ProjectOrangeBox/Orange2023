@@ -11,9 +11,11 @@ use peels\console\Console;
 use peels\session\Session;
 use peels\validate\Filter;
 use peels\cache\DummyCache;
+use peels\cache\FilesCache;
 use orange\framework\Router;
 use peels\language\Language;
 use peels\validate\Validate;
+use peels\cache\IncludeCache;
 use peels\collector\Collector;
 use peels\mergeView\MergeView;
 use peels\negotiate\Negotiate;
@@ -39,7 +41,6 @@ use peels\validate\interfaces\FilterInterface;
 use orange\framework\interfaces\RouterInterface;
 use peels\validate\interfaces\ValidateInterface;
 use orange\framework\interfaces\ContainerInterface;
-use peels\cache\FilesCache;
 
 /**
  * By placing the services inside a closure they are not created UNTIL they are called
@@ -63,11 +64,11 @@ return [
     'router' => function (ContainerInterface $container): RouterInterface {
         // if in production then we can cache the routes for faster access
         // this key would need to be flushed in order enable new routes
-        if (ENVIRONMENT == 'production') {
-            return Router::getInstance($container->config->routes, $container->input, $container->cache);
-        } else {
-            return Router::getInstance($container->config->routes, $container->input);
-        }
+        //if (ENVIRONMENT == 'production') {
+        return Router::getInstance($container->config->routes, $container->input, $container->phpcache);
+        //} else {
+        //return Router::getInstance($container->config->routes, $container->input);
+        //}
     },
     'console' => function (ContainerInterface $container): ConsoleInterface {
         return Console::getInstance($container->config->console, $container->input);
@@ -102,12 +103,13 @@ return [
         return Filter::getInstance($container->validate, $container->input);
     },
 
-    '@cache' => 'fcache',
-
-    'fcache'=>function (ContainerInterface $container): CacheInterface {
+    '@cache' => 'phpcache',
+    'phpcache' => function (ContainerInterface $container): CacheInterface {
+        return IncludeCache::getInstance($container->config->cache);
+    },
+    'fcache' => function (ContainerInterface $container): CacheInterface {
         return FilesCache::getInstance($container->config->cache);
     },
-
     'mcache' => function (ContainerInterface $container): CacheInterface {
         return MemcachedCache::getInstance($container->config->cache);
     },
