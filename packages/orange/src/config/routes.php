@@ -6,7 +6,7 @@ return [
     // when they try to resolve a name to a url skip matching if the name contains
     'skip checking type' => false,
     'routes' => [],
-    'match all' => ['GET', 'POST', 'PUT', 'DELETE'],
+    'match all' => ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     // 404 catch all
     '404' => ['method' => '*', 'url' => '(.*)', 'callback' => [\orange\framework\controllers\FourohfourController::class, 'index'], 'name' => 'fourohfour'],
     // home page
