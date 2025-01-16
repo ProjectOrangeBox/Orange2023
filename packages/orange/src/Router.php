@@ -63,6 +63,8 @@ class Router extends Singleton implements RouterInterface
      */
     protected array $routesByName = [];
 
+    protected array $matchAll = [];
+
     /**
      * Protected constructor to enforce Singleton usage.
      *
@@ -70,7 +72,7 @@ class Router extends Singleton implements RouterInterface
      * @param InputInterface $input Provides request-related data.
      * @throws MissingRequired If the 'site' configuration is missing.
      */
-    protected function __construct(array $config, InputInterface $input)
+    protected function __construct(array $config, InputInterface $input, ?CacheInterface $cache = null)
     {
         logMsg('INFO', __METHOD__);
 
@@ -85,19 +87,20 @@ class Router extends Singleton implements RouterInterface
 
         $this->siteUrl = $this->config['site'];
         $this->skipCheckingType = $this->config['skip checking type'];
+        $this->matchAll = $this->config['match all'];
 
-        // add 404 first which makes it the last in the search
-        $this->addRoute($this->config['404']);
-
-        // add our default home - this could get overwritten by another home
-        $this->addRoute($this->config['home']);
-
-        // add the user supplied routes
-        $this->addRoutes($this->config['routes']);
-
-        // we do very little extra processing when adding routes to keep this quick
-        // since this array is built with each page load.
-        // This would be an excellent place for caching in production for example
+        // if cache is supplied then use it
+        if ($cache) {
+            if (!$routes = $cache->get(__CLASS__)) {
+                $this->loadRoutes();
+                $cache->set(__CLASS__, ['routes' => $this->routes, 'routesByName' => $this->routesByName]);
+            } else {
+                $this->routes = $routes['routes'];
+                $this->routesByName = $routes['routesByName'];
+            }
+        } else {
+            $this->loadRoutes();
+        }
 
         $this->matched = [
             'request method' => null,
@@ -113,6 +116,18 @@ class Router extends Singleton implements RouterInterface
         ];
     }
 
+    protected function loadRoutes(): void
+    {
+        // add 404 first which makes it the last in the search
+        $this->addRoute($this->config['404']);
+
+        // add our default home - this could get overwritten by another home
+        $this->addRoute($this->config['home']);
+
+        // add the user supplied routes
+        $this->addRoutes($this->config['routes']);
+    }
+
     /**
      * Adds a single route definition.
      *
@@ -123,8 +138,20 @@ class Router extends Singleton implements RouterInterface
     {
         logMsg('DEBUG', __METHOD__, $options);
 
-        // FILO stack
-        array_unshift($this->routes, $options);
+        if (isset($options['method'])) {
+            $methods = $options['method'] == '*' ? $this->matchAll : (array)$options['method'];
+
+            foreach ($methods as $method) {
+                $methodUpper = strtoupper($method);
+
+                $current = $this->routes[$methodUpper] ?? [];
+
+                // FILO stack
+                array_unshift($current, $options);
+
+                $this->routes[$methodUpper] = $current;
+            }
+        }
 
         // create our routes by name array for the getUrl search
         // if it doesn't have a name then we just use a bogus array key to keep this quick without additional logic
@@ -166,7 +193,7 @@ class Router extends Singleton implements RouterInterface
 
         $requestMethodUpper = strtoupper($requestMethod);
 
-        foreach ($this->routes as $route) {
+        foreach ($this->routes[$requestMethodUpper] ?? [] as $route) {
             // if the route doesn't have a method or url then just skip it
             if (!isset($route['method'], $route['url'])) {
                 continue;
