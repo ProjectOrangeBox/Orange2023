@@ -49,6 +49,7 @@
         "aplus/session": "^3",
         "aplus/cache": "^3",
         "michelf/php-markdown": "^2",
-        "zordius/lightncandy": "^1"
+        "zordius/lightncandy": "^1",
+        "brick/varexporter": "^0.5.0"
     }
 }

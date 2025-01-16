@@ -12,8 +12,9 @@ class IncludeCache implements CacheInterface
     private static CacheInterface $instance;
 
     protected string $directory;
-    protected string $parentDirectory = 'include';
+    protected string $parentDirectory;
     protected int $subDirectoryLength = 1;
+    protected int $ttl = 0;
 
     public function __construct(array $config)
     {
@@ -27,9 +28,17 @@ class IncludeCache implements CacheInterface
             throw new DirectoryNotFound($this->directory);
         }
 
-        if (!is_writable($this->directory)) {
-            throw new DirectoryNotWritable($this->directory);
-        }
+        $this->parentDirectory = $config['parentDirectory'] ?? 'include';
+        $this->subDirectoryLength = $config['sub directory length'] ?? 1;
+
+        // time to live in seconds
+        $ttl = $config['ttl'] ?? 600;
+
+        // sliding window in seconds to try to stop a race condition
+        // when they all expire at the same time
+        $window = $config['ttl window'] ?? 30;
+
+        $this->ttl = mt_rand($ttl - (int)($window / 2), $ttl + (int)($window / 2));
     }
 
     public static function getInstance(array $config): self
@@ -45,18 +54,37 @@ class IncludeCache implements CacheInterface
     {
         $completeDirectory = $this->buildFilePath($key);
 
-        $content = null;
+        $data = null;
 
         if (file_exists($completeDirectory)) {
             $content = include $completeDirectory;
+
+            if ($content['filextime'] > time()) {
+                $data = $content['data'];
+            }
         }
 
-        return $content;
+        return $data;
     }
 
     public function set(string $key, mixed $value, int $ttl = null): bool
     {
-        return $this->file_put_contents_atomic($this->buildFilePath($key), $this->convert2include($value)) > 0;
+        $time = time();
+
+        $ttl = $ttl ?? $this->ttl;
+
+        $array = [
+            'filemtime' => $time,
+            'filextime' => $time + $ttl,
+            'data' => $value,
+        ];
+
+        // only test this on write
+        if (!is_writable($this->directory)) {
+            throw new DirectoryNotWritable($this->directory);
+        }
+
+        return $this->file_put_contents_atomic($this->buildFilePath($key), $this->var_export($array)) > 0;
     }
 
     public function delete(string $key): bool
@@ -96,8 +124,10 @@ class IncludeCache implements CacheInterface
     {
         $set = [];
 
+        $ttl = $ttl ?? $this->ttl;
+
         foreach ($data as $key => $value) {
-            $set[$key] = $this->set($key, $value);
+            $set[$key] = $this->set($key, $value, $ttl);
         }
 
         return $set;
@@ -139,9 +169,26 @@ class IncludeCache implements CacheInterface
         return $subPath . '/' . $key . '.php';
     }
 
-    protected function convert2include(array $array): string
+    protected function var_export(array $array): string
     {
-        return '<?php' . PHP_EOL . PHP_EOL . 'declare(strict_types=1);' . PHP_EOL . PHP_EOL . 'return ' . var_export($array, true) . ';' . PHP_EOL;
+        $string = (\Composer\InstalledVersions::isInstalled('brick/varexporter')) ? \Brick\VarExporter\VarExporter::export($array) : var_export($array, true);
+
+        return $this->buildFile($string);
+    }
+
+    protected function buildFile(string $return): string
+    {
+        $php[] = '<?php';
+        $php[] = '';
+        $php[] = '';
+        $php[] = 'declare(strict_types=1);';
+        $php[] = '';
+        $php[] = '// Written: ' . date('Y-m-d H:i:s');
+        $php[] = '';
+        $php[] = 'return ' . $return . ';';
+        $php[] = '';
+
+        return implode(PHP_EOL, $php);
     }
 
     protected function file_put_contents_atomic(string $filePath, string $content, int $flags = 0, $context = null): int|false

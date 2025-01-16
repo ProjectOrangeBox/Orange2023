@@ -2,6 +2,8 @@
 
 return [
     'directory' => __ROOT__ . '/var/cache',
+    'ttl' => 600,
+    'ttl window' => 30,
     'files_permission' => 0644,
     'gc' => 1,
     'servers' => [
