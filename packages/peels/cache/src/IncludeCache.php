@@ -15,6 +15,7 @@ class IncludeCache implements CacheInterface
     protected string $parentDirectory;
     protected int $subDirectoryLength = 1;
     protected int $ttl = 0;
+    protected int $ttlWindow = 0;
 
     public function __construct(array $config)
     {
@@ -32,13 +33,11 @@ class IncludeCache implements CacheInterface
         $this->subDirectoryLength = $config['sub directory length'] ?? 1;
 
         // time to live in seconds
-        $ttl = $config['ttl'] ?? 600;
+        $this->ttl = $config['ttl'] ?? 600;
 
         // sliding window in seconds to try to stop a race condition
         // when they all expire at the same time
-        $window = $config['ttl window'] ?? 30;
-
-        $this->ttl = mt_rand($ttl - (int)($window / 2), $ttl + (int)($window / 2));
+        $this->ttlWindow = $config['ttl window'] ?? 30;
     }
 
     public static function getInstance(array $config): self
@@ -71,7 +70,7 @@ class IncludeCache implements CacheInterface
     {
         $time = time();
 
-        $ttl = $ttl ?? $this->ttl;
+        $ttl = $ttl ?? $this->getTTL();
 
         $array = [
             'filemtime' => $time,
@@ -124,10 +123,8 @@ class IncludeCache implements CacheInterface
     {
         $set = [];
 
-        $ttl = $ttl ?? $this->ttl;
-
         foreach ($data as $key => $value) {
-            $set[$key] = $this->set($key, $value, $ttl);
+            $set[$key] = $this->set($key, $value, $ttl ?? $this->getTTL());
         }
 
         return $set;
@@ -180,7 +177,6 @@ class IncludeCache implements CacheInterface
     {
         $php[] = '<?php';
         $php[] = '';
-        $php[] = '';
         $php[] = 'declare(strict_types=1);';
         $php[] = '';
         $php[] = '// Written: ' . date('Y-m-d H:i:s');
@@ -226,5 +222,10 @@ class IncludeCache implements CacheInterface
         }
 
         return rmdir($directory);
+    }
+
+    protected function getTTL(): int
+    {
+        return mt_rand($this->ttl - (int)($this->ttlWindow / 2), $this->ttl + (int)($this->ttlWindow / 2));
     }
 }
