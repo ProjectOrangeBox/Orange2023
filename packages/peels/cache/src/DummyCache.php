@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace peels\cache;
 
 use Framework\Cache\Cache;
+use orange\framework\interfaces\CacheInterface;
 
 class DummyCache extends Cache implements CacheInterface
 {

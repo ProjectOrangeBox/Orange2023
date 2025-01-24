@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace peels\cache;
 
+use orange\framework\interfaces\CacheInterface;
 use Framework\Cache\FilesCache as aplusFilesCache;
 
 class FilesCache extends aplusFilesCache implements CacheInterface

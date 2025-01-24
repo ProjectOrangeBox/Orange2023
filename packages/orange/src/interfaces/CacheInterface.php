@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace peels\cache;
+namespace orange\framework\interfaces;
 
 interface CacheInterface
 {

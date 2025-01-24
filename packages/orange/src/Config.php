@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace orange\framework;
 
 use orange\framework\base\SingletonArrayObject;
+use orange\framework\interfaces\CacheInterface;
 use orange\framework\interfaces\ConfigInterface;
 use orange\framework\exceptions\filesystem\DirectoryNotFound;
 use orange\framework\exceptions\config\InvalidConfigurationValue;
@@ -45,7 +46,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
      * @param array $config Initial configuration array.
      * @throws DirectoryNotFound If the default configuration directory is invalid.
      */
-    protected function __construct(array $config)
+    protected function __construct(array $config, ?CacheInterface $cache = null)
     {
         logMsg('INFO', __METHOD__);
 
@@ -66,6 +67,10 @@ class Config extends SingletonArrayObject implements ConfigInterface
                     $this->searchPaths[] = $envDirectory;
                 }
             }
+        }
+
+        if ($cache) {
+            $this->loadCache($cache);
         }
     }
 
@@ -199,6 +204,29 @@ class Config extends SingletonArrayObject implements ConfigInterface
                     $this->foundConfigFiles[$filename][] = $absolutePath;
                 }
             }
+        }
+    }
+
+    protected function loadCache(CacheInterface $cache): void
+    {
+        // has anything already been cached?
+        if (!$payload = $cache->get(ENVIRONMENT . '\\' . __CLASS__)) {
+            // no
+            // find all of the cache file names by reading all of the searchDirectories
+            foreach ($this->searchPaths as $sp) {
+                foreach (glob($sp . '/*.php') as $f) {
+                    // trigger a read on all of them
+                    $this->__get(basename($f, '.php'));
+
+                    // cache the results
+                    $cache->set(ENVIRONMENT . '\\' . __CLASS__, ['configuration' => $this->configuration, 'foundConfigFiles' => $this->foundConfigFiles]);
+                }
+            }
+        } else {
+            // yes
+            // load it and setup the correct properties
+            $this->configuration = $payload['configuration'];
+            $this->foundConfigFiles = $payload['foundConfigFiles'];
         }
     }
 }

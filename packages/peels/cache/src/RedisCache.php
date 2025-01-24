@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace peels\cache;
 
+use orange\framework\interfaces\CacheInterface;
 use Framework\Cache\RedisCache as aplusRedisCache;
 
 class RedisCache extends aplusRedisCache implements CacheInterface

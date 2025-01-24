@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace peels\snippets;
 
 use PDO;
-use peels\cache\CacheInterface;
 use peels\snippets\SnippetException;
+use orange\framework\interfaces\CacheInterface;
 
 class Snippet implements SnippetInterface
 {

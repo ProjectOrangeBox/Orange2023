@@ -21,7 +21,6 @@ use peels\collector\Collector;
 use peels\mergeView\MergeView;
 use peels\negotiate\Negotiate;
 use peels\quickview\QuickView;
-use peels\cache\CacheInterface;
 use peels\cache\MemcachedCache;
 use peels\cookie\CookieInterface;
 use peels\console\ConsoleInterface;
@@ -39,6 +38,7 @@ use peels\asset\Interfaces\AssetInterface;
 use peels\acl\interfaces\UserEntityInterface;
 use orange\framework\interfaces\ViewInterface;
 use peels\validate\interfaces\FilterInterface;
+use orange\framework\interfaces\CacheInterface;
 use orange\framework\interfaces\ConfigInterface;
 use orange\framework\interfaces\RouterInterface;
 use peels\validate\interfaces\ValidateInterface;
@@ -66,7 +66,7 @@ return [
         return Router::getInstance($container->config->routes, $container->input);
     },
     'config' => function (ContainerInterface $container): ConfigInterface {
-        return Config::getInstance($container->get('$config'), $container->phpcache);
+        return Config::getInstance($container->get('$config'));
     },
     'console' => function (ContainerInterface $container): ConsoleInterface {
         return Console::getInstance($container->config->console, $container->input);

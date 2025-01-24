@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace orange\framework;
 
-use peels\cache\CacheInterface;
 use orange\framework\base\Singleton;
 use orange\framework\exceptions\InvalidValue;
+use orange\framework\interfaces\CacheInterface;
 use orange\framework\interfaces\InputInterface;
 use orange\framework\traits\ConfigurationTrait;
 use orange\framework\exceptions\MissingRequired;
@@ -92,10 +92,10 @@ class Router extends Singleton implements RouterInterface
 
         // if cache is supplied then use it
         if ($cache) {
-            if (!$routes = $cache->get(__CLASS__)) {
+            if (!$routes = $cache->get(ENVIRONMENT . '\\' . __CLASS__)) {
                 // didn't find them so force a load and then set the cache
                 $this->loadRoutes();
-                $cache->set(__CLASS__, ['routes' => $this->routes, 'routesByName' => $this->routesByName]);
+                $cache->set(ENVIRONMENT . '\\' . __CLASS__, ['routes' => $this->routes, 'routesByName' => $this->routesByName]);
             } else {
                 // cache is valid so we can use it
                 $this->routes = $routes['routes'];

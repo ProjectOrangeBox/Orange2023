@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace peels\cache;
 
+use orange\framework\interfaces\CacheInterface;
 use Framework\Cache\MemcachedCache as aplusMemcachedCache;
 
 class MemcachedCache extends aplusMemcachedCache implements CacheInterface

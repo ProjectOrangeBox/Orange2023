@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace peels\cache;
 
+use orange\framework\interfaces\CacheInterface;
 use orange\framework\exceptions\filesystem\DirectoryNotFound;
 use orange\framework\exceptions\filesystem\DirectoryNotWritable;
 
