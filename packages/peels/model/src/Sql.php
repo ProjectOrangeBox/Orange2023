@@ -9,7 +9,6 @@ use Throwable;
 use PDOStatement;
 use peels\model\StringBuilder;
 use orange\framework\exceptions\InvalidValue;
-use orange\framework\exceptions\SqlBuilderException;
 use peels\model\exceptions\Sql as ExceptionsSql;
 
 /**

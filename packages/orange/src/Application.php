@@ -11,6 +11,7 @@ use orange\framework\interfaces\ContainerInterface;
 use orange\framework\exceptions\filesystem\FileNotFound;
 use orange\framework\exceptions\config\ConfigFileNotFound;
 use orange\framework\exceptions\filesystem\DirectoryNotFound;
+use orange\framework\exceptions\config\ConfigDirectoryNotFound;
 
 /**
  * Application class responsible for bootstrapping the application in either HTTP or CLI mode.
@@ -248,20 +249,21 @@ class Application
     protected static function bootstrapContainer(): ContainerInterface
     {
         // make sure we have services
-        if (!file_exists(self::$config['services'])) {
-            throw new ConfigFileNotFound('Could not locate the services configuration file.');
+        if (!is_dir(self::$config['config directory'])) {
+            throw new ConfigDirectoryNotFound('Could not locate the services configuration file.');
         }
 
-        // load services from config
-        $services = require self::$config['services'];
+        // base services if present
+        $baseServices = self::includeService(self::$config['config directory'] . '/services.php');
+        
+        // environmental services if present
+        $envServices = self::includeService(self::$config['config directory'] . '/' . ENVIRONMENT . '/services.php');
+        
+        // we know these are here because they are in the same project
+        $orangeServices = include __DIR__ . '/config/services.php';
 
-        // make sure they are an array
-        if (!is_array($services)) {
-            throw new InvalidValue('Services config file "' . self::$config['services'] . '" did not return an array.');
-        }
-
-        // replace provided over the orange defaults
-        $services = array_replace_recursive(include __DIR__ . '/config/services.php', $services);
+        // replace build final services array
+        $services = array_replace($orangeServices, $baseServices, $envServices);
 
         if (!isset($services['container'])) {
             throw new InvalidValue('Container services not found.');
@@ -286,6 +288,23 @@ class Application
         $container->set($services);
 
         return $container;
+    }
+
+    protected static function includeService(string $path): array
+    {
+        $services = [];
+
+        if (file_exists($path)) {
+            // load services from config
+            $services = require $path;
+
+            // make sure they are an array
+            if (!is_array($services)) {
+                throw new InvalidValue('Services config file "' . $path . '" did not return an array.');
+            }
+        }
+
+        return $services;
     }
 
     /**

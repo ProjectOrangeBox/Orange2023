@@ -70,6 +70,7 @@ class Router extends Singleton implements RouterInterface
      *
      * @param array $config Configuration array for routing settings.
      * @param InputInterface $input Provides request-related data.
+     * @param CacheInterface $cache optional cache service
      * @throws MissingRequired If the 'site' configuration is missing.
      */
     protected function __construct(array $config, InputInterface $input, ?CacheInterface $cache = null)
@@ -92,13 +93,16 @@ class Router extends Singleton implements RouterInterface
         // if cache is supplied then use it
         if ($cache) {
             if (!$routes = $cache->get(__CLASS__)) {
+                // didn't find them so force a load and then set the cache
                 $this->loadRoutes();
                 $cache->set(__CLASS__, ['routes' => $this->routes, 'routesByName' => $this->routesByName]);
             } else {
+                // cache is valid so we can use it
                 $this->routes = $routes['routes'];
                 $this->routesByName = $routes['routesByName'];
             }
         } else {
+            // no cache being used so load the routes
             $this->loadRoutes();
         }
 

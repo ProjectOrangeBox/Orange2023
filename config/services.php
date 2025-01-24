@@ -12,6 +12,7 @@ use peels\session\Session;
 use peels\validate\Filter;
 use peels\cache\DummyCache;
 use peels\cache\FilesCache;
+use orange\framework\Config;
 use orange\framework\Router;
 use peels\language\Language;
 use peels\validate\Validate;
@@ -38,6 +39,7 @@ use peels\asset\Interfaces\AssetInterface;
 use peels\acl\interfaces\UserEntityInterface;
 use orange\framework\interfaces\ViewInterface;
 use peels\validate\interfaces\FilterInterface;
+use orange\framework\interfaces\ConfigInterface;
 use orange\framework\interfaces\RouterInterface;
 use peels\validate\interfaces\ValidateInterface;
 use orange\framework\interfaces\ContainerInterface;
@@ -60,15 +62,11 @@ use orange\framework\interfaces\ContainerInterface;
  */
 
 return [
-    // the default route do not use the cache but supports it so we override it in our services config
     'router' => function (ContainerInterface $container): RouterInterface {
-        // if in production then we can cache the routes for faster access
-        // this key would need to be flushed in order enable new routes
-        //if (ENVIRONMENT == 'production') {
-        return Router::getInstance($container->config->routes, $container->input, $container->phpcache);
-        //} else {
-        //return Router::getInstance($container->config->routes, $container->input);
-        //}
+        return Router::getInstance($container->config->routes, $container->input);
+    },
+    'config' => function (ContainerInterface $container): ConfigInterface {
+        return Config::getInstance($container->get('$config'), $container->phpcache);
     },
     'console' => function (ContainerInterface $container): ConsoleInterface {
         return Console::getInstance($container->config->console, $container->input);
@@ -105,7 +103,13 @@ return [
 
     '@cache' => 'phpcache',
     'phpcache' => function (ContainerInterface $container): CacheInterface {
-        return IncludeCache::getInstance($container->config->cache);
+        $config = [
+            'directory' => __ROOT__ . '/var/cache',
+            'ttl' => 600,
+            'ttl window' => 30,
+        ];
+        
+        return IncludeCache::getInstance($config);
     },
     'fcache' => function (ContainerInterface $container): CacheInterface {
         return FilesCache::getInstance($container->config->cache);
