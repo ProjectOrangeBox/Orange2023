@@ -155,8 +155,8 @@ class Router extends Singleton implements RouterInterface
             }
         }
 
-        if (isset($options['name'])) {
-            $this->routesByName[mb_strtolower($options['name'])] = $options;
+        if (isset($options['name'], $options['url'])) {
+            $this->routesByName[mb_strtolower($options['name'])] = $options['url'];
         }
 
         return $this;
@@ -269,12 +269,8 @@ class Router extends Singleton implements RouterInterface
             throw new RouterNameNotFound($searchName);
         }
 
-        if (!isset($this->routesByName[$lowercaseSearchName]['url'])) {
-            throw new InvalidValue('missing "url" for route named ' . $searchName);
-        }
-
         // let's begin
-        $url = $this->routesByName[$lowercaseSearchName]['url'];
+        $url = $this->routesByName[$lowercaseSearchName];
 
         $matches = [];
 
