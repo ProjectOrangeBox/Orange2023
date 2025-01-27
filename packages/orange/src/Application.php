@@ -318,21 +318,27 @@ class Application
     {
         $info = pathinfo($path);
 
-        // orange config
-        $config = self::include(__DIR__ . '/config/' . $info['basename']);
+        // orange config + config supplied
+        $config = array_replace(self::include(__DIR__ . '/config/' . $info['basename']), self::include($path));
 
-        // config supplied
-        $config = self::include($path, $config);
-
-        // env path
+        // + env path
         if (defined('ENVIRONMENT')) {
-            $config = self::include($info['dirname'] . '/' . ENVIRONMENT . '/' . $info['basename'], $config);
+            $config = array_replace($config, self::include($info['dirname'] . '/' . ENVIRONMENT . '/' . $info['basename']));
         }
 
         return $config;
     }
 
-    public static function include(string $path, array $currentConfig = null): array
+    /**
+     * include a config file which must return an array
+     * this only throws an exception if the file does not return an array
+     * it will always return and array even if empty
+     * 
+     * @param string $path 
+     * @return array 
+     * @throws InvalidValue 
+     */
+    public static function include(string $path): array
     {
         $config = [];
 
@@ -344,6 +350,6 @@ class Application
             }
         }
 
-        return $currentConfig ? array_replace($currentConfig, $config) : $config;
+        return $config;
     }
 }
