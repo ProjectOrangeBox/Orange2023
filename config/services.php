@@ -62,12 +62,6 @@ use orange\framework\interfaces\ContainerInterface;
  */
 
 return [
-    'router' => function (ContainerInterface $container): RouterInterface {
-        return Router::getInstance($container->config->routes, $container->input);
-    },
-    'config' => function (ContainerInterface $container): ConfigInterface {
-        return Config::getInstance($container->get('$config'));
-    },
     'console' => function (ContainerInterface $container): ConsoleInterface {
         return Console::getInstance($container->config->console, $container->input);
     },

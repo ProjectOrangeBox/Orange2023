@@ -113,11 +113,15 @@ class Application
      */
     protected static function bootstrap(string $mode): ContainerInterface
     {
+        // set a undefined value which is not NULL
+        define('UNDEFINED', chr(0));
+
         // setup a constant to indicate how this application was started
         define('RUN_MODE', strtolower($mode));
 
-        // this is part of the orange framework so we know it's there
-        self::$config = array_replace_recursive(include __DIR__ . '/config/config.php', self::$config);
+        // this is part of the orange framework so we know it's there and an array
+        // we also can't assume this was included with the config sent in
+        self::$config = self::include(__DIR__ . '/config/config.php', self::$config);
 
         // let's make sure they setup __ROOT__
         if (!defined('__ROOT__')) {
@@ -128,9 +132,6 @@ class Application
         if (!is_dir(__ROOT__)) {
             throw new DirectoryNotFound(self::$config['__ROOT__']);
         }
-
-        // set a undefined value which is not NULL
-        define('UNDEFINED', chr(0));
 
         // switch to root
         chdir(__ROOT__);
@@ -161,7 +162,7 @@ class Application
         // set umask to a known state
         umask(0000);
 
-        // this extension is required and now part of my 8+
+        // this extension is required and now part of php 8+
         if (!extension_loaded('mbstring')) {
             throw new MissingRequired('extension: mbstring');
         }
@@ -249,21 +250,15 @@ class Application
     protected static function bootstrapContainer(): ContainerInterface
     {
         // make sure we have services
-        if (!is_dir(self::$config['config directory'])) {
-            throw new ConfigDirectoryNotFound('Could not locate the services configuration file.');
+        if (!realpath(self::$config['config directory'])) {
+            throw new ConfigDirectoryNotFound('Could not locate the services configuration directory.');
         }
 
         // base services if present
-        $baseServices = self::includeService(self::$config['config directory'] . '/services.php');
-        
         // environmental services if present
-        $envServices = self::includeService(self::$config['config directory'] . '/' . ENVIRONMENT . '/services.php');
-        
         // we know these are here because they are in the same project
-        $orangeServices = include __DIR__ . '/config/services.php';
-
         // replace build final services array
-        $services = array_replace($orangeServices, $baseServices, $envServices);
+        $services = self::loadRecursiveConfig(self::$config['config directory'] . '/services.php');
 
         if (!isset($services['container'])) {
             throw new InvalidValue('Container services not found.');
@@ -290,23 +285,6 @@ class Application
         return $container;
     }
 
-    protected static function includeService(string $path): array
-    {
-        $services = [];
-
-        if (file_exists($path)) {
-            // load services from config
-            $services = require $path;
-
-            // make sure they are an array
-            if (!is_array($services)) {
-                throw new InvalidValue('Services config file "' . $path . '" did not return an array.');
-            }
-        }
-
-        return $services;
-    }
-
     /**
      * Post-container setup. This is called after the container is set up.
      *
@@ -318,7 +296,7 @@ class Application
     {
         // set up constants
         // even if there are no user constants, the config service should return an empty array
-        foreach (array_replace_recursive(include __DIR__ . '/config/constants.php', $container->config->constants) as $name => $value) {
+        foreach (self::include(__DIR__ . '/config/constants.php', $container->config->constants) as $name => $value) {
             // Constants should all be uppercase - not an option!
             $name = strtoupper($name);
 
@@ -326,5 +304,46 @@ class Application
                 define($name, $value);
             }
         }
+    }
+
+    /**
+     * Most simple include config file
+     * with environmental inclusions
+     * 
+     * @param string $path 
+     * @return array 
+     * @throws InvalidValue 
+     */
+    public static function loadRecursiveConfig(string $path): array
+    {
+        $info = pathinfo($path);
+
+        // orange config
+        $config = self::include(__DIR__ . '/config/' . $info['basename']);
+
+        // config supplied
+        $config = self::include($path, $config);
+
+        // env path
+        if (defined('ENVIRONMENT')) {
+            $config = self::include($info['dirname'] . '/' . ENVIRONMENT . '/' . $info['basename'], $config);
+        }
+
+        return $config;
+    }
+
+    public static function include(string $path, array $currentConfig = null): array
+    {
+        $config = [];
+
+        if (file_exists($path)) {
+            $config = require $path;
+
+            if (!is_array($config)) {
+                throw new InvalidValue('Config file "' . $path . '" did not return an array.');
+            }
+        }
+
+        return $currentConfig ? array_replace($currentConfig, $config) : $config;
     }
 }

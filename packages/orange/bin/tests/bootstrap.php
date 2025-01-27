@@ -23,4 +23,4 @@ define('STUBDIR', realpath(__DIR__ . '/../../src/stubs'));
 
 require __DIR__ . '/../../src/helpers/helpers.php';
 require __DIR__ . '/../../src/helpers/wrappers.php';
-require __DIR__ . '/../../tests/support/unitTestHelper.php';
+require __DIR__ . '/unitTestHelper.php';

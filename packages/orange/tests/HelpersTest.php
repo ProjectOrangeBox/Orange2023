@@ -32,25 +32,7 @@ final class HelpersTest extends unitTestHelper
     {
         $this->assertInstanceOf(Container::class, container());
     }
-
-    public function testMergeDefaultConfig(): void
-    {
-        $config = [
-            'name' => 'Jenny Appleseed',
-            'age' => 23,
-            'food' => 'cookie',
-        ];
-
-        $match = [
-            'name' => 'Jenny Appleseed',
-            'age' => 23,
-            'food' => 'cookie',
-            'example' => 2
-        ];
-
-        $this->assertEquals($match, $this->mergeDefaultConfig($config, WORKINGDIR . '/configExample2.php'));
-    }
-
+    
     public function testLogMsg(): void
     {
         $this->testFile = WORKINGDIR . '/writeable/test-log.txt';

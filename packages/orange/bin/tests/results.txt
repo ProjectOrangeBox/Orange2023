@@ -59,7 +59,6 @@ Event
 
 Helpers
  [x] Container
- [x] Merge default config
  [x] Log msg
  [x] File put contents atomic
  [x] Concat
