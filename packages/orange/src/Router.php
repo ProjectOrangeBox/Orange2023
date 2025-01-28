@@ -123,13 +123,9 @@ class Router extends Singleton implements RouterInterface
     protected function loadRoutes(): void
     {
         // add 404 first which makes it the last in the search
-        $this->addRoute($this->config['404']);
-
         // add our default home - this could get overwritten by another home
-        $this->addRoute($this->config['home']);
-
         // add the user supplied routes
-        $this->addRoutes($this->config['routes']);
+        $this->addRoute($this->config['404'])->addRoute($this->config['home'])->addRoutes($this->config['routes']);
     }
 
     /**
@@ -142,12 +138,16 @@ class Router extends Singleton implements RouterInterface
     {
         logMsg('DEBUG', __METHOD__, $options);
 
+        // is this a http routable method?
         if (isset($options['method'])) {
+            // is this the wildcard all an array or a single value
             $methods = $options['method'] == '*' ? $this->matchAll : (array)$options['method'];
 
+            // for each method add it to the appropriate array for quicker access
             foreach ($methods as $method) {
                 $methodUpper = mb_strtoupper($method);
 
+                // make the http method array if it doesn't already exist
                 $this->routes[$methodUpper] = $this->routes[$methodUpper] ?? [];
 
                 // FILO stack
@@ -155,7 +155,9 @@ class Router extends Singleton implements RouterInterface
             }
         }
 
+        // does this route have a name and url to use with get url?
         if (isset($options['name'], $options['url'])) {
+            // add it to the array by name
             $this->routesByName[mb_strtolower($options['name'])] = $options['url'];
         }
 
@@ -173,7 +175,8 @@ class Router extends Singleton implements RouterInterface
         logMsg('INFO', __METHOD__);
         logMsg('INFO', 'Routes ' . count($routes));
 
-        // put them in the array the same way they where sent in - top to bottom
+        // put them in the array the same way they are in the config file
+        // top route tested first to the bottom tested last
         foreach (array_reverse($routes) as $route) {
             $this->addRoute($route);
         }
