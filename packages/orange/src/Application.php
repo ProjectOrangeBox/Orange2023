@@ -307,12 +307,14 @@ class Application
     }
 
     /**
-     * Most simple include config file
-     * with environmental inclusions
-     * 
-     * @param string $path 
-     * @return array 
-     * @throws InvalidValue 
+     * Most simple include for config files
+     * with supplied config file
+     * with matching in orange config folder
+     * and matching in environmental config folder
+     *
+     * @param string $path
+     * @return array
+     * @throws InvalidValue
      */
     public static function loadRecursiveConfig(string $path): array
     {
