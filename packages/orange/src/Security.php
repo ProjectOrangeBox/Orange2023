@@ -74,16 +74,24 @@ class Security extends Singleton implements SecurityInterface
             }
         }
 
+        // Generate an X25519 keypair for use with the sodium_crypto_box API
         $privateKey = sodium_crypto_box_keypair();
 
+        // try to write the private and public keys
         $success1 = file_put_contents($this->config['private key'], $privateKey);
+        // Get an X25519 public key from an X25519 keypair
         $success2 = file_put_contents($this->config['public key'], sodium_crypto_box_publickey($privateKey));
 
+        // Overwrite a string with NUL characters
         sodium_memzero($privateKey);
 
+        // Get random bytes for key
         $authKey = sodium_crypto_auth_keygen();
+
+        // write the auth key salt
         $success3 = file_put_contents($this->config['auth key'], $authKey);
 
+        // Overwrite a string with NUL characters
         sodium_memzero($authKey);
 
         return $success1 > 0 && $success2 > 0 && $success3 > 0;
@@ -99,8 +107,10 @@ class Security extends Singleton implements SecurityInterface
     {
         $key = file_get_contents($this->getKeyFilePath('public'));
 
+        // Convert to hex without side-chanels
         $encrypted = sodium_bin2hex(sodium_crypto_box_seal($data, $key));
 
+        // Overwrite a string with NUL characters
         sodium_memzero($key);
         sodium_memzero($data);
 
@@ -119,14 +129,18 @@ class Security extends Singleton implements SecurityInterface
     {
         $key = file_get_contents($this->getKeyFilePath('private'));
 
+        // Check for character(s) representing a hexadecimal digit
         if (!ctype_xdigit($data)) {
             throw new SecurityException('decrypt data argument invalid');
         }
 
+        // Convert from hex without side-chanels
         $data = sodium_hex2bin($data);
 
+        // Anonymous public-key encryption (decrypt)
         $decrypt = sodium_crypto_box_seal_open($data, $key);
 
+        // Overwrite a string with NUL characters
         sodium_memzero($key);
         sodium_memzero($data);
 
@@ -143,8 +157,10 @@ class Security extends Singleton implements SecurityInterface
     {
         $key = file_get_contents($this->getKeyFilePath('auth'));
 
+        // Convert to hex without side-chanels
         $token = sodium_bin2hex(sodium_crypto_auth($message, $key));
 
+        // Overwrite a string with NUL characters
         sodium_memzero($key);
         sodium_memzero($message);
 
@@ -162,18 +178,23 @@ class Security extends Singleton implements SecurityInterface
     {
         $isValid = false;
 
+        // Check for character(s) representing a hexadecimal digit
         if (ctype_xdigit($signature)) {
+            // Convert from hex without side-chanels
             $signature = sodium_hex2bin($signature);
 
             if (mb_strlen($signature, '8bit') === SODIUM_CRYPTO_AUTH_BYTES) {
                 $key = file_get_contents($this->getKeyFilePath('auth'));
 
+                // Secret-key message verification - HMAC SHA-512/256
                 $isValid = sodium_crypto_auth_verify($signature, $message, $key);
 
+                // Overwrite a string with NUL characters
                 sodium_memzero($key);
             }
         }
 
+        // Overwrite a string with NUL characters
         sodium_memzero($signature);
         sodium_memzero($message);
 
@@ -188,8 +209,10 @@ class Security extends Singleton implements SecurityInterface
      */
     public function encodePassword(string $password): string
     {
+        // Get a formatted password hash (for storage)
         $encoded = sodium_crypto_pwhash_str($password, SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE, SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE);
 
+        // Overwrite a string with NUL characters
         sodium_memzero($password);
 
         return $encoded;
@@ -204,8 +227,10 @@ class Security extends Singleton implements SecurityInterface
      */
     public function verifyPassword(string $hash, string $userEntered): bool
     {
+        // Verify a password against a hash
         $isValid = sodium_crypto_pwhash_str_verify($hash, $userEntered);
 
+        // Overwrite a string with NUL characters
         sodium_memzero($hash);
         sodium_memzero($userEntered);
 
@@ -223,6 +248,7 @@ class Security extends Singleton implements SecurityInterface
         $nonDisplayables = '/[\x00-\x1F\x7F-\xFFFF]+/S';   // 00-31, 127-65535
 
         do {
+            // Perform a regular expression search and replace
             $string = preg_replace($nonDisplayables, '', $string, -1, $count);
         } while ($count);
 
