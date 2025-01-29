@@ -32,7 +32,7 @@ final class HelpersTest extends unitTestHelper
     {
         $this->assertInstanceOf(Container::class, container());
     }
-    
+
     public function testLogMsg(): void
     {
         $this->testFile = WORKINGDIR . '/writeable/test-log.txt';

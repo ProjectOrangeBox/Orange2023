@@ -335,10 +335,10 @@ class Application
      * include a config file which must return an array
      * this only throws an exception if the file does not return an array
      * it will always return and array even if empty
-     * 
-     * @param string $path 
-     * @return array 
-     * @throws InvalidValue 
+     *
+     * @param string $path
+     * @return array
+     * @throws InvalidValue
      */
     public static function include(string $path): array
     {
