@@ -32,30 +32,35 @@ class Stash implements StashInterface
         return self::$instance;
     }
 
-    public function push(): self
+    public function push(string $name = null): self
     {
-        $this->sessionService->set($this->stashKey, $this->inputService->copy());
+        $key = $name ? $this->stashKey . $name : $this->stashKey;
+
+        $this->sessionService->set($key, $this->inputService->copy());
 
         return $this;
     }
 
-    public function apply(): bool
+    public function apply(string $name = null): bool
     {
-        $stashed = null;
+        $key = $name ? $this->stashKey . $name : $this->stashKey;
 
-        if ($this->sessionService->has($this->stashKey)) {
-            $stashed = $this->sessionService->get($this->stashKey);
+        $hasStash = false;
 
-            $this->sessionService->remove($this->stashKey);
+        if ($this->sessionService->has($key)) {
+            $stashed = $this->sessionService->get($key);
+
+            $this->sessionService->remove($key);
 
             if (is_array($stashed)) {
                 $this->inputService->replace($stashed);
+                $hasStash = true;
             } else {
                 throw new StashException('Stashed input was not an array.');
             }
         }
 
         // return false on no stashed data
-        return is_array($stashed);
+        return $hasStash;
     }
 }
