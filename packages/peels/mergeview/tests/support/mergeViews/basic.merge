@@ -1,0 +1,73 @@
+<h1>Hello {{who}}</h1>
+
+{{# Parsed: Hello, World! #}}
+Hello, {{ name }}!
+
+{{# Parsed: <h1>Lex is Awesome!</h1> #}}
+<h1>{{ title }}</h1>
+
+{{# Parsed: My real name is Lex Luther!</h1> #}}
+My real name is {{ real_name.first }} {{ real_name.last }}
+
+{{# This will not be parsed or shown in the resulting HTML #}}
+
+{{#
+    They can be multi-line too.
+#}}
+
+{{ noparse }}
+    Hello, {{ name }}!
+{{ /noparse }}
+
+{{ projects }} Some Content Here {{ /projects }}
+
+
+<h1>{{ title }}</h1>
+{{ projects }}
+    <h3>{{ name }}</h3>
+    <h4>Assignees</h4>
+    <ul>
+    {{ assignees }}
+        <li>{{ name }}</li>
+    {{ /assignees }}
+    </ul>
+{{ /projects }}
+
+{{ if show_name }}
+    <p>My name is {{real_name.first}} {{real_name.last}}</p>
+{{ endif }}
+
+{{ if user.group == 'admin' }}
+    <p>You are an Admin!</p>
+{{ elseif user.group == 'user' }}
+    <p>You are a normal User.</p>
+{{ else }}
+    <p>I don't know what you are.</p>
+{{ endif }}
+
+{{ if show_real_name }}
+    <p>My name is {{real_name.first}} {{real_name.last}}</p>
+{{ else }}
+    <p>My name is John Doe</p>
+{{ endif }}
+
+{{ unless age > 21 }}
+    <p>You are to young.</p>
+{{ elseunless age < 80 }}
+    <p>You are to old...it'll kill ya!</p>
+{{ else }}
+    <p>Go ahead and drink!</p>
+{{ endif }}
+
+{{ if exists foo }}
+    Foo Exists
+{{ elseif not exists foo }}
+    Foo Does Not Exist
+{{ endif }}
+
+{{ if exists foo and foo !== 'bar' }}
+    Something here
+{{ endif }}
+
+{{ if exists foo == false }}
+{{ endif }}
