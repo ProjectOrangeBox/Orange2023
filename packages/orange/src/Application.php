@@ -224,13 +224,13 @@ class Application
         // this is required either default orange framework one or the end user provides
         require __ROOT__ . '/packages/orange/src/helpers/errors.php';
 
+        if (function_exists('errorHandler')) {
+            set_error_handler('errorHandler');
+        }
+
         // now try to attach the exception and error handler
         if (function_exists('exceptionHandler')) {
             set_exception_handler('exceptionHandler');
-        }
-
-        if (function_exists('errorHandler')) {
-            set_error_handler('errorHandler');
         }
     }
 

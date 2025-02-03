@@ -12,6 +12,7 @@ use orange\framework\interfaces\ViewInterface;
 use orange\framework\interfaces\InputInterface;
 use orange\framework\traits\ConfigurationTrait;
 use orange\framework\interfaces\OutputInterface;
+use orange\framework\interfaces\ContainerInterface;
 
 /**
  * Class Error
@@ -87,6 +88,8 @@ class Error extends Singleton
      */
     public string $outputContent = '';
 
+    public ContainerInterface $container;
+
     /**
      * Constructor
      *
@@ -95,9 +98,11 @@ class Error extends Singleton
      * @param array $config Configuration options.
      * @param Throwable|null $thrown Optional exception causing the error.
      */
-    protected function __construct(array $config = [], ?Throwable $thrown = null)
+    protected function __construct(array $config = [], ContainerInterface $container, ?Throwable $thrown = null)
     {
         logMsg('INFO', __METHOD__);
+
+        $this->$container = $container;
 
         // merge defaults with passed in config
         $this->config = $this->mergeWithDefault($config);
@@ -108,7 +113,7 @@ class Error extends Singleton
         $this->data = $this->getService('data', []);
         $this->input = $this->getService('input', [[]]);
         $this->view = $this->getService('view', [[], $this->data]);
-        $this->output = $this->getService('output', [[],$this->input]);
+        $this->output = $this->getService('output', [[], $this->input]);
 
         // base view directory to search for error views
         $this->errorViewDirectory = $this->config['error view directory'];
@@ -146,23 +151,23 @@ class Error extends Singleton
             // if the thrown exception has the method getHttpCode
             // then call it and use it's output as the httpCode
             if (method_exists($thrown, 'getHttpCode')) {
-                 /** @disregard */
+                /** @disregard */
                 $this->httpCode = $thrown->getHttpCode();
             }
 
             // if the thrown exception has the method getOutput
             // then call it and write it's output in output
             if (method_exists($thrown, 'getOutput')) {
-                 /** @disregard */
-                 $this->outputContent = $thrown->getOutput();
+                /** @disregard */
+                $this->outputContent = $thrown->getOutput();
             }
 
             // if the thrown exception has the method decorate
             // allow the exception the chance to "decorate" the error class
             // this is a catch all incase getHttpCode & getOutput aren't enough
             if (method_exists($thrown, 'decorate')) {
-                 /** @disregard */
-                 $thrown->decorate($this);
+                /** @disregard */
+                $thrown->decorate($this);
             }
         }
 
@@ -333,13 +338,11 @@ class Error extends Singleton
 
         $service = null;
 
-        $name = strtolower($name);
-
         try {
-            $service = container()->get($name);
+            $service = $this->container->get($name);
         } catch (Throwable $e) {
             // fall back to orange classes / services
-            $className = ucfirst($name);
+            $className = ucfirst(strtolower($name));
 
             require_once __DIR__ . DIRECTORY_SEPARATOR . $className . '.php';
 

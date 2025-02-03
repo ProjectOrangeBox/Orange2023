@@ -46,7 +46,6 @@ if (!function_exists('redirect301')) {
     }
 }
 
-
 /*
  * Convert PHP error to an exception
  */
@@ -72,7 +71,7 @@ if (!function_exists('exceptionHandler')) {
     {
         // make a direct instance of Error Class
         // override this function if you want to use your own class
-        \orange\framework\Error::getInstance([], $exception);
+        \orange\framework\Error::getInstance([], container(), $exception);
 
         // exit with error safety
         exit(1);
