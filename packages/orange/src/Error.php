@@ -344,10 +344,12 @@ class Error extends Singleton
             // fall back to orange classes / services
             $className = ucfirst(strtolower($name));
 
+            // same folder as this class
             require_once __DIR__ . DIRECTORY_SEPARATOR . $className . '.php';
 
+            // default orange namespace
             $namespace = '\\orange\\framework\\' . $className;
-
+            
             if (empty($arguments)) {
                 $service = $namespace::getInstance();
             } else {
