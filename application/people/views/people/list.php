@@ -3,13 +3,14 @@
 <?php fig::block('body') ?>
 
 <div class="masthead container" data-autoload="true" data-url="<?= getUrl('peopleReadAll') ?>" data-property="records">
-
+    <!--
     <div data-preload="true" data-url="<?= getUrl('peopledropdown') ?>" data-property="dropdown">
         <span>Selected Friend: {dropdown2.selected}</span>
         <select rv-value="dropdown2.selected">
             <option rv-each-row="dropdown.friends" rv-value="row.name" rv-text="row.name"></option>
         </select>
     </div>
+    -->
 
     <table id="table" class="table table-striped">
         <thead>
@@ -40,7 +41,7 @@
         </tbody>
     </table>
 
-    <div data-preload="true" data-url="<?= getUrl('peopledropdown2') ?>" data-property="dropdown2"></div>
+    <!--<div data-preload="true" data-url="<?= getUrl('peopledropdown2') ?>" data-property="dropdown2"></div>-->
 
 </div>
 

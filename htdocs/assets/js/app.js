@@ -1,112 +1,11 @@
-const modal = {
-    open: false, // modal is open
-    id: '', // modal id as string
-    jid: '', // modal id as jquery selector by id 
-    ref: undefined, // reference to modal
-    config: {},
-    init(config) {
-        // save the config
-        this.config = config || {};
-
-        // unique id
-        this.id = 'modal-AEDFCA';
-        this.jid = '#' + this.id;
-
-        // add the html to the page
-        this.appendHTMLto(this.id, document.body);
-    },
-    appendHTMLto(id, element) {
-        // Create Elements
-        let element_a = document.createElement('div');
-        let element_b = document.createElement('div');
-        let element_c = document.createElement('div');
-        let element_d = document.createElement('div');
-
-        // Set Attributes
-        element_a.setAttribute('id', id);
-        element_a.setAttribute('class', 'modal fade');
-        element_a.setAttribute('tabindex', '-1');
-
-        element_b.setAttribute('class', 'modal-dialog modal-dialog-scrollable modal-dialog-centered');
-
-        element_c.setAttribute('class', 'modal-content');
-
-        element_d.setAttribute('id', id + '-content');
-        element_d.setAttribute('class', 'modal-body');
-
-        // Append Children
-        element.appendChild(element_a);
-        element_a.appendChild(element_b);
-        element_b.appendChild(element_c);
-        element_c.appendChild(element_d);
-    },
-    resize(size) {
-        // resize modal (we only have 1 so it is by id) or default to large
-        $(this.jid).removeClass('modal-xl modal-lg modal-md modal-sm').addClass(size || 'modal-lg');
-    },
-    content(html) {
-        // put the returned html into the modal
-        document.getElementById(this.id + '-content').innerHTML = html;
-    },
-    load(data) {
-        // load into a bootstrap modal (not model!)
-        // capture the data from the html element (this) which the method was triggered
-        // rv-on-click="methods.loadModal"
-        // data-foo="123" data-bar="abc" 
-        app.methods.makeAjaxCall({
-            url: app.methods.makeUrl(data.modal, data.id),
-            type: data.method,
-            complete: function (jqXHR) {
-                // if the responds status is
-                if (jqXHR.status == 200) {
-                    // success
-
-                    // resize modal (we only have 1 so it is by id) or default to large
-                    modal.resize(data.size);
-
-                    // put the returned html into the modal
-                    modal.content(jqXHR.responseText);
-
-                    // rebind the modal which now contain the new html
-                    tinybind.bind(document.getElementById(modal.id), app);
-
-                    // load a record into the modal
-                    app.methods.autoLoad();
-
-                    // show the modal
-                    modal.show();
-                } else {
-                    // any other response code displays a error
-                    app.methods.alert('Could not load modal.');
-                }
-            },
-        });
-    },
-    hide() {
-        if (this.open) {
-            // hide it
-            this.ref.hide();
-            this.content('');
-            this.open = false;
-        }
-    },
-    show() {
-        if (!this.ref) {
-            this.ref = new bootstrap.Modal(this.jid, this.config);
-        }
-
-        this.ref.show();
-        this.open = true;
-    },
-};
-
+// create the application object
 const app = {
     rootElement: undefined,
     bound: undefined,
     storage: {},
     records: [],
     record: {},
-    // attach these to rv-click buttons
+    // attach these to rv-click buttons ie. rv-click="actions.localModal" data-foo="abc" data-bar="123"
     actions: {
         loadModal() {
             app.methods.loadModal(this.dataset);
@@ -121,6 +20,7 @@ const app = {
             app.methods.submit(this.dataset);
         },
     },
+    // shared application methods
     methods: {
         loadModal(data) {
             modal.load(data);
@@ -342,23 +242,29 @@ const app = {
         makeUrl(url, id) {
             return url.replace('-1', id || '');
         },
+        // remove a selector from a string if it exists
         removeSelector(string, selector) {
             selector = selector || '#';
 
             return string.replace(selector, '');
         },
+        // add a selector to the beginning of a string if it doesn't have one already
         addSelector(string, selector) {
             selector = selector || '#';
 
             return selector + string.replace(selector, '');
         },
         // bootbox wrapper
-        alert(json) {
+        alert(record) {
             // show the alert
-            bootbox.alert(json);
+            bootbox.alert(record);
         },
     },
+    // gui methods
     gui: {
+        // ie. app.gui.highlightErrorFields(json.keys);
+        // <array>invalidNames
+        // ["firstname","lastname"]
         highlightErrorFields(invalidNames) {
             // first remove all that might be on the screen now
             $('#' + app.rootElement.id + ' .is-invalid').removeClass('is-invalid');
@@ -371,22 +277,134 @@ const app = {
                 $('#' + app.rootElement.id + ' [name="' + name + '"]').addClass('is-invalid');
             });
         },
-        showErrorDialog(json) {
+        // ie. app.gui.showErrorDialog(json);
+        showErrorDialog(record) {
             // this responds is json so we grab the values or use the defaults provided
             // https://bootboxjs.com/documentation.html
-            json.size = json.size || 'large'; // large alert
-            json.title = json.title || 'Your Form Has The Following Errors'; // default alert title
-            json.centerVertical = json.centerVertical || true; // default center vertically
-            json.closeButton = json.closeButton || false; // default hide close button
+            record.size = record.size || 'large'; // large alert
+            record.title = record.title || 'Your Form Has The Following Errors'; // default alert title
+            record.centerVertical = record.centerVertical || true; // default center vertically
+            record.closeButton = record.closeButton || false; // default hide close button
+            record.wrapPrefix = record.wrapPrefix || '<i class="fa-solid fa-triangle-exclamation"></i> '
+            record.wrapSuffix = record.wrapSuffix || '</br>';
 
             // format the json errors (array) 
             // here not on the server for display in the next step
-            json.message = app.methods.wrap(json.errors, '<i class="fa-solid fa-triangle-exclamation"></i> ', '</br>');
+            record.message = app.methods.wrap(record.errors, record.prefixhtml, record.suffixhtml);
 
-            app.methods.alert(json);
+            // show the bootbox alert
+            app.methods.alert(record);
         },
     }
 } // end app object
+
+// create the modal object
+const modal = {
+    open: false, // modal is open
+    id: '', // modal id as string
+    jid: '', // modal id as jquery selector by id 
+    ref: undefined, // reference to modal
+    config: {},
+    init(config) {
+        // save the config
+        this.config = config || {};
+
+        // unique id
+        this.id = 'modal-AEDFCA';
+        this.jid = '#' + this.id;
+
+        // add the html to the page
+        this.appendHTMLto(this.id, document.body);
+    },
+    // Append the modal to the DOM
+    appendHTMLto(id, element) {
+        // Create the Modal Elements
+        let element_a = document.createElement('div');
+        let element_b = document.createElement('div');
+        let element_c = document.createElement('div');
+        let element_d = document.createElement('div');
+
+        // Set Attributes
+        element_a.setAttribute('id', id);
+        element_a.setAttribute('class', 'modal fade');
+        element_a.setAttribute('tabindex', '-1');
+
+        element_b.setAttribute('class', 'modal-dialog modal-dialog-scrollable modal-dialog-centered');
+
+        element_c.setAttribute('class', 'modal-content');
+
+        element_d.setAttribute('id', id + '-content');
+        element_d.setAttribute('class', 'modal-body');
+
+        // Append Children
+        element.appendChild(element_a);
+        element_a.appendChild(element_b);
+        element_b.appendChild(element_c);
+        element_c.appendChild(element_d);
+    },
+    // resize modal
+    resize(size) {
+        // resize modal (we only have 1 so it is by id) or default to large
+        $(this.jid).removeClass('modal-xl modal-lg modal-md modal-sm').addClass(size || 'modal-lg');
+    },
+    // put the returned html into the modal
+    content(html) {
+        document.getElementById(this.id + '-content').innerHTML = html;
+    },
+    // load into a bootstrap modal
+    load(data) {
+        // load into a bootstrap modal (not model!)
+        // capture the data from the html element (this) which the method was triggered
+        // rv-on-click="methods.loadModal"
+        // data-foo="123" data-bar="abc" 
+        app.methods.makeAjaxCall({
+            url: app.methods.makeUrl(data.modal, data.id),
+            type: data.method,
+            complete: function (jqXHR) {
+                // if the responds status is
+                if (jqXHR.status == 200) {
+                    // success
+
+                    // resize modal (we only have 1 so it is by id) or default to large
+                    modal.resize(data.size);
+
+                    // put the returned html into the modal
+                    modal.content(jqXHR.responseText);
+
+                    // rebind the modal which now contain the new html
+                    tinybind.bind(document.getElementById(modal.id), app);
+
+                    // load a record into the modal
+                    app.methods.autoLoad();
+
+                    // show the modal
+                    modal.show();
+                } else {
+                    // any other response code displays a error
+                    app.methods.alert('Could not load modal.');
+                }
+            },
+        });
+    },
+    // hide the modal
+    hide() {
+        if (this.open) {
+            // hide it
+            this.ref.hide();
+            this.content('');
+            this.open = false;
+        }
+    },
+    // show the modal
+    show() {
+        if (!this.ref) {
+            this.ref = new bootstrap.Modal(this.jid, this.config);
+        }
+
+        this.ref.show();
+        this.open = true;
+    },
+};
 
 /* bootstrap tinybind app */
 document.addEventListener('DOMContentLoaded', function () {
