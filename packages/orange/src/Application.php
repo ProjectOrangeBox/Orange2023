@@ -209,8 +209,8 @@ class Application
         }
 
         // bring in our required helpers
-        require __ROOT__ . '/packages/orange/src/helpers/helpers.php';
-        require __ROOT__ . '/packages/orange/src/helpers/wrappers.php';
+        require __DIR__ . '/helpers/helpers.php';
+        require __DIR__ . '/helpers/wrappers.php';
     }
 
     /**
@@ -222,7 +222,7 @@ class Application
     protected static function bootstrapErrorHandling(): void
     {
         // this is required either default orange framework one or the end user provides
-        require __ROOT__ . '/packages/orange/src/helpers/errors.php';
+        require __DIR__ . '/helpers/errors.php';
 
         if (function_exists('errorHandler')) {
             set_error_handler('errorHandler');
