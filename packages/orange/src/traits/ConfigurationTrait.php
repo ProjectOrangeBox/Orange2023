@@ -43,11 +43,15 @@ trait ConfigurationTrait
             }
 
             // if the absolute path to the file does not exsist try to auto detect based on the file location + /config/{name}.php
-            $absolutePath = dirname($reflection->getFileName()) . '/config/' . $absolutePath . '.php';
+            $absolutePath = realpath(dirname($reflection->getFileName()) . '/config/' . $absolutePath . '.php');
+
+            if (!$absolutePath) {
+                $absolutePath = realpath(dirname($reflection->getFileName()) . '/../config/' . $absolutePath . '.php');
+            }
         }
 
         // ok does this path exist?
-        if (!file_exists($absolutePath)) {
+        if (!$absolutePath) {
             throw new ConfigFileNotFound($absolutePath);
         }
 

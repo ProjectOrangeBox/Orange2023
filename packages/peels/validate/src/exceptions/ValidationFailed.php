@@ -65,7 +65,7 @@ class ValidationFailed extends ValidateException
         return $this->getErrorsAsArray();
     }
 
-    public function getErrorsAsHtml(string $prefix = '', string $suffix = '', string $separator = ''): string
+    public function getErrorsAsHtml(string $prefix = '', string $suffix = '', string $separator = PHP_EOL): string
     {
         $elements = [];
 

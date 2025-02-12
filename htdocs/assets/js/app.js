@@ -290,7 +290,7 @@ const app = {
 
             // format the json errors (array) 
             // here not on the server for display in the next step
-            record.message = app.methods.wrap(record.errors, record.prefixhtml, record.suffixhtml);
+            record.message = app.methods.wrap(record.errors, record.wrapPrefix, record.wrapSuffix);
 
             // show the bootbox alert
             app.methods.alert(record);

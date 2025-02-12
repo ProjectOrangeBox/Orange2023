@@ -98,11 +98,11 @@ class Error extends Singleton
      * @param array $config Configuration options.
      * @param Throwable|null $thrown Optional exception causing the error.
      */
-    protected function __construct(array $config = [], ContainerInterface $container, ?Throwable $thrown = null)
+    protected function __construct(array $config = [], ContainerInterface $container = null, ?Throwable $thrown = null)
     {
         logMsg('INFO', __METHOD__);
 
-        $this->$container = $container;
+        $this->container = $container ?? container();
 
         // merge defaults with passed in config
         $this->config = $this->mergeWithDefault($config);

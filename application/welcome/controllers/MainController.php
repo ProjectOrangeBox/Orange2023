@@ -13,8 +13,9 @@ class MainController extends BaseController
         'fig',
     ];
 
+    # [route(*,/,home)]
     public function index(): string
-    {        
+    {
         // many at once
         $this->data->merge([
             'address' => '123 South Main Street<br />Somewhere, AZ 12345',
