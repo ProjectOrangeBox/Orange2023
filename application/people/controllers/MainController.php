@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace application\people\controllers;
 
+use orange\framework\traits\ConfigurationTrait;
 use application\shared\controllers\CrudController;
 
 class MainController extends CrudController
 {
+    use ConfigurationTrait;
+
     // view directory
     protected $viewDirectory = 'people/';
 

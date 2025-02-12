@@ -29,29 +29,13 @@ trait ConfigurationTrait
         logMsg('INFO', __METHOD__);
         logMsg('DEBUG', __METHOD__, ['config' => $config, 'recursive' => $recursive, 'absolutePath' => $absolutePath]);
 
-        // we use this to include the default configs reguardless of what they are doing with the config service.
-        // if somebody sets up a custom config service that only looks in 1 directory for example then these
-        // would not be found and that would create all kinds of issues
-        // the config service only "requires" get() & __get() it doesn't say "how" the config is determined etc...
-
-        // if this path doesn't exist then let's try to dynamically figure out the path
         if (!file_exists($absolutePath)) {
-            $reflection = new \ReflectionClass(get_class($this));
-
-            if ($absolutePath == '') {
-                $absolutePath = strtolower($reflection->getShortName());
-            }
-
-            // if the absolute path to the file does not exsist try to auto detect based on the file location + /config/{name}.php
-            $absolutePath = realpath(dirname($reflection->getFileName()) . '/config/' . $absolutePath . '.php');
-
-            if (!$absolutePath) {
-                $absolutePath = realpath(dirname($reflection->getFileName()) . '/../config/' . $absolutePath . '.php');
-            }
+            // if this path doesn't exist then let's try to dynamically figure out the path
+            $absolutePath = $this->determineConfigPath($absolutePath);
         }
 
         // ok does this path exist?
-        if (!$absolutePath) {
+        if (!file_exists($absolutePath)) {
             throw new ConfigFileNotFound($absolutePath);
         }
 
@@ -68,6 +52,21 @@ trait ConfigurationTrait
         }
 
         return ($recursive) ? array_replace_recursive(self::$alreadyIncludedFiles[$absolutePath], $config) : array_replace(self::$alreadyIncludedFiles[$absolutePath], $config);
+    }
+
+    protected function determineConfigPath(string $arg): string
+    {
+        $reflection = new \ReflectionClass(get_class($this));
+        $shortName = ($arg == '') ? strtolower($reflection->getShortName()) : $arg;
+
+        // if the absolute path to the file does not exsist try to auto detect based on the file location + /config/{name}.php
+        $absolutePath = dirname($reflection->getFileName()) . '/config/' . $shortName . '.php';
+
+        if (!file_exists($absolutePath)) {
+            $absolutePath = dirname($reflection->getFileName()) . '/../config/' . $shortName . '.php';
+        }
+
+        return $absolutePath;
     }
 
     /**
