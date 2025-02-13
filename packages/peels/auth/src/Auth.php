@@ -27,7 +27,7 @@ class Auth implements AuthInterface
 
     public function __construct(array $config, PDO $pdo)
     {
-        $this->config = $this->mergeWithDefault($config);
+        $this->config = $this->mergeWith($config);
 
         $this->db = $pdo;
 

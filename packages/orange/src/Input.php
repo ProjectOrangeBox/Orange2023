@@ -61,7 +61,7 @@ class Input extends Singleton implements InputInterface
     {
         logMsg('INFO', __METHOD__);
 
-        $this->config = $this->mergeWithDefault($config, false);
+        $this->config = $this->mergeWith($config, false);
 
         $this->remapKeys = $this->config['remap keys'] ? array_change_key_case($this->config['remap keys'], CASE_LOWER) : [];
 

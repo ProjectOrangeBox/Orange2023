@@ -105,7 +105,7 @@ class Error extends Singleton
         $this->container = $container ?? container();
 
         // merge defaults with passed in config
-        $this->config = $this->mergeWithDefault($config);
+        $this->config = $this->mergeWith($config);
 
         // try to setup our services
         // these are loaded from the service container or

@@ -80,7 +80,7 @@ class Output extends Singleton implements OutputInterface
     {
         logMsg('INFO', __METHOD__);
 
-        $this->config = $this->mergeWithDefault($config);
+        $this->config = $this->mergeWith($config);
         $this->input = $input;
 
         if ($this->config['force https']) {

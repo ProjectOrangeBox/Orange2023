@@ -61,8 +61,8 @@ class Config extends SingletonArrayObject implements ConfigInterface
             }
 
             // Setup environment-specific configuration directory
-            if (!($config['skip env'] ?? false)) {
-                if (defined('ENVIRONMENT') && $envDirectory = realpath($config['config directory'] . DIRECTORY_SEPARATOR . ENVIRONMENT)) {
+            if (isset($config['environment'])) {
+                if ($envDirectory = realpath($config['config directory'] . DIRECTORY_SEPARATOR . $config['environment'])) {
                     // second searched
                     $this->searchPaths[] = $envDirectory;
                 }

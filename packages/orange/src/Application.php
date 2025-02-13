@@ -142,6 +142,9 @@ class Application
         // set ENVIRONMENT default to production
         define('ENVIRONMENT', strtolower($_ENV['ENVIRONMENT']) ?? 'production');
 
+        // if this is NOT set then no environment directory will be added
+        self::$config['environment'] = ENVIRONMENT;
+
         // get our error handling defaults for the different environment types
         // these can be overridden in the passed $config array
         $envErrorsConfig = self::$config['environment errors config'][ENVIRONMENT] ?? self::$config['environment errors config']['default'];

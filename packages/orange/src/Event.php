@@ -61,7 +61,7 @@ class Event extends Singleton implements EventInterface
         logMsg('INFO', __METHOD__);
 
         // Merge provided configuration with default configuration.
-        $this->config = $this->mergeWithDefault($config);
+        $this->config = $this->mergeWith($config);
 
         $this->disabled = $this->config['disabled'] ?? $this->disabled;
 

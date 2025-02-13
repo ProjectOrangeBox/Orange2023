@@ -18,40 +18,36 @@ trait ConfigurationTrait
      * optionally doing a recursive merge
      *
      * @param array $config
-     * @param string $absolutePath
+     * @param string $path
      * @param bool $recursive
      * @return array
      * @throws ConfigFileNotFound
      * @throws InvalidValue
      */
-    protected function mergeWithDefault(array $config, bool $recursive = true, string $absolutePath = ''): array
+    protected function mergeWith(array $config, bool $recursive = true, string $path = ''): array
     {
         logMsg('INFO', __METHOD__);
-        logMsg('DEBUG', __METHOD__, ['config' => $config, 'recursive' => $recursive, 'absolutePath' => $absolutePath]);
+        logMsg('DEBUG', __METHOD__, ['config' => $config, 'recursive' => $recursive, 'path' => $path]);
 
-        if (!file_exists($absolutePath)) {
+        // if you didn't send in a absolute path we need to try and dynamically find it
+        if (!file_exists($path)) {
             // if this path doesn't exist then let's try to dynamically figure out the path
-            $absolutePath = $this->determineConfigPath($absolutePath);
+            $path = $this->determineConfigPath($path);
         }
 
-        // ok does this path exist?
-        if (!file_exists($absolutePath)) {
-            throw new ConfigFileNotFound($absolutePath);
-        }
+        logMsg('INFO', $path . ' ' . ($recursive ? 'recursive' : 'non-recursive'));
 
-        logMsg('INFO', $absolutePath . ' ' . ($recursive ? 'recursive' : 'non-recursive'));
+        if (!isset(self::$alreadyIncludedFiles[$path])) {
+            logMsg('INFO', 'INCLUDE FILE "' . $path . '"');
 
-        if (!isset(self::$alreadyIncludedFiles[$absolutePath])) {
-            logMsg('INFO', 'INCLUDE FILE "' . $absolutePath . '"');
+            self::$alreadyIncludedFiles[$path] = include $path;
 
-            self::$alreadyIncludedFiles[$absolutePath] = include $absolutePath;
-
-            if (!is_array(self::$alreadyIncludedFiles[$absolutePath])) {
-                throw new InvalidValue('"' . $absolutePath . '" did not return an array.');
+            if (!is_array(self::$alreadyIncludedFiles[$path])) {
+                throw new InvalidValue('"' . $path . '" did not return an array.');
             }
         }
 
-        return ($recursive) ? array_replace_recursive(self::$alreadyIncludedFiles[$absolutePath], $config) : array_replace(self::$alreadyIncludedFiles[$absolutePath], $config);
+        return ($recursive) ? array_replace_recursive(self::$alreadyIncludedFiles[$path], $config) : array_replace(self::$alreadyIncludedFiles[$path], $config);
     }
 
     protected function determineConfigPath(string $arg): string
@@ -59,14 +55,26 @@ trait ConfigurationTrait
         $reflection = new \ReflectionClass(get_class($this));
         $shortName = ($arg == '') ? strtolower($reflection->getShortName()) : $arg;
 
-        // if the absolute path to the file does not exsist try to auto detect based on the file location + /config/{name}.php
-        $absolutePath = dirname($reflection->getFileName()) . '/config/' . $shortName . '.php';
+        $testPath = [
+            dirname($reflection->getFileName()) . '/config/' . $shortName . '.php',
+            dirname($reflection->getFileName()) . '/../config/' . $shortName . '.php',
+        ];
 
-        if (!file_exists($absolutePath)) {
-            $absolutePath = dirname($reflection->getFileName()) . '/../config/' . $shortName . '.php';
+        $found = false;
+
+        foreach ($testPath as $path) {
+            if (file_exists($path)) {
+                $found = true;
+                // if the file exists then break from the foreach loop
+                break;
+            }
         }
 
-        return $absolutePath;
+        if (!$found) {
+            throw new ConfigFileNotFound($path);
+        }
+
+        return $path;
     }
 
     /**

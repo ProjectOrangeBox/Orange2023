@@ -92,7 +92,7 @@ abstract class ViewAbstract extends Singleton implements ViewInterface
     {
         logMsg('INFO', __METHOD__);
 
-        $this->config = $this->mergeWithDefault($config, false);
+        $this->config = $this->mergeWith($config, false);
 
         if ($data) {
             $this->data = $data;

@@ -78,7 +78,7 @@ class Router extends Singleton implements RouterInterface
         logMsg('INFO', __METHOD__);
 
         // load the default configs
-        $this->config = $this->mergeWithDefault($config, false, 'routes');
+        $this->config = $this->mergeWith($config, false, 'routes');
 
         if (empty($this->config['site'])) {
             throw new MissingRequired('Route config "site" in routes.php can not be empty.');

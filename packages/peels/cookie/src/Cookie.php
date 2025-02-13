@@ -22,7 +22,7 @@ class Cookie extends Singleton implements CookieInterface
 
     protected function __construct(array $config, InputInterface $input, OutputInterface $output)
     {
-        $this->config = $this->mergeWithDefault($config);
+        $this->config = $this->mergeWith($config);
 
         $this->input = $input;
         $this->output = $output;

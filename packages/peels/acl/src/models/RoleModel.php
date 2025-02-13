@@ -38,7 +38,7 @@ class RoleModel extends Model implements RoleModelInterface
 
     public function __construct(array $config, PDO $pdo, ?ValidateInterface $validateService)
     {
-        $this->mergeWithDefault($config);
+        $this->mergeWith($config);
 
         $this->entityClass = $this->config['RoleEntityClass'] ?? \peels\acl\entities\RoleEntity::class;
 

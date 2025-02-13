@@ -112,7 +112,7 @@ class Console extends Singleton implements ConsoleInterface
 
     protected function __construct(array $config, InputInterface $input)
     {
-        $this->config = $this->mergeWithDefault($config);
+        $this->config = $this->mergeWith($config);
 
         $this->lf = $this->config['Linefeed Character'] ?? $this->lf;
 

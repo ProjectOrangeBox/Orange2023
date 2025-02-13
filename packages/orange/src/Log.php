@@ -76,7 +76,7 @@ class Log extends Singleton implements LogInterface, LoggerInterface
      */
     protected function __construct(array $config)
     {
-        $this->config = $this->mergeWithDefault($config);
+        $this->config = $this->mergeWith($config);
 
         // default off
         $this->enabled = false;

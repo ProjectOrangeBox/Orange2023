@@ -36,7 +36,7 @@ class Flashmsg implements FlashMsgInterface
 
     protected function __construct(array $config, SessionInterface $session, OutputInterface $output, ?DataInterface $data = null, ?EventInterface $event = null)
     {
-        $this->config = $this->mergeWithDefault($config);
+        $this->config = $this->mergeWith($config);
 
         $this->session = $session;
         $this->output = $output;

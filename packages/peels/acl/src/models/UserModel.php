@@ -43,7 +43,7 @@ class UserModel extends Model implements UserModelInterface
 
     public function __construct(array $config, PDO $pdo, ValidateInterface $validateService)
     {
-        $this->mergeWithDefault($config);
+        $this->mergeWith($config);
 
         $this->entityClass = $this->config['UserEntityClass'] ?? \peels\acl\entities\UserEntity::class;
 
