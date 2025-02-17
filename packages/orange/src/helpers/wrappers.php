@@ -60,3 +60,16 @@ if (!function_exists('getUrl')) {
         return container()->router->getUrl($searchName, $arguments);
     }
 }
+
+/* wrapper for router get url with no type checking */
+if (!function_exists('getUrlSkip')) {
+    function getUrlSkip(): string
+    {
+        $arguments = func_get_args();
+
+        $searchName = array_shift($arguments);
+
+        // throws an exception if the router service isn't setup
+        return container()->router->getUrlNoCheck($searchName, $arguments);
+    }
+}

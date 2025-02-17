@@ -33,9 +33,9 @@
                 <td>{row.age}</td>
                 <td>{row.colorname}</td>
                 <td>
-                    <button type="button" rv-on-click="actions.redirect" data-redirect="<?= getUrl('peopleReadForm', '-1') ?>" rv-data-id="row.id" class="btn btn-primary"><i class="fa-solid fa-eye"></i></button>
-                    <button type="button" rv-on-click="actions.loadModal" data-modal="<?= getUrl('peopleUpdateForm', '-1') ?>" rv-data-id="row.id" data-size="modal-xl" class="btn btn-primary"><i class="fa-solid fa-square-pen"></i></button>
-                    <button type="button" rv-on-click="actions.loadModal" data-modal="<?= getUrl('peopleDeleteForm', '-1') ?>" rv-data-id="row.id" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button>
+                    <button type="button" rv-on-click="actions.redirect" data-redirect="<?= getUrlSkip('peopleReadForm', '#') ?>" rv-data-id="row.id" class="btn btn-primary"><i class="fa-solid fa-eye"></i></button>
+                    <button type="button" rv-on-click="actions.loadModal" data-modal="<?= getUrlSkip('peopleUpdateForm', '#') ?>" rv-data-id="row.id" data-size="modal-xl" class="btn btn-primary"><i class="fa-solid fa-square-pen"></i></button>
+                    <button type="button" rv-on-click="actions.loadModal" data-modal="<?= getUrlSkip('peopleDeleteForm', '#') ?>" rv-data-id="row.id" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button>
                 </td>
             </tr>
         </tbody>

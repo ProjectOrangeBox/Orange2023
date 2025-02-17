@@ -1,10 +1,37 @@
+/**
+ * data.*
+ *   redirect: string [url to redirect to]
+ *   reload: string [url to redirect to]
+ *   refresh: string [url to redirect to]
+ *
+ *   modal: boolean [indicate if the url should be used to retrieve the modal]
+ *   size: string<small|sm|large|lg|extra-large|xl> [Adds the relevant Bootstrap modal size class to the dialog wrapper]
+ * 
+ *   id: integer|string [record id]
+ *   property: string [property on app to assign model to]
+ *   
+ *   form: string [the form id selector to read]
+ *   method: string<post|get|put|delete> [ajax method to use]
+ *   
+ *   -- dynamic loading 
+ *   pre-load: boolean
+ *   autoload: boolean
+ *   post-load: boolean 
+ * 
+ */
+
 // create the application object
 const app = {
+    // root application DOM element
     rootElement: undefined,
-    bound: undefined,
+    // app "storage" space
     storage: {},
+    // default array of "records" (objects)
     records: [],
+    // default "record" object
     record: {},
+    // default "generic" object(s)
+    models: {},
     // attach these to rv-click buttons ie. rv-click="actions.localModal" data-foo="abc" data-bar="123"
     actions: {
         loadModal() {
@@ -43,8 +70,11 @@ const app = {
             app.methods.makeAjaxCall({
                 // get the url to post to with # replacement from the form's id
                 url: app.methods.makeUrl(data.url, app[key].id),
-                type: data.type,
-                data: JSON.stringify(app[key]),
+                // what http method should we use
+                type: data.method,
+                // what should we send as "data"
+                data: app[key],
+                // when the request is "complete"
                 complete: function (jqXHR) {
                     // capture the text and/or json response
                     let json = jqXHR.responseJSON;
@@ -80,10 +110,11 @@ const app = {
         notAcceptable(json, data) {
             // tag the ui element based on the keys (array) if available 
             if (json.keys) {
+                // add the highlights if we can
                 app.gui.highlightErrorFields(json.keys);
             }
-
-            app.gui.showErrorDialog(json);
+            // show error dialog
+            app.gui.showErrorDialog(json, data);
         },
 
         refreshOnData(json, data) {
@@ -240,7 +271,7 @@ const app = {
             $.ajax({ ...defaults, ...request });
         },
         makeUrl(url, id) {
-            return url.replace('-1', id || '');
+            return url.replace('#', id || '');
         },
         // remove a selector from a string if it exists
         removeSelector(string, selector) {
@@ -278,7 +309,7 @@ const app = {
             });
         },
         // ie. app.gui.showErrorDialog(json);
-        showErrorDialog(record) {
+        showErrorDialog(record, data) {
             // this responds is json so we grab the values or use the defaults provided
             // https://bootboxjs.com/documentation.html
             record.size = record.size || 'large'; // large alert

@@ -23,7 +23,7 @@
         </div>
         <div class="mb-3 float-end">
             <a rv-on-click="actions.cancel" data-modal="true" class="btn">Cancel</a>
-            <a rv-on-click="actions.submit" data-refresh="true" data-modal="true" data-url="<?= getUrl('peopleUpdate', $id) ?>" data-type="put" data-form="form" class="btn btn-primary">Submit</a>
+            <a rv-on-click="actions.submit" data-refresh="true" data-modal="true" data-url="<?= getUrl('peopleUpdate', $id) ?>" data-method="put" data-form="form" class="btn btn-primary">Submit</a>
         </div>
     </form>
 </div>

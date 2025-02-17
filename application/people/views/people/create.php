@@ -25,7 +25,7 @@
         </div>
         <div class="mb-3 float-end">
             <a rv-on-click="actions.cancel" data-redirect="<?= getUrl('peopleReadList') ?>" class="btn">Cancel</a>
-            <a rv-on-click="actions.submit" data-url="<?= getUrl('peopleCreate') ?>" data-type="post" data-form="form" data-redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-primary">Submit</a>
+            <a rv-on-click="actions.submit" data-url="<?= getUrl('peopleCreate') ?>" data-method="post" data-form="form" data-redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-primary">Submit</a>
         </div>
     </form>
 </div>

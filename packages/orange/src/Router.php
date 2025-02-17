@@ -315,6 +315,29 @@ class Router extends Singleton implements RouterInterface
     }
 
     /**
+     * Generates a URL from a named route and arguments.
+     * WITHOUT checking the arguments against the url's regular expression
+     * regardless if skip checking type is enabled or not
+     *
+     * @param string $searchName Route name.
+     * @param array $arguments Arguments for dynamic segments.
+     * @return string The generated URL.
+     * @throws RouterNameNotFound If the route name is not found.
+     */
+    public function getUrlNoCheck(string $searchName, array $arguments = []): string
+    {
+        $skipCheckingType = $this->skipCheckingType;
+
+        $this->skipCheckingType = true;
+
+        $url = $this->getUrl($searchName, $arguments);
+
+        $this->skipCheckingType = $skipCheckingType;
+
+        return $url;
+    }
+
+    /**
      * Generates the site's base URL, optionally with an HTTP/HTTPS prefix.
      *
      * This method allows the caller to:
