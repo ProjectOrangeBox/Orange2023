@@ -50,26 +50,9 @@ if (!function_exists('config')) {
 
 /* wrapper for router get url */
 if (!function_exists('getUrl')) {
-    function getUrl(): string
+    function getUrl(string $searchName, array $arguments = [], bool $skipCheckingType = null): string
     {
-        $arguments = func_get_args();
-
-        $searchName = array_shift($arguments);
-
         // throws an exception if the router service isn't setup
-        return container()->router->getUrl($searchName, $arguments);
-    }
-}
-
-/* wrapper for router get url with no type checking */
-if (!function_exists('getUrlSkip')) {
-    function getUrlSkip(): string
-    {
-        $arguments = func_get_args();
-
-        $searchName = array_shift($arguments);
-
-        // throws an exception if the router service isn't setup
-        return container()->router->getUrlNoCheck($searchName, $arguments);
+        return container()->router->getUrl($searchName, $arguments, $skipCheckingType);
     }
 }

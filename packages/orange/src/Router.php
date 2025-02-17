@@ -261,10 +261,10 @@ class Router extends Singleton implements RouterInterface
      * @return string The generated URL.
      * @throws RouterNameNotFound If the route name is not found.
      */
-    public function getUrl(string $searchName, array $arguments = []): string
+    public function getUrl(string $searchName, array $arguments = [], ?bool $skipCheckingType = null): string
     {
         logMsg('INFO', __METHOD__ . ' ' . $searchName);
-        logMsg('DEBUG', '', ['searchName' => $searchName, 'arguments' => $arguments]);
+        logMsg('DEBUG', '', ['searchName' => $searchName, 'arguments' => $arguments, 'skipCheckingType' => $skipCheckingType]);
 
         $lowercaseSearchName = mb_strtolower($searchName);
 
@@ -290,12 +290,14 @@ class Router extends Singleton implements RouterInterface
 
         // does this url have any arguments?
         if ($hasArgs) {
+            $skip = (is_bool($skipCheckingType)) ? $skipCheckingType : $this->skipCheckingType;
+
             foreach ($matches as $index => $match) {
                 // convert to a string
                 $value = (string)$arguments[$index];
 
                 // make sure the argument matches the regular expression for that segement
-                if (!$this->skipCheckingType && !preg_match('@' . $match[0] . '@m', $value)) {
+                if (!$skip && !preg_match('@' . $match[0] . '@m', $value)) {
                     throw new InvalidValue('Parameter mismatch. Expecting ' . $match[1] . ' got ' . $value);
                 }
 
@@ -312,29 +314,6 @@ class Router extends Singleton implements RouterInterface
         logMsg('INFO', __METHOD__ . ' matched Url ' . $matchedUrl);
 
         return $matchedUrl;
-    }
-
-    /**
-     * Generates a URL from a named route and arguments.
-     * WITHOUT checking the arguments against the url's regular expression
-     * regardless if skip checking type is enabled or not
-     *
-     * @param string $searchName Route name.
-     * @param array $arguments Arguments for dynamic segments.
-     * @return string The generated URL.
-     * @throws RouterNameNotFound If the route name is not found.
-     */
-    public function getUrlNoCheck(string $searchName, array $arguments = []): string
-    {
-        $skipCheckingType = $this->skipCheckingType;
-
-        $this->skipCheckingType = true;
-
-        $url = $this->getUrl($searchName, $arguments);
-
-        $this->skipCheckingType = $skipCheckingType;
-
-        return $url;
     }
 
     /**
