@@ -24,9 +24,9 @@
                 <td>{row.age}</td>
                 <td>{row.colorname}</td>
                 <td>
-                    <button type="button" rv-on-click="actions.redirect" sd-url="<?= getUrl('peopleReadForm', ['#'], true) ?>" rv-sd-id="row.id" class="btn btn-primary"><i class="fa-solid fa-eye"></i></button>
-                    <button type="button" rv-on-click="actions.loadModal" sd-modal-template="<?= getUrl('peopleUpdateForm', ['#'], true) ?>" rv-sd-id="row.id" sd-modal-options='{"size": "modal-xl"}' class="btn btn-primary"><i class="fa-solid fa-square-pen"></i></button>
-                    <button type="button" rv-on-click="actions.loadModal" sd-modal-template="<?= getUrl('peopleDeleteForm', ['#'], true) ?>" rv-sd-id="row.id" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button>
+                    <button type="button" rv-on-click="actions.redirect" sd-url="<?= getUrl('peopleReadForm', ['#'], true) ?>" rv-sd-uid="row.id" class="btn btn-primary"><i class="fa-solid fa-eye"></i></button>
+                    <button type="button" rv-on-click="actions.loadModal" sd-modal-template="<?= getUrl('peopleUpdateForm', ['#'], true) ?>" rv-sd-uid="row.id" sd-modal-options='{"size": "modal-xl"}' class="btn btn-primary"><i class="fa-solid fa-square-pen"></i></button>
+                    <button type="button" rv-on-click="actions.loadModal" sd-modal-template="<?= getUrl('peopleDeleteForm', ['#'], true) ?>" rv-sd-uid="row.id" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button>
                 </td>
             </tr>
         </tbody>

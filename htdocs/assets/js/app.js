@@ -10,15 +10,13 @@ const app = {
     rootElement: undefined,
     // app "storage" space
     storage: {},
-    // attach these to rv-click buttons ie. rv-click="actions.localModal" data-foo="abc" data-bar="123"
+    // attach these to rv-click buttons ie. rv-click="actions.localModal"
     actions: {
         loadModal() {
             app.methods.loadModal(getTags(this));
         },
         redirect() {
-            let tags = getTags(this);
-            tags.redirect = tags.url;
-            app.methods.redirect(tags);
+            app.methods.redirect(getTags(this));
         },
         cancel() {
             app.methods.cancel(getTags(this));
@@ -37,6 +35,7 @@ const app = {
         },
         // redirect to another url button
         redirect(tags) {
+            tags.redirect = tags.url;
             app.methods.actionBasedOnTags(tags);
         },
         // handle a cancel button
@@ -45,8 +44,6 @@ const app = {
         },
         // submit a form
         submit(tags) {
-            let payload = getProperty(app, tags.property);
-
             for (let httpMethod of ['get', 'put', 'post', 'patch', 'delete', 'options', 'header']) {
                 if (tags[httpMethod + '-url']) {
                     tags.httpMethod = httpMethod;
@@ -55,9 +52,12 @@ const app = {
                 }
             }
 
+            // get the payload for the http call from app based on the property tag
+            let payload = getProperty(app, tags.property);
+
             app.methods.makeAjaxCall({
-                // get the url to post to with # replacement from the form's id
-                url: app.methods.makeUrl(tags.url, payload.id),
+                // get the url to post to with # replacement from the objects uid
+                url: app.methods.makeUrl(tags.url, payload.uid),
                 // what http method should we use
                 type: tags.httpMethod,
                 // what should we send as "data"
@@ -135,7 +135,7 @@ const app = {
 
             // redirect if appropriate
             if (tags.redirect) {
-                window.location.href = app.methods.makeUrl(tags.redirect, tags.id);
+                window.location.href = app.methods.makeUrl(tags.redirect, tags.uid);
             }
         },
 
@@ -177,7 +177,7 @@ const app = {
         // load a template from the server
         template(tags, thenCall) {
             app.methods.makeAjaxCall({
-                url: app.methods.makeUrl(tags.url, tags.id),
+                url: app.methods.makeUrl(tags.template, tags.uid),
                 type: tags.method || 'get',
                 complete: function (jqXHR) {
                     if (jqXHR.status == 200) {
@@ -211,7 +211,11 @@ const app = {
 
             let html = jqXHR.responseText || '';
 
-            element.innerHTML = jqXHR.responseJSON.html || html;
+            if (jqXHR.responseJSON) {
+                html = jqXHR.responseJSON.html || html;
+            }
+
+            element.innerHTML = html;
         },
 
         // auto load a models where data-autoload = true
@@ -278,8 +282,8 @@ const app = {
             $.ajax({ ...defaults, ...request });
         },
         // make a url replacing # with a passed id
-        makeUrl(url, id) {
-            return url.replace('#', id || '');
+        makeUrl(url, uid) {
+            return url.replace('#', uid || '');
         },
         // remove a selector from a string if it exists
         removeSelector(string, selector) {
@@ -397,7 +401,7 @@ function getTags(element, tag) {
 
     // add the element to the tags
     arr['element'] = element;
-    console.log(arr);
+
     return arr;
 }
 
