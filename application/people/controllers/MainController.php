@@ -44,7 +44,7 @@ class MainController extends CrudController
     # [route(get,/colordropdown,peoplecolordropdown)]
     public function colordropdown(): string
     {
-        return $this->preformCRUD('colorModel', 'getAll', [], 'colors');
+        return $this->preformCRUD('colorModel', 'getAll');
     }
 
     # [route(get,/peopledropdown,peopledropdown)]
@@ -71,7 +71,7 @@ class MainController extends CrudController
         $this->data['statusCode'] = 200;
         $this->data['contentType'] = 'json';
 
-        $this->data['json']['dropdown2'] = [
+        $this->data['json'] = [
             'selected' => 'two',
         ];
 

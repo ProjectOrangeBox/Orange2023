@@ -1,83 +1,74 @@
 /**
- * data.*
- *   redirect: string [url to redirect to]
- *   reload: string [url to redirect to]
- *   refresh: string [url to redirect to]
- *
- *   modal: boolean [indicate if the url should be used to retrieve the modal]
- *   size: string<small|sm|large|lg|extra-large|xl> [Adds the relevant Bootstrap modal size class to the dialog wrapper]
- * 
- *   id: integer|string [record id]
- *   property: string [property on app to assign model to]
- *   
- *   form: string [the form id selector to read]
- *   method: string<post|get|put|delete> [ajax method to use]
- *   
- *   -- dynamic loading 
- *   pre-load: boolean
- *   autoload: boolean
- *   post-load: boolean 
  * 
  */
 
 // create the application object
 const app = {
+    // html element prefix tag
+    elementTag: 'sd-',
     // root application DOM element
     rootElement: undefined,
     // app "storage" space
     storage: {},
-    // default array of "records" (objects)
-    records: [],
-    // default "record" object
-    record: {},
-    // default "generic" object(s)
-    models: {},
     // attach these to rv-click buttons ie. rv-click="actions.localModal" data-foo="abc" data-bar="123"
     actions: {
         loadModal() {
-            app.methods.loadModal(this.dataset);
+            app.methods.loadModal(getTags(this));
         },
         redirect() {
-            app.methods.redirect(this.dataset);
+            let tags = getTags(this);
+            tags.redirect = tags.url;
+            app.methods.redirect(tags);
         },
         cancel() {
-            app.methods.cancel(this.dataset);
+            app.methods.cancel(getTags(this));
         },
         submit() {
-            app.methods.submit(this.dataset);
+            app.methods.submit(getTags(this));
         },
     },
     // shared application methods
     methods: {
-        loadModal(data) {
-            modal.load(data);
+        // load modal template
+        loadModal(tags) {
+            let modalOptions = JSON.parse(tags['modal-options'] || '{}');
+            // pass thru to modal object
+            modal.load({ ...tags, ...modalOptions });
         },
         // redirect to another url button
-        redirect(data) {
-            // replace # with the data-id=""
-            window.location.href = app.methods.makeUrl(data.redirect, data.id);
+        redirect(tags) {
+            app.methods.actionBasedOnTags(tags);
         },
         // handle a cancel button
-        cancel(data) {
-            app.methods.refreshOnData({}, data);
+        cancel(tags) {
+            app.methods.actionBasedOnTags(tags);
         },
         // submit a form
-        submit(data) {
-            // capture the data from the html element (this) which the method was triggered
-            // convert the data-form="" element to a json object
-            let key = data.property || 'record';
+        submit(tags) {
+            let payload = getProperty(app, tags.property);
+
+            for (let httpMethod of ['get', 'put', 'post', 'patch', 'delete', 'options', 'header']) {
+                if (tags[httpMethod + '-url']) {
+                    tags.httpMethod = httpMethod;
+                    tags.url = tags[httpMethod + '-url'];
+                    continue;
+                }
+            }
 
             app.methods.makeAjaxCall({
                 // get the url to post to with # replacement from the form's id
-                url: app.methods.makeUrl(data.url, app[key].id),
+                url: app.methods.makeUrl(tags.url, payload.id),
                 // what http method should we use
-                type: data.method,
+                type: tags.httpMethod,
                 // what should we send as "data"
-                data: app[key],
+                data: JSON.stringify(payload),
                 // when the request is "complete"
                 complete: function (jqXHR) {
                     // capture the text and/or json response
                     let json = jqXHR.responseJSON;
+
+                    tags.jqXHR = jqXHR;
+                    tags.json = json;
 
                     // based on the responds code
                     switch (jqXHR.status) {
@@ -87,16 +78,15 @@ const app = {
                             break;
                         case 201:
                             // Created
-                            app.methods.refreshOnData(json, data);
+                            app.methods.actionBasedOnTags(tags);
                             break;
                         case 202:
                             // Accepted
-                            app.methods.refreshOnData(json, data);
+                            app.methods.actionBasedOnTags(tags);
                             break;
                         case 406:
                             // Not Acceptable
-                            app.methods.notAcceptable(json, data);
-
+                            app.methods.notAcceptable(tags);
                             break;
                         default:
                             // anything other reponds code is an error
@@ -107,120 +97,137 @@ const app = {
         },
 
         // default not accepted form submission
-        notAcceptable(json, data) {
+        notAcceptable(tags) {
             // tag the ui element based on the keys (array) if available 
-            if (json.keys) {
+            if (tags.json.keys) {
                 // add the highlights if we can
-                app.gui.highlightErrorFields(json.keys);
+                app.gui.highlightErrorFields(tags.json.keys);
             }
             // show error dialog
-            app.gui.showErrorDialog(json, data);
+            app.gui.showErrorDialog(tags);
         },
 
-        refreshOnData(json, data) {
+        actionBasedOnTags(tags) {
             // capture the data from the html element (this) which the method was triggered
             // hide any modals which might be on screen
             modal.hide();
 
+            if (tags['on-success-redirect']) {
+                tags.redirect = tags['on-success-redirect'];
+            }
+
+            if (tags['on-success-refresh']) {
+                tags.reload = false;
+                tags.redirect = false;
+
+                tags.refresh = true;
+            }
+
             // if reload then reload this location (url) data-reload=""
-            if (data.reload) {
+            if (tags.reload) {
                 location.reload();
             }
 
             // if refresh then refresh the page data-refresh=""
-            if (data.refresh) {
+            if (tags.refresh) {
                 app.methods.autoLoad();
             }
 
             // redirect if appropriate
-            if (data.redirect) {
-                app.methods.redirect(data);
+            if (tags.redirect) {
+                window.location.href = app.methods.makeUrl(tags.redirect, tags.id);
             }
         },
 
         // load a model into the application property
-        model(modelUrl, appProperty, method, thenCall) {
+        model(tags, thenCall) {
+            let appProperty = tags.property || 'record';
+            let jsonProperty = tags.modelProperty || undefined;
+
             // make ajax request
             app.methods.makeAjaxCall({
-                url: app.methods.makeUrl(modelUrl),
-                type: method,
+                url: app.methods.makeUrl(tags.model),
+                type: tags.method || 'get',
                 complete: function (jqXHR) {
-                    // capture the text or json from the responds
-                    let json = jqXHR.responseJSON;
-
                     // based on the responds code
                     if (jqXHR.status == 200) {
                         // success
+
+                        // capture the text or json from the responds
+                        let json = jqXHR.responseJSON;
+
                         // replace the application property with the matching json property
-                        if (json != undefined) {
-                            app[appProperty] = json[appProperty];
+                        if (json) {
+                            setProperty(app, appProperty, (jsonProperty) ? getProperty(json, jsonProperty) : json);
 
                             if (typeof thenCall === 'function') {
-                                thenCall();
+                                thenCall(tags);
                             }
                         } else {
-                            app.methods.alert('Could not location property "' + appProperty + '" on JSON response.');
+                            app.methods.alert('JSON Response Undefined.');
                         }
                     } else {
                         // show error dialog
-                        app.methods.alert('Model Access Issue.');
+                        app.methods.alert('Model Access Issue [' + jqXHR.status + '].');
                     }
                 }
             });
         },
 
-        // load a layout from the server
-        layout(layoutUrl, elementId, method, thenCall) {
+        // load a template from the server
+        template(tags, thenCall) {
             app.methods.makeAjaxCall({
-                url: app.methods.makeUrl(layoutUrl),
-                type: method,
+                url: app.methods.makeUrl(tags.url, tags.id),
+                type: tags.method || 'get',
                 complete: function (jqXHR) {
                     if (jqXHR.status == 200) {
                         // success
                         // replace DOM Element with responds json or html
-                        app.methods.replaceElement(elementId, jqXHR);
+                        app.methods.replaceElement(tags.element, jqXHR);
 
                         if (typeof thenCall === 'function') {
-                            thenCall();
+                            thenCall(tags);
                         }
                     } else {
                         // show error dialog
-                        app.methods.alert('Layout Access Issue.');
+                        app.methods.alert('template Access Issue.');
                     }
                 }
             });
         },
 
-        // load a layout then load a model
-        layoutModel(layoutUrl, elementId, method, modelUrl, modelProperty, modelMethod) {
-            // grab a layout and then a model
-            app.methods.layout(layoutUrl, elementId, method, function () {
-                app.methods.model(modelUrl, modelProperty, modelMethod)
+        // load a template then load a model
+        templateModel(tags) {
+            // grab a template and then a model
+            app.methods.template(tags, function () {
+                app.methods.model(tags)
             });
         },
 
-        replaceElement(elementId, jqXHR) {
-            // capture the text and json from the responds
-            let html = jqXHR.responseText;
-            let json = jqXHR.responseJSON;
-
-            // if json.html available use that
-            if (json.html !== undefined) {
-                // replace the html with json.html
-                html = json.html;
+        replaceElement(element, jqXHR) {
+            if (typeof element === 'string') {
+                element.innerHTML = document.getElementById(app.methods.removeSelector(elementId));
             }
 
-            document.getElementById(app.methods.removeSelector(elementId)).innerHTML = html;
+            let html = jqXHR.responseText || '';
+
+            element.innerHTML = jqXHR.responseJSON.html || html;
         },
 
         // auto load a models where data-autoload = true
         // using the data attached
         autoLoad() {
             for (let tag of ['preload', 'autoload', 'postload']) {
-                $('#' + app.rootElement.id + ' [data-' + tag + '="true"]').each(function () {
-                    // grab the other data attributes
-                    // grab the url [*required], property [records], method [get]
-                    app.methods.model(this.dataset.url, this.dataset.property || 'records', this.dataset.method || 'get');
+                $('#' + app.rootElement.id + ' [' + app.elementTag + tag + '="true"]').each(function () {
+                    let tags = getTags(this);
+
+                    if (tags.template && tags.model) {
+                        app.methods.template(tags, app.methods.model(tags));
+                    } else if (tags.template) {
+                        app.methods.template(tags);
+                    } else if (tags.model) {
+                        app.methods.model(tags);
+                    }
                 });
             }
         },
@@ -270,6 +277,7 @@ const app = {
             // merge down the defaults
             $.ajax({ ...defaults, ...request });
         },
+        // make a url replacing # with a passed id
         makeUrl(url, id) {
             return url.replace('#', id || '');
         },
@@ -309,7 +317,9 @@ const app = {
             });
         },
         // ie. app.gui.showErrorDialog(json);
-        showErrorDialog(record, data) {
+        showErrorDialog(tags) {
+            let record = tags.json;
+
             // this responds is json so we grab the values or use the defaults provided
             // https://bootboxjs.com/documentation.html
             record.size = record.size || 'large'; // large alert
@@ -328,6 +338,69 @@ const app = {
         },
     }
 } // end app object
+
+/* bootstrap tinybind app */
+document.addEventListener('DOMContentLoaded', function () {
+    // setup the bootstrap modal reference
+    modal.init();
+
+    app.rootElement = document.getElementById('app');
+
+    tinybind.bind(app.rootElement, app);
+
+    // detect and load models
+    app.methods.autoLoad();
+});
+
+// create global function setProperty
+function setProperty(object, path, value) {
+    if (typeof path === 'string') {
+        path = path.split('.');
+    }
+
+    if (path.length === 1) object[path[0]] = value;
+    else if (path.length === 0) throw error;
+    else {
+        if (object[path[0]])
+            return setProperty(object[path[0]], path.slice(1), value);
+        else {
+            object[path[0]] = {};
+            return setProperty(object[path[0]], path.slice(1), value);
+        }
+    }
+};
+
+function getProperty(obj, path) {
+    const properties = path.split('.');
+    let value = obj;
+    for (const prop of properties) {
+        if (value && typeof value === 'object' && value.hasOwnProperty(prop)) {
+            value = value[prop];
+        } else {
+            return undefined;
+        }
+    }
+    return value;
+}
+
+function getTags(element, tag) {
+    tag = tag || app.elementTag;
+    let reg = new RegExp('^' + tag, 'i'); //case insensitive mce_ pattern
+    let attr = element.attributes; //its attributes
+    let arr = [];
+
+    for (let j = 0; j < attr.length; j++) { //loop through all attributes
+        if (reg.test(attr[j].name)) { //if an attribute starts with ...
+            arr[attr[j].name.substr(tag.length)] = attr[j].value; //push to collection
+        }
+    }
+
+    // add the element to the tags
+    arr['element'] = element;
+    console.log(arr);
+    return arr;
+}
+
 
 // create the modal object
 const modal = {
@@ -383,21 +456,21 @@ const modal = {
         document.getElementById(this.id + '-content').innerHTML = html;
     },
     // load into a bootstrap modal
-    load(data) {
+    load(tags) {
         // load into a bootstrap modal (not model!)
         // capture the data from the html element (this) which the method was triggered
         // rv-on-click="methods.loadModal"
         // data-foo="123" data-bar="abc" 
         app.methods.makeAjaxCall({
-            url: app.methods.makeUrl(data.modal, data.id),
-            type: data.method,
+            url: app.methods.makeUrl(tags['modal-template'], tags.id),
+            type: tags.method,
             complete: function (jqXHR) {
                 // if the responds status is
                 if (jqXHR.status == 200) {
                     // success
 
                     // resize modal (we only have 1 so it is by id) or default to large
-                    modal.resize(data.size);
+                    modal.resize(tags.size);
 
                     // put the returned html into the modal
                     modal.content(jqXHR.responseText);
@@ -436,17 +509,3 @@ const modal = {
         this.open = true;
     },
 };
-
-/* bootstrap tinybind app */
-document.addEventListener('DOMContentLoaded', function () {
-    // setup the bootstrap modal reference
-    modal.init();
-
-    app.rootElement = document.getElementById('app');
-
-    tinybind.bind(app.rootElement, app);
-
-    // detect and load models
-    app.methods.autoLoad();
-});
-

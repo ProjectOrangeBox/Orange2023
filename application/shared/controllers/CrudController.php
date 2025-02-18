@@ -23,9 +23,6 @@ abstract class CrudController extends BaseController
 
     // method to json response key
     protected array $restGetMap = [
-        'getNew' => 'record',
-        'getById' => 'record',
-        'getAll' => 'records',
     ];
 
     protected function preformCRUD(string $model, string $method, array $args = [], ?string $jsonKey = null, ?int $success = -1): string
@@ -45,6 +42,8 @@ abstract class CrudController extends BaseController
         // what key should be used?
         if (isset($this->restGetMap[$method]) || $jsonKey !== null) {
             $this->data['json'][$jsonKey ?? $this->restGetMap[$method]] = $results;
+        } else {
+            $this->data['json'] = $results;
         }
 
         // send the json response
@@ -62,7 +61,7 @@ abstract class CrudController extends BaseController
     {
         $statusCode = $statusCode ?? $this->data['statusCode'];
         $contentType = $contentType ?? $this->data['contentType'];
-        $write = isset($this->data['json']) ? json_encode($this->data['json']) : $write;
+        $write = isset($this->data['json']) ? json_encode($this->data['json']) : $write ?? '';
 
         // use data statusCode, contentType & json to generate the response
         $this->output->responseCode($statusCode)->contentType($contentType)->write($write);
