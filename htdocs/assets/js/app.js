@@ -389,18 +389,18 @@ function getProperty(obj, path) {
 
 function getTags(element, tag) {
     tag = tag || app.elementTag;
-    let reg = new RegExp('^' + tag, 'i'); //case insensitive mce_ pattern
-    let attr = element.attributes; //its attributes
-    let arr = [];
 
-    for (let j = 0; j < attr.length; j++) { //loop through all attributes
-        if (reg.test(attr[j].name)) { //if an attribute starts with ...
-            arr[attr[j].name.substr(tag.length)] = attr[j].value; //push to collection
+    let reg = new RegExp('^' + tag, 'i'); //case insensitive mce_ pattern
+    let arr = {};
+
+    for (const attr of element.attributes) {
+        if (reg.test(attr.name)) { //if an attribute starts with ...
+            arr[attr.name.substr(tag.length)] = attr.value; //push to collection
         }
     }
 
     // add the element to the tags
-    arr['element'] = element;
+    arr.element = element;
 
     return arr;
 }
