@@ -1,7 +1,7 @@
 <?php fig::extends('templates/base') ?>
 
 <?php fig::block('body') ?>
-<div class="masthead container" sd-autoload="true" sd-property="record" sd-model="<?= getUrl('peopleReadOne', [$id]) ?>">
+<div class="masthead container" autoload="true" property="record" model="<?= getUrl('peopleReadOne', [$id]) ?>">
     <div class="mb-3">
         <label for="frm_firstname" class="form-label">First Name</label>
         <input type="text" readonly class="form-control" id="frm_firstname" name="firstname" rv-value="record.firstname">
@@ -19,7 +19,7 @@
         <input type="text" readonly class="form-control" id="frm_age" name="colorname" rv-value="record.colorname">
     </div>
     <div class="mb-3 float-end">
-        <a rv-on-click="actions.cancel" sd-redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-primary">Done</a>
+        <a rv-on-click="actions.cancel" redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-primary">Done</a>
     </div>
 </div>
 <?php fig::end() ?>

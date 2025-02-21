@@ -6,7 +6,7 @@
  */
 
 /*
-    width
+    rv-width=""
 
     Resets the css width value with the target
 */
@@ -15,7 +15,7 @@ tinybind.binders.width = function (el, value) {
 };
 
 /*
-    height
+    rv-height=""
 
     Resets the css height value with the target
 */
