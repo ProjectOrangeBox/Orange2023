@@ -17,14 +17,14 @@
     <div class="mb-3">
         <div class="form-group">
             <label for="frm_color" class="form-label">Color</label>
-            <select id="frm_color" name="color" class="form-control" rv-value="record.color | default 4" preload="true" model="<?= getUrl('peopleColorDropdown') ?>" property="colors">
-                <option rv-each-row="colors" rv-value="row.id" rv-text="row.name"></option>
+            <select id="frm_color" name="color" class="form-control" rv-value="record.color | default 4" preload="true" model="<?= getUrl('peopleColorDropdown') ?>" property="foobar.dropdown.here">
+                <option rv-each-row="foobar.dropdown.here" rv-value="row.id" rv-text="row.name"></option>
             </select>
         </div>
     </div>
     <div class="mb-3 float-end">
         <a rv-on-click="actions.redirect | args '<?= getUrl('peopleReadList') ?>'" class="btn btn-light">Cancel</a>
-        <a rv-on-click="actions.submit | args 'post' '<?= getUrl('peopleCreate') ?>' record.id record" on-success-redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-primary">Submit</a>
+        <a rv-on-click="actions.submit | args 'post' '<?= getUrl('peopleCreate') ?>' record record.id" on-success-redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-primary">Submit</a>
     </div>
 </div>
 <?php fig::end() ?>

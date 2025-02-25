@@ -22,6 +22,6 @@
     </div>
     <div class="mb-3 float-end">
         <a rv-on-click="actions.close" class="btn btn-light">Cancel</a>
-        <a rv-on-click="actions.submit | args 'put' '<?= getUrl('peopleUpdate', ['#'], true) ?>' record.id record" on-success-refresh="true" class="btn btn-primary">Submit</a>
+        <a rv-on-click="actions.submit | args 'put' '<?= getUrl('peopleUpdate', ['#'], true) ?>' record record.id" on-success-refresh="true" class="btn btn-primary">Submit</a>
     </div>
 </div>

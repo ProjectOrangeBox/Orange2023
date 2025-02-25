@@ -10,17 +10,17 @@ const app = {
     storage: {},
     // attach these to rv-click buttons ie. rv-click="actions.localModal"
     actions: {
-        loadModal() {
-            app.methods.loadModal({ ...arguments, ...getAttr(this) });
+        loadModal(templateUrl, id) {
+            app.methods.loadModal({ "templateUrl": templateUrl, "id": id || 0, ...getAttr(this) });
         },
-        redirect() {
-            app.methods.redirect({ ...arguments, ...getAttr(this) });
+        redirect(url, id) {
+            app.methods.redirect({ "url": url, "id": id || 0, ...getAttr(this) });
         },
         cancel() {
             app.methods.cancel({ ...arguments, ...getAttr(this) });
         },
-        submit() {
-            app.methods.submit({ ...arguments, ...getAttr(this) });
+        submit(httpmethod, url, record, id) {
+            app.methods.submit({ "httpmethod": httpmethod, "url": url, "id": id || 0, "record": record, ...getAttr(this) });
         },
         close() {
             // only works on modals
@@ -31,33 +31,33 @@ const app = {
     methods: {
         // load modal template
         loadModal(args) {
-            args.templateUrl = app.methods.makeUrl(args[0], args[1]);
+            args.templateUrl = app.methods.makeUrl(args.templateUrl, args.id);
             args.options = JSON.parse(args['modal-options'] || '{}');
 
             modal.load(args);
         },
         // redirect to another url button
         redirect(args) {
-            args.redirect = app.methods.makeUrl(args[0], args[1]);
+            args.redirect = app.methods.makeUrl(args.url, args.id);
 
-            app.methods.actionBasedOnArgument(args);
+            app.methods.actionBasedOnArguments(args);
         },
         // handle a cancel button
         cancel(args) {
-            app.methods.actionBasedOnArgument(args);
+            app.methods.actionBasedOnArguments(args);
         },
         // submit a form
         submit(args) {
             // get the payload for the http call from app based on the property tag
-            let url = app.methods.makeUrl(args[1], args[2]);
+            let url = app.methods.makeUrl(args.url, args.id);
 
             app.methods.makeAjaxCall({
                 // get the url to post to with # replacement from the objects uid
                 url: url,
                 // what http method should we use
-                type: args[0],
+                type: args.httpmethod,
                 // what should we send as "data"
-                data: JSON.stringify(args[3]),
+                data: JSON.stringify(args.record),
                 // when the request is "complete"
                 complete: function (jqXHR) {
                     // capture the text and/or json response
@@ -74,11 +74,11 @@ const app = {
                             break;
                         case 201:
                             // Created
-                            app.methods.actionBasedOnArgument(args);
+                            app.methods.actionBasedOnArguments(args);
                             break;
                         case 202:
                             // Accepted
-                            app.methods.actionBasedOnArgument(args);
+                            app.methods.actionBasedOnArguments(args);
                             break;
                         case 406:
                             // Not Acceptable
@@ -103,7 +103,7 @@ const app = {
             app.gui.showErrorDialog(args);
         },
 
-        actionBasedOnArgument(args) {
+        actionBasedOnArguments(args) {
             // capture the data from the html element (this) which the method was triggered
             // hide any modals which might be on screen
             modal.hide();
@@ -156,7 +156,9 @@ const app = {
 
                         // replace the application property with the matching json property
                         if (json) {
-                            setProperty(app, appProperty, (jsonProperty) ? getProperty(json, jsonProperty) : json);
+                            let value = jsonProperty ? getProperty(json, jsonProperty) : json;
+
+                            setProperty(app, appProperty, value);
 
                             if (typeof thenCall === 'function') {
                                 thenCall(args);
@@ -175,7 +177,7 @@ const app = {
         // load a template from the server
         template(args, thenCall) {
             let url = app.methods.makeUrl(args.template, args.uid || 0);
-            
+
             app.methods.makeAjaxCall({
                 url: url,
                 type: args.method || 'get',
@@ -371,23 +373,20 @@ function init(tinybind) {
     };
 }
 
-// create global function setProperty
-function setProperty(object, path, value) {
-    if (typeof path === 'string') {
-        path = path.split('.');
-    }
+// global set and get using dot notation in a string
+function setProperty(obj, path, value) {
+    const properties = path.split('.');
+    let current = obj;
+    for (let i = 0; i < properties.length - 1; i++) {
+        const prop = properties[i];
 
-    if (path.length === 1) object[path[0]] = value;
-    else if (path.length === 0) throw error;
-    else {
-        if (object[path[0]])
-            return setProperty(object[path[0]], path.slice(1), value);
-        else {
-            object[path[0]] = {};
-            return setProperty(object[path[0]], path.slice(1), value);
+        if (current[prop] === undefined || current[prop] === null) {
+            current[prop] = {};
         }
+        current = current[prop];
     }
-};
+    current[properties[properties.length - 1]] = value;
+}
 
 function getProperty(obj, path) {
     const properties = path.split('.');
