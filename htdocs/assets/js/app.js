@@ -401,6 +401,18 @@ function getProperty(obj, path) {
     return value;
 }
 
+// global capture all attributes on a element
+function getAttr(that) {
+    let args = {};
+
+    for (a of that.attributes) {
+        args[a.name] = a.value;
+    }
+
+    return args;
+}
+
+// get all attributes starting with a tag ie foo-
 function getTags(element, tag) {
     tag = tag || app.elementTag;
 
@@ -417,6 +429,32 @@ function getTags(element, tag) {
     arr.element = element;
 
     return arr;
+}
+
+function addClass(selector, txt) {
+    if (selector[0] == '.') {
+        const elements = document.querySelectorAll(selector);
+
+        elements.forEach(el => {
+            el.classList.add(txt);
+        });
+    } else {
+        const element = document.querySelector(selector);
+        element.classList.add(txt);
+    }
+}
+
+function removeClass(selector, txt) {
+    if (selector[0] == '.') {
+        const elements = document.querySelectorAll(selector);
+
+        elements.forEach(el => {
+            el.classList.remove(txt);
+        });
+    } else {
+        const element = document.querySelector(selector);
+        element.classList.remove(txt);
+    }
 }
 
 // create the modal object
@@ -526,13 +564,3 @@ const modal = {
         this.open = true;
     },
 };
-
-function getAttr(that) {
-    let args = {};
-
-    for (a of that.attributes) {
-        args[a.name] = a.value;
-    }
-
-    return args;
-}
