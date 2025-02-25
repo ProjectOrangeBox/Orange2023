@@ -23,7 +23,7 @@
         </div>
     </div>
     <div class="mb-3 float-end">
-        <a rv-on-click="actions.cancel" redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-light">Cancel</a>
+        <a rv-on-click="actions.redirect | args '<?= getUrl('peopleReadList') ?>'" class="btn btn-light">Cancel</a>
         <a rv-on-click="actions.submit | args 'post' '<?= getUrl('peopleCreate') ?>' record.id record" on-success-redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-primary">Submit</a>
     </div>
 </div>

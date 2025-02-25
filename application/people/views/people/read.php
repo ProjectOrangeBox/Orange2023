@@ -19,7 +19,7 @@
         <input type="text" readonly class="form-control" id="frm_age" name="colorname" rv-value="record.colorname">
     </div>
     <div class="mb-3 float-end">
-        <a rv-on-click="actions.cancel" redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-primary">Done</a>
+        <a rv-on-click="actions.redirect | args '<?= getUrl('peopleReadList') ?>'" class="btn btn-primary">Done</a>
     </div>
 </div>
 <?php fig::end() ?>

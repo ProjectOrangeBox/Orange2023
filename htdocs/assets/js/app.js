@@ -22,14 +22,18 @@ const app = {
         submit() {
             app.methods.submit({ ...arguments, ...getAttr(this) });
         },
+        close() {
+            // only works on modals
+            modal.hide();
+        }
     },
     // shared application methods
     methods: {
         // load modal template
         loadModal(args) {
-            console.log(args);
             args.templateUrl = app.methods.makeUrl(args[0], args[1]);
             args.options = JSON.parse(args['modal-options'] || '{}');
+
             modal.load(args);
         },
         // redirect to another url button
@@ -128,7 +132,7 @@ const app = {
 
             // redirect if appropriate
             if (args.redirect || false) {
-                window.location.href = app.methods.makeUrl(args.redirect, args.uid || 0);
+                window.location.href = args.redirect;
             }
         },
 
@@ -136,10 +140,11 @@ const app = {
         model(args, thenCall) {
             let appProperty = args.property || 'record';
             let jsonProperty = args.modelProperty || undefined;
+            let url = app.methods.makeUrl(args.model);
 
             // make ajax request
             app.methods.makeAjaxCall({
-                url: app.methods.makeUrl(args.model),
+                url: url,
                 type: args.method || 'get',
                 complete: function (jqXHR) {
                     // based on the responds code
@@ -169,8 +174,10 @@ const app = {
 
         // load a template from the server
         template(args, thenCall) {
+            let url = app.methods.makeUrl(args.template, args.uid || 0);
+            
             app.methods.makeAjaxCall({
-                url: app.methods.makeUrl(args.template, args.uid),
+                url: url,
                 type: args.method || 'get',
                 complete: function (jqXHR) {
                     if (jqXHR.status == 200) {
