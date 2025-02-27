@@ -14,7 +14,7 @@ class gui {
         invalidNames.forEach(function (name) {
             // where should we look for this data-autoload elements?
             // find the matching form elements
-            this.addClass('#' + parent.rootElement.id + ' [name="' + name + '"]', 'is-invalid');
+            this.addClass('#' + this.parent.rootElement.id + ' [name="' + name + '"]', 'is-invalid');
         }, this);
     };
 
