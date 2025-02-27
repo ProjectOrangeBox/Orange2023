@@ -33,11 +33,16 @@ class MainController extends CrudController
             getUrl('javascript') . '/tinybind.js',
             getUrl('javascript') . '/sprintf.min.js',
             getUrl('javascript') . '/app.js',
-            getUrl('javascript') . '/orangeBind/orangeFormatters.js',
-            //'<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>',
+            getUrl('javascript') . '/functions.js',
+            getUrl('javascript') . '/formatters.js',
+            getUrl('javascript') . '/modal.js',
+            getUrl('javascript') . '/gui.js',
+            getUrl('javascript') . '/loader.js',
+            getUrl('javascript') . '/models.js',
+            getUrl('javascript') . '/actions.js',
+            getUrl('javascript') . '/bootstrap.js',
         ]);
         $this->assets->linkFiles([
-            //'<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />',
         ]);
     }
 

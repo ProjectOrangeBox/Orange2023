@@ -264,7 +264,7 @@ query - looping block context
         <td>{{#exp:uppercase cache="60"}}{{#if query_odd}}odd{{else}}even{{/if}}{{/exp:uppercase}}</td>
         <td>{{query_first_row}}</td>
         <td>{{query_last_row}}</td>
-        <td><a href="/admin/content/snippets/edit/{{id}}">Edit</a></td>
+        <td><a href="/admin/content/snippets/edit/{{uid}}">Edit</a></td>
     </tr>
 {{/exp:query}}
 </table>
