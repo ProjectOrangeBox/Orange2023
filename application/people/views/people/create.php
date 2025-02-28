@@ -23,8 +23,8 @@
         </div>
     </div>
     <div class="mb-3 float-end">
-        <a rv-on-click="actions.redirect | args '<?= getUrl('peopleReadList') ?>'" class="btn btn-light">Cancel</a>
-        <a rv-on-click="actions.submit | args 'post' '<?= getUrl('peopleCreate') ?>' createRecord createRecord.id" on-success-redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-primary">Submit</a>
+        <a rv-on-click="actions.redirect" url="<?= getUrl('peopleReadList') ?>" class="btn btn-light">Cancel</a>
+        <a rv-on-click="actions.submit" method="post" url="<?= getUrl('peopleCreate') ?>" property="createRecord" on-success-redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-primary">Submit</a>
     </div>
 </div>
 <?php fig::end() ?>

@@ -10,7 +10,7 @@ class loader {
 
         let parent = this.parent;
 
-        this.parent.makeAjaxCall({
+        this.parent.makeAjaxCall(this, {
             url: modelUrl,
             type: options.method || 'get',
             complete: function (jqXHR) {
@@ -44,7 +44,7 @@ class loader {
     template(templateUrl, elementId, options, thenCall) {
         options = options || {};
 
-        this.parent.makeAjaxCall({
+        this.parent.makeAjaxCall(this, {
             url: templateUrl,
             type: options.method || 'get',
             complete: function (jqXHR) {

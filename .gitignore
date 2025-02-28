@@ -16,3 +16,4 @@ var/write
 .scannerwork/.sonar_lock
 .scannerwork/report-task.txt
 ~/.vscode/**
+slice/node_modules

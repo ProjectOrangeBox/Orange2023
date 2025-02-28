@@ -14,20 +14,20 @@ var models = {
     // rv-on-click="actions.redirect"
     // rv-on-click="actions.redirect | args '/go/here'"
     actions: {
-        redirect(url, uid) {
-            models.app.redirect({ node: this, url: url, uid: uid, ...getAttr(this) });
+        redirect() {
+            models.app.redirect({ element: this, ...getAttr(this), app: arguments[1] });
         },
-        loadModal(name, templateUrl) {
-            models.app.loadModal({ node: this, name: name, templateUrl: templateUrl, ...getAttr(this) });
+        loadModal() {
+            models.app.loadModal({ element: this, ...getAttr(this), app: arguments[1] });
         },
         cancel() {
-            models.app.cancel({ node: this, ...arguments, ...getAttr(this) });
+            models.app.cancel({ element: this, ...getAttr(this), app: arguments[1] });
         },
-        submit(httpMethod, url, record, uid) {
-            models.app.submit({ node: this, httpMethod: httpMethod, url: url, record: record, uid: uid, ...getAttr(this) });
+        submit(h) {
+            models.app.submit({ element: this, ...getAttr(this), app: arguments[1] });
         },
-        close(name) {
-            models.app.closeModal({ node: this, name: name, ...getAttr(this) });
+        close() {
+            models.app.closeModal({ element: this, ...getAttr(this), app: arguments[1] });
         },
     },
 };

@@ -1,4 +1,4 @@
-<div autoload="true" property="updateRecord" model="<?= getUrl('peopleReadOne', ['recordId'], true) ?>" url-recordId="storage.id">
+<div>
     <input type="hidden" name="id" rv-value="updateRecord.id">
     <div class="mb-3">
         <label for="frm_firstname" class="form-label">First Name</label>

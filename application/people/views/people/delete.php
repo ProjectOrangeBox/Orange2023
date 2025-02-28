@@ -1,4 +1,4 @@
-<div autoload="true" property="deleteRecord" model="<?= getUrl('peopleReadOne', ['{seg3}'], true) ?>">
+<div>
     <input type="hidden" name="id" rv-value="deleteRecord.id">
     <div class="mb-3">
         <p>Are you sure you want to delete "{deleteRecord.firstname} {deleteRecord.lastname}"?</p>

@@ -23,7 +23,8 @@ class App {
         let parent = this;
 
         for (let tag of ['preload', 'autoload', 'postload']) {
-            document.querySelectorAll('[' + tag + ']').forEach(function (element, key, list) {
+            let elements = document.querySelectorAll('[' + tag + ']')
+            elements.forEach(function (element, key, list) {
                 let args = getAttr(list[key]);
                 console.log(args);
                 if (args.template && args.model) {
@@ -40,20 +41,24 @@ class App {
     };
 
     redirect(args) {
-        window.location.href = this.makeUrl(args.url, args);
+        let url = this.makeUrl(args.url, { uid: args.uid || -1, ...args });
+
+        window.location.href = url;
     };
 
     submit(args) {
-        var parent = this;
-        var data = JSON.stringify(getProperty(this.models, args.property || 'record'));
+        let parent = this;
 
-        this.makeAjaxCall({
+        // get the payload for the http call from app based on the property tag
+        let url = this.makeUrl(args.url, { uid: args.id || -1, ...args });
+
+        this.makeAjaxCall(this, {
             // get the url to post to with # replacement from the objects uid
-            url: this.makeUrl(args.url, args),
+            url: url,
             // what http method should we use
-            type: args.method || 'post',
+            type: args.httpMethod || 'post',
             // what should we send as "data"
-            data: data,
+            data: JSON.stringify(args.record),
             // when the request is "complete"
             complete: function (jqXHR) {
                 // capture the text and/or json response
@@ -100,20 +105,23 @@ class App {
     };
 
     makeUrl(url, args) {
-        // url segments /foo/bar/{$3}
+        let uid = args.uid || '';
         let segs = window.location.href.split('/');
-
         segs.shift(); // http(s)
         segs.shift(); // /
 
+        // the default
+        url = url.replace("{uid}", uid);
+
         for (let index = 0; index < segs.length; index++) {
-            url = url.replace('{' + index + '}', segs[index]);
+            url = url.replace("{seg" + index + "}", segs[index]);
         }
 
-        for (let property in args) {
-            if (property.substring(0, 8) == 'replace-') {
-                url = url.replace("{" + property.substring(8) + "}", args[property]);
-            }
+        const attributeMap = args;
+
+        for (let i = 0; i < attributeMap.length; i++) {
+            const attribute = attributeMap[i];
+            url = url.replace('{' + attribute.name + '}', attribute.value);
         }
 
         return url;
@@ -137,7 +145,9 @@ class App {
         this.modal[name].hide();
     };
 
-    makeAjaxCall(request) {
+    makeAjaxCall(parent, request) {
+        console.log(request);
+
         // the ajax call defaults
         let defaults = {
             // The type of data that you're expecting back from the server.
@@ -153,8 +163,6 @@ class App {
     };
 
     actionBasedOnArguments(args) {
-        console.log(args);
-
         if (args['on-success-close-modal'] || false) {
             this.closeModal(args['on-success-close-modal']);
         }
@@ -185,16 +193,6 @@ class App {
         if (args.redirect || false) {
             window.location.href = args.redirect;
         }
-    };
-
-    // load modal template
-    loadModal(args) {
-        console.log(args);
-
-        args.templateUrl = app.methods.makeUrl(args.templateUrl, args.element);
-        args.options = JSON.parse(args['modal-options'] || '{}');
-
-        app.methods.openModal(args.name, args).load(args);
     };
 
 }

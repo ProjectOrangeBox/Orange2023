@@ -77,7 +77,7 @@ class Modal {
             // show the modal
             modal.show();
         } else {
-            makeAjaxCall({
+            makeAjaxCall(this, {
                 url: args.templateUrl,
                 type: args.method || 'get',
                 complete: function (jqXHR) {

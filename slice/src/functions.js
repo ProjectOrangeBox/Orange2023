@@ -1,5 +1,5 @@
 // need to remove jquery dep.
-function _makeAjaxCall(request) {
+function _makeAjaxCall(parent, request) {
     console.log(request);
     
     // the ajax call defaults
