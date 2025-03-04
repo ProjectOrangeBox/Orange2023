@@ -1,0 +1,29 @@
+{
+    "js": {
+        "compressed": "/../htdocs/assets/js/app.js",
+        "compress": [
+            "/src/cdn/jquery-3.7.1.min.js",
+            "/src/cdn/popper.min.js",
+            "/src/cdn/bootbox.min.js",
+            "/src/cdn/bootstrap.bundle.min.js",
+            "/src/cdn/all.js",
+            "/src/cdn/tinybind.js",
+            "/src/models.js",
+            "/src/app.js",
+            "/src/modal.js",
+            "/src/gui.js",
+            "/src/loader.js",
+            "/src/functions.js",
+            "/src/bootstrap.js",
+            "/src/theme_scripts.js"
+        ]
+    },
+    "css": {
+        "compressed": "/../htdocs/assets/css/app.css",
+        "compress": [
+            "/css/cdn/bootstrap.min.css",
+            "/css/cdn/bootstrap-dialog.min.css",
+            "/css/styles.css"
+        ]
+    }
+}

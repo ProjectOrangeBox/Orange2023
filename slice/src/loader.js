@@ -1,16 +1,18 @@
-class loader {
-    parent = {};
+class Loader {
+    app = {};
 
-    constructor(parent) {
-        this.parent = parent;
+    constructor(app) {
+        this.app = app;
     }
 
-    model(modelUrl, appProperty, modelProperty, options, thenCall) {
+    model(modelUrl, appProperty, modelProperty, options, thenCall) {        
+        console.log(arguments);
+
         options = options || {};
 
-        let parent = this.parent;
+        var parent = this;
 
-        this.parent.makeAjaxCall(this, {
+        this.app.makeAjaxCall({
             url: modelUrl,
             type: options.method || 'get',
             complete: function (jqXHR) {
@@ -25,17 +27,19 @@ class loader {
                     if (jsonObject) {
                         let record = modelProperty ? getProperty(jsonObject, modelProperty) : jsonObject;
 
-                        setProperty(parent.models, appProperty, record);
+                        setProperty(parent.app.models, appProperty, record);
+
+                        parent.app.rebind();
 
                         if (typeof thenCall === 'function') {
                             thenCall(arguments);
                         }
                     } else {
-                        parent.alert('Could not load model.');
+                        parent.app.alert('Could not load model.');
                     }
                 } else {
                     // show error dialog
-                    parent.alert('Model returned the status [' + jqXHR.status + '].');
+                    parent.app.alert('Model returned the status [' + jqXHR.status + '].');
                 }
             }
         });
@@ -44,21 +48,25 @@ class loader {
     template(templateUrl, elementId, options, thenCall) {
         options = options || {};
 
-        this.parent.makeAjaxCall(this, {
+        var parent = this;
+
+        this.app.makeAjaxCall({
             url: templateUrl,
             type: options.method || 'get',
             complete: function (jqXHR) {
                 if (jqXHR.status == 200) {
                     // success
                     // replace DOM Element with responds json or html
-                    this.parent.replaceElement(elementId, jqXHR);
+                    parent.app.replaceElement(elementId, jqXHR);
+
+                    parent.app.rebind();
 
                     if (typeof thenCall === 'function') {
                         thenCall(args);
                     }
                 } else {
                     // show error dialog
-                    this.parent.alert('Could not load template.');
+                    parent.app.alert('Could not load template.');
                 }
             }
         });

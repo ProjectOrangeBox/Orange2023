@@ -1,21 +1,3 @@
-// need to remove jquery dep.
-function _makeAjaxCall(parent, request) {
-    console.log(request);
-    
-    // the ajax call defaults
-    let defaults = {
-        // The type of data that you're expecting back from the server.
-        dataType: 'json',
-        // When sending data to the server, use this content type.
-        contentType: 'application/json; charset=utf-8',
-        // Request Method
-        type: 'get',
-    };
-
-    // merge down the defaults
-    $.ajax({ ...defaults, ...request });
-}
-
 // global set and get using dot notation in a string
 function setProperty(obj, path, value) {
     const properties = path.split('.');
@@ -63,9 +45,7 @@ function getTags(element, tag) {
     let reg = new RegExp('^' + tag, 'i'); //case insensitive mce_ pattern
     let arr = {};
     let attributes = element.attributes ? element.attributes : element;
-    console.log(attributes);
     for (const attr in attributes) {
-        console.log(attr);
         if (reg.test(attr)) { //if an attribute starts with ...
             let key = attr.substr(tag.length);
             arr[key] = attributes[attr]; //push to collection

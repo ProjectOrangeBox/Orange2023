@@ -26,12 +26,14 @@ return [
         ['method' => 'get', 'url' => '/colordropdown', 'callback' => [\application\people\controllers\MainController::class, 'colordropdown'], 'name' => 'peoplecolordropdown'],
         ['method' => 'get', 'url' => '/peopledropdown', 'callback' => [\application\people\controllers\MainController::class, 'dropdown'], 'name' => 'peopledropdown'],
         ['method' => 'get', 'url' => '/peopledropdown2', 'callback' => [\application\people\controllers\MainController::class, 'dropdown2'], 'name' => 'peopledropdown2'],
+        
         ['method' => 'get', 'url' => '/people', 'callback' => [\application\people\controllers\MainController::class, 'readList'], 'name' => 'peopleReadList'],
         ['method' => 'get', 'url' => '/people/show/(\d+)', 'callback' => [\application\people\controllers\MainController::class, 'readForm'], 'name' => 'peopleReadForm'],
         ['method' => 'get', 'url' => '/people/create', 'callback' => [\application\people\controllers\MainController::class, 'createForm'], 'name' => 'peopleCreateForm'],
         ['method' => 'get', 'url' => '/people/update/(\d+)', 'callback' => [\application\people\controllers\MainController::class, 'updateForm'], 'name' => 'peopleUpdateForm'],
         ['method' => 'get', 'url' => '/people/delete/(\d+)', 'callback' => [\application\people\controllers\MainController::class, 'deleteForm'], 'name' => 'peopleDeleteForm'],
         ['method' => 'get', 'url' => '/people/all', 'callback' => [\application\people\controllers\MainController::class, 'readAll'], 'name' => 'peopleReadAll'],
+        
         ['method' => 'get', 'url' => '/people/(\d+)', 'callback' => [\application\people\controllers\MainController::class, 'readOne'], 'name' => 'peopleReadOne'],
         ['method' => 'get', 'url' => '/people/new', 'callback' => [\application\people\controllers\MainController::class, 'readNew'], 'name' => 'peopleReadNew'],
         ['method' => 'post', 'url' => '/people', 'callback' => [\application\people\controllers\MainController::class, 'create'], 'name' => 'peopleCreate'],

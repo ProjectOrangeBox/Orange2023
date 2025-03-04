@@ -335,13 +335,4 @@
 </div>
 <?php fig::end() ?>
 
-<?php fig::block('js') ?>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
-<?php fig::end(fig::AFTER) ?>
-
-<?php fig::block('css') ?>
-<link href="<?=getUrl('css') ?>/styles.css" rel="stylesheet" />
-<?php fig::end(fig::AFTER) ?>
-
 <?php fig::render() ?>

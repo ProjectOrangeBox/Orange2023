@@ -1,4 +1,4 @@
-class gui {
+class Gui {
     parent = undefined;
 
     constructor(parent) {
@@ -7,15 +7,19 @@ class gui {
 
     highlightErrorFields(invalidNames) {
         // first remove all that might be on the screen now
-        this.removeClass('#' + this.parent.rootElement.id + ' .is-invalid', 'is-invalid');
+        this.removeIsInvalid(this.parent.rootElement.id);
 
         // then loop over the array and add the is-invalid class to
         // each matching html form element by name
         invalidNames.forEach(function (name) {
             // where should we look for this data-autoload elements?
             // find the matching form elements
-            this.addClass('#' + this.parent.rootElement.id + ' [name="' + name + '"]', 'is-invalid');
+            this.addClass(this.parent.rootElement.id + ' [name="' + name + '"]', 'is-invalid');
         }, this);
+    };
+
+    removeIsInvalid(selector) {
+        this.removeClass(selector + ' .is-invalid', 'is-invalid');
     };
 
     showErrorDialog(tags) {
@@ -40,14 +44,14 @@ class gui {
 
     addClass(selector, classes) {
         // !todo remove jquery dep.
-        $(selector).addClass(classes);
+        $('#' + selector).addClass(classes);
 
         return this;
     };
 
     removeClass(selector, classes) {
         // !todo remove jquery dep.
-        $(selector).removeClass(classes);
+        $('#' + selector).removeClass(classes);
 
         return this;
     };

@@ -30,18 +30,8 @@ class MainController extends CrudController
     protected function beforeMethodCalled()
     {
         $this->assets->scriptFiles([
-            getUrl('javascript') . '/tinybind.js',
-            getUrl('javascript') . '/sprintf.min.js',
-            getUrl('javascript') . '/app.js',
-            getUrl('javascript') . '/functions.js',
-            getUrl('javascript') . '/formatters.js',
-            getUrl('javascript') . '/modal.js',
-            getUrl('javascript') . '/gui.js',
-            getUrl('javascript') . '/loader.js',
-            getUrl('javascript') . '/models.js',
-            getUrl('javascript') . '/actions.js',
-            getUrl('javascript') . '/bootstrap.js',
         ]);
+
         $this->assets->linkFiles([
         ]);
     }
@@ -50,37 +40,6 @@ class MainController extends CrudController
     public function colordropdown(): string
     {
         return $this->preformCRUD('colorModel', 'getAll');
-    }
-
-    # [route(get,/peopledropdown,peopledropdown)]
-    public function dropdown(): string
-    {
-        $this->data['statusCode'] = 200;
-        $this->data['contentType'] = 'json';
-
-        $this->data['json']['dropdown'] = [
-            'selected' => 'two',
-            'friends' => [
-                ['name' => 'one'],
-                ['name' => 'two'],
-                ['name' => 'three'],
-            ],
-        ];
-
-        return $this->restResponse();
-    }
-
-    # [route(get,/peopledropdown2,peopledropdown2)]
-    public function dropdown2(): string
-    {
-        $this->data['statusCode'] = 200;
-        $this->data['contentType'] = 'json';
-
-        $this->data['json'] = [
-            'selected' => 'two',
-        ];
-
-        return $this->restResponse();
     }
 
     // GUI urls
@@ -105,13 +64,13 @@ class MainController extends CrudController
     # [route(get, /people/update/(\d+), peopleUpdateForm)]
     public function updateForm(string $id): string
     {
-        return $this->view->render($this->viewDirectory . 'update', ['id' => (int)$id]);
+        return $this->view->render($this->viewDirectory . 'modals/update', ['id' => (int)$id]);
     }
 
     # [route(get, /people/delete/(\d+), peopleDeleteForm)]
     public function deleteForm(string $id): string
     {
-        return $this->view->render($this->viewDirectory . 'delete', ['id' => (int)$id]);
+        return $this->view->render($this->viewDirectory . 'modals/delete', ['id' => (int)$id]);
     }
 
     // rest end points

@@ -1,64 +1,79 @@
 class App {
     // root application DOM element
+    id = undefined;
     rootElement = undefined;
     loader = undefined;
     models = undefined;
-    modal = undefined;
+    modals = undefined;
     gui = undefined;
 
     constructor(id, models) {
+        this.id = id;
         this.rootElement = document.getElementById(id);
-        this.loader = new loader(this);
-        this.gui = new gui(this);
+        this.loader = new Loader(this);
+        this.gui = new Gui(this);
         this.models = models;
         this.models.app = this;
-        this.modal = new Modal(this);
-
-        tinybind.bind(this.rootElement, this.models);
-
+        this.modals = {};
         this.autoLoad();
     };
 
-    autoLoad() {
-        let parent = this;
+    rebind() {
+        tinybind.bind(this.rootElement, this.models);
+    }
+
+    autoLoad(selector) {
+        var parent = this;
+
+        selector = selector || this.id;
 
         for (let tag of ['preload', 'autoload', 'postload']) {
-            let elements = document.querySelectorAll('[' + tag + ']')
-            elements.forEach(function (element, key, list) {
+            document.querySelectorAll('#' + selector + ' [' + tag + ']').forEach(function (element, key, list) {
                 let args = getAttr(list[key]);
-                console.log(args);
+
                 if (args.template && args.model) {
-                    parent.loader.template(args, parent.loader.model(args));
+                    parent.loader.template(parent.makeUrl(args.template, args), args.element, args.options, parent.loader.model(args));
                 } else if (args.template) {
                     // templateUrl, elementId, options, thenCall
-                    parent.loader.template(parent.makeUrl(args.template, args), args.element, undefined);
+                    parent.loader.template(parent.makeUrl(args.template, args), args.element, args.options);
                 } else if (args.model) {
                     // modelUrl, appProperty, modelProperty, options, thenCall
-                    parent.loader.model(parent.makeUrl(args.model, args), args.property, undefined);
+                    parent.loader.model(parent.makeUrl(args.model, args), args.property, args.node, args.options);
+                } else if (args.modal) {
+                    args.element = element;
+                    args.templateUrl = parent.makeUrl(args.modal, args);
+                    args.options = JSON.parse(args.options || '{}');
+                    parent.addModal(args.name, args);
                 }
             });
         }
     };
 
-    redirect(args) {
-        let url = this.makeUrl(args.url, { uid: args.uid || -1, ...args });
+    // load modal template
+    loadModal(args) {
+        var parent = this;
 
-        window.location.href = url;
+        // modelUrl, appProperty, modelProperty, options, thenCall
+        this.loader.model(this.makeUrl(args.model, args), args.property, args.node, {}, function () {
+            parent.openModal(args.name);
+        });
+    };
+
+    redirect(args) {
+        window.location.href = this.makeUrl(args.url, args);
     };
 
     submit(args) {
-        let parent = this;
+        var parent = this;
+        var data = JSON.stringify(getProperty(this.models, args.property || 'record'));
 
-        // get the payload for the http call from app based on the property tag
-        let url = this.makeUrl(args.url, { uid: args.id || -1, ...args });
-
-        this.makeAjaxCall(this, {
+        this.makeAjaxCall({
             // get the url to post to with # replacement from the objects uid
-            url: url,
+            url: this.makeUrl(args.url, args),
             // what http method should we use
-            type: args.httpMethod || 'post',
+            type: args.method || 'post',
             // what should we send as "data"
-            data: JSON.stringify(args.record),
+            data: data,
             // when the request is "complete"
             complete: function (jqXHR) {
                 // capture the text and/or json response
@@ -105,23 +120,20 @@ class App {
     };
 
     makeUrl(url, args) {
-        let uid = args.uid || '';
+        // url segments /foo/bar/{$3}
         let segs = window.location.href.split('/');
+
         segs.shift(); // http(s)
         segs.shift(); // /
 
-        // the default
-        url = url.replace("{uid}", uid);
-
         for (let index = 0; index < segs.length; index++) {
-            url = url.replace("{seg" + index + "}", segs[index]);
+            url = url.replace('{' + index + '}', segs[index]);
         }
 
-        const attributeMap = args;
-
-        for (let i = 0; i < attributeMap.length; i++) {
-            const attribute = attributeMap[i];
-            url = url.replace('{' + attribute.name + '}', attribute.value);
+        for (let property in args) {
+            if (property.substring(0, 8) == 'replace-') {
+                url = url.replace("{" + property.substring(8) + "}", args[property]);
+            }
         }
 
         return url;
@@ -133,21 +145,29 @@ class App {
         bootbox.alert(record);
     };
 
-    openModal(name, config) {
-        if (this.modal[name] === undefined) {
-            this.modal[name] = new Modal(name, config);
+    addModal(name, args) {
+        if (this.modals[name] === undefined) {
+            args.app = this;
+
+            this.modals[name] = new Modal(name, args);
+
+            this.autoLoad(this.modals[name].id);
+
+            //console.log(name, args);
         }
 
-        return app.modal[name];
+        return this.modals[name];
+    }
+
+    openModal(name) {
+        this.modals[name].show();
     };
 
     closeModal(name) {
-        this.modal[name].hide();
+        this.modals[name].hide();
     };
 
-    makeAjaxCall(parent, request) {
-        console.log(request);
-
+    makeAjaxCall(request) {
         // the ajax call defaults
         let defaults = {
             // The type of data that you're expecting back from the server.

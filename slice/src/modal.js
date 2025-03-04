@@ -4,28 +4,25 @@ class Modal {
     open = false;
     // modal id as string
     id = '';
-    // modal id as jquery selector by id
-    jid = '';
     // reference to modal
     ref = undefined;
     // store the config sent in
-    config = {};
+    args = {};
     // html loaded?
     htmlLoaded = false;
     // name of this Modal
     name = '';
+    element = undefined;
 
-    constructor(name, config) {
-        // save the config
-        this.config = config || {};
+    constructor(name, args) {
         this.name = name;
+        this.args = args || {};
 
-        // unique id
-        this.id = 'modal-bootstrap-' + Math.round(Math.random() * (9999999 - 1000000) + 1000000);
-        this.jid = '#' + this.id;
+        this.id = 'modal-bootstrap-' + name;
 
         // add the html to the page
-        this.appendHTMLto(this.id, document.body);
+        this.appendHTMLto(this.id, args.element);
+        this.load();
     }
 
     // Append the modal to the DOM
@@ -49,7 +46,7 @@ class Modal {
         element_d.setAttribute('class', 'modal-body');
 
         // Append Children
-        element.appendChild(element_a);
+        element.replaceWith(element_a);
         element_a.appendChild(element_b);
         element_b.appendChild(element_c);
         element_c.appendChild(element_d);
@@ -58,7 +55,7 @@ class Modal {
     // resize modal
     resize(size) {
         // resize modal (we only have 1 so it is by id) or default to large
-        app.methods.removeClass(this.jid, 'modal-xl modal-lg modal-md modal-sm').addClass(this.jid, size || 'modal-lg');
+        this.args.app.gui.removeClass(this.id, 'modal-xl modal-lg modal-md modal-sm').addClass(this.id, size || 'modal-lg');
     }
 
     // put the returned html into the modal
@@ -67,47 +64,35 @@ class Modal {
     }
 
     // load into a bootstrap modal
-    load(args) {
+    load() {
         let modal = this;
 
-        if (modal.htmlLoaded) {
-            // load a record into the modal
-            app.methods.autoLoad(modal.id);
+        this.args.app.makeAjaxCall({
+            url: this.args.templateUrl,
+            type: this.args.method || 'get',
+            complete: function (jqXHR) {
+                // if the responds status is
+                if (jqXHR.status == 200) {
+                    // success
 
-            // show the modal
-            modal.show();
-        } else {
-            makeAjaxCall(this, {
-                url: args.templateUrl,
-                type: args.method || 'get',
-                complete: function (jqXHR) {
-                    // if the responds status is
-                    if (jqXHR.status == 200) {
-                        // success
+                    // resize modal (we only have 1 so it is by id) or default to large
+                    modal.resize(modal.args.options.size || 'xl');
 
-                        // resize modal (we only have 1 so it is by id) or default to large
-                        modal.resize(args.options.size || 'xl');
+                    // put the returned html into the modal
+                    modal.content(jqXHR.responseText);
 
-                        // put the returned html into the modal
-                        modal.content(jqXHR.responseText);
+                    modal.htmlLoaded = true;
 
-                        modal.htmlLoaded = true;
+                    app.rebind();
 
-                        // rebind the modal which now contain the new html
-                        tinybind.bind(document.getElementById(modal.id), app);
-
-                        // load a record into the modal
-                        app.methods.autoLoad(modal.id);
-
-                        // show the modal
-                        modal.show();
-                    } else {
-                        // any other response code displays a error
-                        app.methods.alert('Could not load modal.');
-                    }
-                },
-            });
-        }
+                    // rebind the modal which now contain the new html
+                    //tinybind.bind(document.getElementById(modal.id), app);
+                } else {
+                    // any other response code displays a error
+                    app.methods.alert('Could not load modal.');
+                }
+            },
+        });
     }
 
     // hide the modal
@@ -115,16 +100,25 @@ class Modal {
         if (this.open) {
             this.ref.hide();
             this.open = false;
+            this.args.app.gui.removeIsInvalid(this.id);
         }
     }
 
     // show the modal
     show() {
         if (!this.ref) {
-            this.ref = new bootstrap.Modal(this.jid, this.config);
+            this.ref = new bootstrap.Modal('#' + this.id, this.args);
         }
 
+        this.args.app.gui.removeIsInvalid(this.id);
         this.ref.show();
         this.open = true;
     }
+
+    removeClass(selector, classes) {
+        // !todo remove jquery dep.
+        $('#' + selector).removeClass(classes);
+
+        return this;
+    };
 }
