@@ -241,8 +241,6 @@ class App {
                             jsonObject = parent.getProperty(jsonObject, modelProperty);
                         }
 
-                        let 
-
                         parent.setProperty(parent.model, appProperty, jsonObject);
 
                         parent.rebind();
