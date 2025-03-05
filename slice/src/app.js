@@ -19,9 +19,7 @@ class App {
 
         selector = selector ?? this.id;
 
-        const selectors = selector.split(',');
-
-        selectors.forEach(function (value) {
+        selector.split(',').forEach(function (value) {
             for (let tag of [' [preload]', ' [autoload]', ' [postload]', '[preload]', '[autoload]', '[postload]']) {
                 document.querySelectorAll('#' + value + tag).forEach(function (element) {
                     let args = parent.getAttr(element);
@@ -47,20 +45,18 @@ class App {
             // model(modelUrl, appProperty, modelProperty, options, thenCall)
             this.model(this.makeUrl(args.model, args), args.property, args.node, args.options);
         }
-        if (args.show) {
-            this.show(args.show);
-        }
         if (args.refresh) {
             this.autoLoad(args.refresh);
+        }
+        if (args.show) {
+            this.show(args.show);
         }
     };
 
     show(id) {
         var parent = this;
 
-        const ids = id.split(',');
-
-        ids.forEach(function (value) {
+        id.split(',').forEach(function (value) {
             const el = document.querySelector('#' + value);
 
             // is this a modal or form?
@@ -79,9 +75,7 @@ class App {
     hide(id) {
         var parent = this;
 
-        const ids = id.split(',');
-
-        ids.forEach(function (value) {
+        id.split(',').forEach(function (value) {
             const el = document.querySelector('#' + value);
 
             if (el.classList.contains('modal')) {
@@ -98,6 +92,7 @@ class App {
 
     submit(args) {
         var parent = this;
+
         var data = JSON.stringify(this.getProperty(this.models, args.property ?? 'record'));
 
         this.makeAjaxCall({
@@ -141,52 +136,6 @@ class App {
         })
     };
 
-    // default not accepted form submission
-    notAcceptable(args) {
-        this.gui.notAcceptable(args);
-    };
-
-    makeUrl(url, args) {
-        // url segments /foo/bar/{$3}
-        let segs = window.location.href.split('/');
-
-        segs.shift(); // http(s)
-        segs.shift(); // /
-
-        for (let index = 0; index < segs.length; index++) {
-            url = url.replace('{' + index + '}', segs[index]);
-        }
-
-        for (let property in args) {
-            if (property.substring(0, 8) == 'replace-') {
-                url = url.replace("{" + property.substring(8) + "}", args[property]);
-            }
-        }
-
-        return url;
-    };
-
-    // bootbox wrapper
-    alert(record) {
-        // show the alert
-        bootbox.alert(record);
-    };
-
-    makeAjaxCall(request) {
-        // the ajax call defaults
-        let defaults = {
-            // The type of data that you're expecting back from the server.
-            dataType: 'json',
-            // When sending data to the server, use this content type.
-            contentType: 'application/json; charset=utf-8',
-            // Request Method
-            type: 'get',
-        };
-
-        // merge down the defaults
-        $.ajax({ ...defaults, ...request });
-    };
-
     onSuccess(args) {
         this.gui.removeIsInvalid(this.id);
 
@@ -213,6 +162,52 @@ class App {
             // reloads the ENTIRE URL full context switch
             location.reload();
         }
+    };
+
+    // default not accepted form submission
+    notAcceptable(args) {
+        this.gui.notAcceptable(args);
+    };
+
+    // bootbox wrapper
+    alert(record) {
+        // show the alert
+        bootbox.alert(record);
+    };
+
+    makeUrl(url, args) {
+        // url segments /foo/bar/{$3}
+        let segs = window.location.href.split('/');
+
+        segs.shift(); // http(s)
+        segs.shift(); // /
+
+        for (let index = 0; index < segs.length; index++) {
+            url = url.replace('{' + index + '}', segs[index]);
+        }
+
+        for (let property in args) {
+            if (property.substring(0, 8) == 'replace-') {
+                url = url.replace("{" + property.substring(8) + "}", args[property]);
+            }
+        }
+
+        return url;
+    };
+
+    makeAjaxCall(request) {
+        // the ajax call defaults
+        let defaults = {
+            // The type of data that you're expecting back from the server.
+            dataType: 'json',
+            // When sending data to the server, use this content type.
+            contentType: 'application/json; charset=utf-8',
+            // Request Method
+            type: 'get',
+        };
+
+        // merge down the defaults
+        $.ajax({ ...defaults, ...request });
     };
 
     model(modelUrl, appProperty, modelProperty, options, thenCall) {
