@@ -16,7 +16,7 @@
     <div class="mb-3">
         <div class="form-group">
             <label for="frm_color" class="form-label">Color</label>
-            <select class="form-control" name="color" rv-value="updateRecord.color | default 1" preload="true" model="<?= getUrl('peopleColorDropdown') ?>" property="colorDropDown">
+            <select id="frm_color" class="form-control" name="color" rv-value="updateRecord.color | default 1" preload="true" model="<?= getUrl('peopleColorDropdown') ?>" property="colorDropDown">
                 <option rv-each-row="colorDropDown" rv-value="row.id" rv-text="row.name"></option>
             </select>
         </div>

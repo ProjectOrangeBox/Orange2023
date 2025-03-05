@@ -1,1 +1,1 @@
-var app = new App('app', models);
+var app = new App('app', window[getModelName()]);

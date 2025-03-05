@@ -1,40 +1,50 @@
 class App {
     // root application DOM element
     id = undefined;
-    models = undefined;
+    model = undefined;
     gui = undefined;
     // app internal storage
     storage = {};
 
-    constructor(id, models) {
+    constructor(id, model) {
+        // save the passed id
         this.id = id;
+        // save a reference to the gui object
+        // this should have all of the DOM interaction / css framework code
         this.gui = new Gui(this);
-        this.models = models;
-        this.models.app = this;
-        this.autoLoad(this.id);
-    };
+        // save a copy of the model object
+        this.model = model;
 
-    autoLoad(selector) {
-        var parent = this;
+        if (model.preload) {
+            this.updateModel(model.preload);
+        }
 
-        selector = selector ?? this.id;
-
-        selector.split(',').forEach(function (value) {
-            for (let tag of [' [preload]', ' [autoload]', ' [postload]', '[preload]', '[autoload]', '[postload]']) {
-                document.querySelectorAll('#' + value + tag).forEach(function (element) {
-                    let args = parent.getAttr(element);
-
-                    if (args.model) {
-                        // modelUrl, appProperty, modelProperty, options, thenCall
-                        parent.model(parent.makeUrl(args.model, args), args.property, args.node, args.options);
-                    }
-                });
-            }
-        });
+        if (model.start) {
+            model.start(this);
+        }
     };
 
     rebind() {
-        tinybind.bind(document.getElementById(this.id), this.models);
+        tinybind.bind(document.getElementById(this.id), this.model);
+    };
+
+    updateModel(selector) {
+        var parent = this;
+
+        this.split(selector).forEach(function (selector) {
+            let element = document.getElementById(selector);
+
+            if (element) {
+                let args = parent.getAttr(element);
+
+                if (args.model) {
+                    // modelUrl, appProperty, modelProperty, options, thenCall
+                    parent.loadModel(parent.makeUrl(args.model, args), args.property, args.node, args.options);
+                }
+            } else {
+                console.error('Not an DOM element:', selector);
+            }
+        });
     };
 
     swap(args) {
@@ -43,10 +53,10 @@ class App {
         }
         if (args.model) {
             // model(modelUrl, appProperty, modelProperty, options, thenCall)
-            this.model(this.makeUrl(args.model, args), args.property, args.node, args.options);
+            this.loadModel(this.makeUrl(args.model, args), args.property, args.node, args.options);
         }
         if (args.refresh) {
-            this.autoLoad(args.refresh);
+            this.updateModel(args.refresh);
         }
         if (args.show) {
             this.show(args.show);
@@ -56,7 +66,7 @@ class App {
     show(id) {
         var parent = this;
 
-        id.split(',').forEach(function (value) {
+        this.split(id).forEach(function (value) {
             const el = document.querySelector('#' + value);
 
             // is this a modal or form?
@@ -75,7 +85,7 @@ class App {
     hide(id) {
         var parent = this;
 
-        id.split(',').forEach(function (value) {
+        this.split(id).forEach(function (value) {
             const el = document.querySelector('#' + value);
 
             if (el.classList.contains('modal')) {
@@ -93,7 +103,7 @@ class App {
     submit(args) {
         var parent = this;
 
-        var data = JSON.stringify(this.getProperty(this.models, args.property ?? 'record'));
+        var data = JSON.stringify(this.getProperty(this.model, args.property ?? 'record'));
 
         this.makeAjaxCall({
             // get the url to post to with # replacement from the objects uid
@@ -148,9 +158,7 @@ class App {
         }
 
         if (args['on-success-refresh']) {
-            let id = (args['on-success-refresh'] == 'true') ? this.id : args['on-success-refresh'];
-
-            this.autoLoad(id);
+            this.updateModel(args['on-success-refresh']);
         }
 
         if (args['on-success-redirect']) {
@@ -210,7 +218,7 @@ class App {
         $.ajax({ ...defaults, ...request });
     };
 
-    model(modelUrl, appProperty, modelProperty, options, thenCall) {
+    loadModel(modelUrl, appProperty, modelProperty, options, thenCall) {
         options = options ?? {};
 
         var parent = this;
@@ -230,7 +238,7 @@ class App {
                     if (jsonObject) {
                         let record = modelProperty ? parent.getProperty(jsonObject, modelProperty) : jsonObject;
 
-                        parent.setProperty(parent.models, appProperty, record);
+                        parent.setProperty(parent.model, appProperty, record);
 
                         parent.rebind();
 
@@ -284,5 +292,13 @@ class App {
         }
 
         return args;
+    };
+
+    split(input) {
+        if (!Array.isArray(input)) {
+            input = input.split(',');
+        }
+
+        return input;
     };
 }
