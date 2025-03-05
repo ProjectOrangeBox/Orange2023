@@ -102,8 +102,9 @@ class App {
 
     submit(args) {
         var parent = this;
+        let appProperty = args.property ?? 'record'
 
-        var data = JSON.stringify(this.getProperty(this.model, args.property ?? 'record'));
+        var data = JSON.stringify(this.getProperty(this.model, appProperty));
 
         this.makeAjaxCall({
             // get the url to post to with # replacement from the objects uid
@@ -236,9 +237,13 @@ class App {
 
                     // replace the application property with the matching json property
                     if (jsonObject) {
-                        let record = modelProperty ? parent.getProperty(jsonObject, modelProperty) : jsonObject;
+                        if (modelProperty) {
+                            jsonObject = parent.getProperty(jsonObject, modelProperty);
+                        }
 
-                        parent.setProperty(parent.model, appProperty, record);
+                        let 
+
+                        parent.setProperty(parent.model, appProperty, jsonObject);
 
                         parent.rebind();
 
