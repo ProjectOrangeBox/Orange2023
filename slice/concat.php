@@ -13,8 +13,12 @@ while (1 == 1) {
     if ($object->js) {
         if (is_array($object->js->compress)) {
             foreach ($object->js->compress as $file) {
-                if ($hashes[$file] ?? '' != md5_file(__DIR__ . $file)) {
-                    compileJs($object->js->compressed, $object->js->compress, $hashes);
+                if (!isset($hashes[__DIR__ . $file])) {
+                    $hashes[__DIR__ . $file] = 0;
+                }
+
+                if ($hashes[__DIR__ . $file] != md5_file(__DIR__ . $file)) {
+                    concat($object->js->compressed, $object->js->compress, $hashes, 'javascript');
                     break;
                 }
             }
@@ -24,55 +28,49 @@ while (1 == 1) {
     if ($object->css) {
         if (is_array($object->css->compress)) {
             foreach ($object->css->compress as $file) {
-                if ($hashes[$file] ?? '' != md5_file(__DIR__ . $file)) {
-                    compileCss($object->css->compressed, $object->css->compress, $hashes);
+                if (!isset($hashes[__DIR__ . $file])) {
+                    $hashes[__DIR__ . $file] = 0;
+                }
+
+                if ($hashes[__DIR__ . $file] != md5_file(__DIR__ . $file)) {
+                    concat($object->css->compressed, $object->css->compress, $hashes, 'css');
                     break;
                 }
             }
         }
     }
 
-    sleep(1);
+    usleep(500);
 }
 
-function compileJs(string $compressedFilePath, array $files, &$hashes): void
+function concat(string $compressedFilePath, array $files, &$hashes, string $compressor): void
 {
-    $compiled = '';
+    echo '.';
+
+    $complete = '';
 
     foreach ($files as $file) {
-        if (!realpath(__DIR__ . $file)) {
-            die('can not find "' . __DIR__ . $file . '".');
+        if (file_exists(__DIR__ . $file)) {
+            $hashes[__DIR__ . $file] = md5_file(__DIR__ . $file);
+
+            $contents = file_get_contents(__DIR__ . $file);
+
+            if (strpos($file, '.min.') === false) {
+                switch ($compressor) {
+                    case 'css':
+                        $contents = CssMinifer::minify($contents);
+                        break;
+                    case 'javascript':
+                        $contents = \JShrink\Minifier::minify($contents);
+                        break;
+                }
+            }
+
+            $complete .= $contents . PHP_EOL;
+        } else {
+            echo 'can not find "' . __DIR__ . $file . '".' . PHP_EOL;
         }
-
-        $hashes[$file] = md5_file(__DIR__ . $file);
-
-        $js = file_get_contents(__DIR__ . $file);
-
-        $minJs = (strpos($file, '.min.') === false) ? \JShrink\Minifier::minify($js) : $js;
-
-        $compiled .= $minJs . PHP_EOL;
     }
 
-    file_put_contents(__DIR__ . $compressedFilePath, $compiled);
-}
-
-function compileCss(string $compressedFilePath, array $files, &$hashes): void
-{
-    $compiled = '';
-
-    foreach ($files as $file) {
-        if (!realpath(__DIR__ . $file)) {
-            die('can not find "' . __DIR__ . $file . '".');
-        }
-
-        $hashes[$file] = md5_file(__DIR__ . $file);
-
-        $css = file_get_contents(__DIR__ . $file);
-
-        $minCss = (strpos($file, '.min.') === false) ? CssMinifer::minify($css) : $css;
-
-        $compiled .= $minCss . PHP_EOL;
-    }
-
-    file_put_contents(__DIR__ . $compressedFilePath, $compiled);
+    file_put_contents(__DIR__ . $compressedFilePath, $complete);
 }

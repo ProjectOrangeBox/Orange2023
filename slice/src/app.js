@@ -1,61 +1,94 @@
 class App {
     // root application DOM element
     id = undefined;
-    rootElement = undefined;
-    loader = undefined;
     models = undefined;
-    modals = undefined;
     gui = undefined;
+    // app internal storage
+    storage = {};
 
     constructor(id, models) {
         this.id = id;
-        this.rootElement = document.getElementById(id);
-        this.loader = new Loader(this);
         this.gui = new Gui(this);
         this.models = models;
         this.models.app = this;
-        this.modals = {};
-        this.autoLoad();
+        this.autoLoad(this.id);
     };
-
-    rebind() {
-        tinybind.bind(this.rootElement, this.models);
-    }
 
     autoLoad(selector) {
         var parent = this;
 
-        selector = selector || this.id;
+        selector = selector ?? this.id;
 
-        for (let tag of ['preload', 'autoload', 'postload']) {
-            document.querySelectorAll('#' + selector + ' [' + tag + ']').forEach(function (element, key, list) {
-                let args = getAttr(list[key]);
+        const selectors = selector.split(',');
 
-                if (args.template && args.model) {
-                    parent.loader.template(parent.makeUrl(args.template, args), args.element, args.options, parent.loader.model(args));
-                } else if (args.template) {
-                    // templateUrl, elementId, options, thenCall
-                    parent.loader.template(parent.makeUrl(args.template, args), args.element, args.options);
-                } else if (args.model) {
-                    // modelUrl, appProperty, modelProperty, options, thenCall
-                    parent.loader.model(parent.makeUrl(args.model, args), args.property, args.node, args.options);
-                } else if (args.modal) {
-                    args.element = element;
-                    args.templateUrl = parent.makeUrl(args.modal, args);
-                    args.options = JSON.parse(args.options || '{}');
-                    parent.addModal(args.name, args);
-                }
-            });
+        selectors.forEach(function (value) {
+            for (let tag of [' [preload]', ' [autoload]', ' [postload]', '[preload]', '[autoload]', '[postload]']) {
+                document.querySelectorAll('#' + value + tag).forEach(function (element) {
+                    let args = parent.getAttr(element);
+
+                    if (args.model) {
+                        // modelUrl, appProperty, modelProperty, options, thenCall
+                        parent.model(parent.makeUrl(args.model, args), args.property, args.node, args.options);
+                    }
+                });
+            }
+        });
+    };
+
+    rebind() {
+        tinybind.bind(document.getElementById(this.id), this.models);
+    };
+
+    swap(args) {
+        if (args.hide) {
+            this.hide(args.hide);
+        }
+        if (args.model) {
+            // model(modelUrl, appProperty, modelProperty, options, thenCall)
+            this.model(this.makeUrl(args.model, args), args.property, args.node, args.options);
+        }
+        if (args.show) {
+            this.show(args.show);
+        }
+        if (args.refresh) {
+            this.autoLoad(args.refresh);
         }
     };
 
-    // load modal template
-    loadModal(args) {
+    show(id) {
         var parent = this;
 
-        // modelUrl, appProperty, modelProperty, options, thenCall
-        this.loader.model(this.makeUrl(args.model, args), args.property, args.node, {}, function () {
-            parent.openModal(args.name);
+        const ids = id.split(',');
+
+        ids.forEach(function (value) {
+            const el = document.querySelector('#' + value);
+
+            // is this a modal or form?
+            if (el.classList.contains('modal')) {
+                if (!parent.storage['modal-' + value]) {
+                    parent.storage['modal-' + value] = new bootstrap.Modal('#' + value);
+                }
+
+                parent.storage['modal-' + value].show();
+            } else {
+                el.classList.remove('d-none');
+            }
+        });
+    };
+
+    hide(id) {
+        var parent = this;
+
+        const ids = id.split(',');
+
+        ids.forEach(function (value) {
+            const el = document.querySelector('#' + value);
+
+            if (el.classList.contains('modal')) {
+                parent.storage['modal-' + value].hide();
+            } else {
+                el.classList.add('d-none');
+            }
         });
     };
 
@@ -65,13 +98,13 @@ class App {
 
     submit(args) {
         var parent = this;
-        var data = JSON.stringify(getProperty(this.models, args.property || 'record'));
+        var data = JSON.stringify(this.getProperty(this.models, args.property ?? 'record'));
 
         this.makeAjaxCall({
             // get the url to post to with # replacement from the objects uid
             url: this.makeUrl(args.url, args),
             // what http method should we use
-            type: args.method || 'post',
+            type: args.method ?? 'post',
             // what should we send as "data"
             data: data,
             // when the request is "complete"
@@ -90,11 +123,11 @@ class App {
                         break;
                     case 201:
                         // Created
-                        parent.actionBasedOnArguments(args);
+                        parent.onSuccess(args);
                         break;
                     case 202:
                         // Accepted
-                        parent.actionBasedOnArguments(args);
+                        parent.onSuccess(args);
                         break;
                     case 406:
                         // Not Acceptable
@@ -110,13 +143,7 @@ class App {
 
     // default not accepted form submission
     notAcceptable(args) {
-        // tag the ui element based on the keys (array) if available 
-        if (args.json.keys) {
-            // add the highlights if we can
-            this.gui.highlightErrorFields(args.json.keys);
-        }
-        // show error dialog
-        this.gui.showErrorDialog(args);
+        this.gui.notAcceptable(args);
     };
 
     makeUrl(url, args) {
@@ -145,28 +172,6 @@ class App {
         bootbox.alert(record);
     };
 
-    addModal(name, args) {
-        if (this.modals[name] === undefined) {
-            args.app = this;
-
-            this.modals[name] = new Modal(name, args);
-
-            this.autoLoad(this.modals[name].id);
-
-            //console.log(name, args);
-        }
-
-        return this.modals[name];
-    }
-
-    openModal(name) {
-        this.modals[name].show();
-    };
-
-    closeModal(name) {
-        this.modals[name].hide();
-    };
-
     makeAjaxCall(request) {
         // the ajax call defaults
         let defaults = {
@@ -182,37 +187,107 @@ class App {
         $.ajax({ ...defaults, ...request });
     };
 
-    actionBasedOnArguments(args) {
-        if (args['on-success-close-modal'] || false) {
-            this.closeModal(args['on-success-close-modal']);
+    onSuccess(args) {
+        this.gui.removeIsInvalid(this.id);
+
+        if (args['on-success-hide']) {
+            this.hide(args['on-success-hide']);
         }
 
-        if (args['on-success-redirect'] || false) {
-            args.reload = false;
-            args.refresh = false;
-            args.redirect = args['on-success-redirect'];
+        if (args['on-success-show']) {
+            this.show(args['on-success-show']);
         }
 
-        if (args['on-success-refresh'] || false) {
-            args.reload = false;
-            args.redirect = false;
-            args.refresh = true;
+        if (args['on-success-refresh']) {
+            let id = (args['on-success-refresh'] == 'true') ? this.id : args['on-success-refresh'];
+
+            this.autoLoad(id);
         }
 
-        // if reload then reload this location (url) data-reload=""
-        if (args.reload || false) {
+        if (args['on-success-redirect']) {
+            // redirects to NEW URL full context switch
+            window.location.href = args['on-success-redirect'];
+        }
+
+        if (args['on-success-reload']) {
+            // reloads the ENTIRE URL full context switch
             location.reload();
-        }
-
-        // if refresh then refresh the page data-refresh=""
-        if (args.refresh || false) {
-            this.autoLoad();
-        }
-
-        // redirect if appropriate
-        if (args.redirect || false) {
-            window.location.href = args.redirect;
         }
     };
 
+    model(modelUrl, appProperty, modelProperty, options, thenCall) {
+        options = options ?? {};
+
+        var parent = this;
+
+        this.makeAjaxCall({
+            url: modelUrl,
+            type: options.method ?? 'get',
+            complete: function (jqXHR) {
+                // based on the responds code
+                if (jqXHR.status == 200) {
+                    // success
+
+                    // capture the text or json from the responds
+                    let jsonObject = jqXHR.responseJSON;
+
+                    // replace the application property with the matching json property
+                    if (jsonObject) {
+                        let record = modelProperty ? parent.getProperty(jsonObject, modelProperty) : jsonObject;
+
+                        parent.setProperty(parent.models, appProperty, record);
+
+                        parent.rebind();
+
+                        if (typeof thenCall === 'function') {
+                            thenCall(arguments);
+                        }
+                    } else {
+                        parent.alert('Could not load model.');
+                    }
+                } else {
+                    // show error dialog
+                    parent.alert('Model returned the status [' + jqXHR.status + '].');
+                }
+            }
+        });
+    };
+
+    setProperty(obj, path, value) {
+        let properties = path.split('.');
+        let current = obj;
+        for (let i = 0; i < properties.length - 1; i++) {
+            let prop = properties[i];
+            if (current[prop] === undefined || current[prop] === null) {
+                current[prop] = {};
+            }
+            current = current[prop];
+        }
+
+        current[properties[properties.length - 1]] = value;
+    };
+
+    getProperty(obj, path) {
+        let properties = path.split('.');
+        let value = obj;
+        for (let prop of properties) {
+            if (value && typeof value === 'object' && value.hasOwnProperty(prop)) {
+                value = value[prop];
+            } else {
+                return undefined;
+            }
+        }
+        return value;
+    };
+
+    // global capture all attributes on a element
+    getAttr(element) {
+        let args = {};
+
+        for (let attr of element.attributes) {
+            args[attr.name] = attr.value;
+        }
+
+        return args;
+    };
 }

@@ -5,16 +5,27 @@ class Gui {
         this.parent = parent;
     }
 
+    notAcceptable(args) {
+        // tag the ui element based on the keys (array) if available 
+        if (args.json.keys) {
+            // add the highlights if we can
+            this.highlightErrorFields(args.json.keys);
+        }
+
+        // show error dialog
+        this.showErrorDialog(args);
+    };
+
     highlightErrorFields(invalidNames) {
         // first remove all that might be on the screen now
-        this.removeIsInvalid(this.parent.rootElement.id);
+        this.removeIsInvalid(this.parent.id);
 
         // then loop over the array and add the is-invalid class to
         // each matching html form element by name
         invalidNames.forEach(function (name) {
             // where should we look for this data-autoload elements?
             // find the matching form elements
-            this.addClass(this.parent.rootElement.id + ' [name="' + name + '"]', 'is-invalid');
+            this.addClass(this.parent.id + ' [name="' + name + '"]', 'is-invalid');
         }, this);
     };
 

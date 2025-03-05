@@ -1,7 +1,4 @@
-<?php fig::extends('templates/base') ?>
-
-<?php fig::block('body') ?>
-<div class="masthead container" autoload="true" model="<?= getUrl('peopleReadNew') ?>" property="createRecord">
+<div id="form-create" class="masthead container d-none">
     <div class="mb-3">
         <label for="frm_firstname" class="form-label">First Name</label>
         <input type="text" class="form-control" id="frm_firstname" name="firstname" rv-value="createRecord.firstname">
@@ -23,10 +20,7 @@
         </div>
     </div>
     <div class="mb-3 float-end">
-        <a rv-on-click="actions.redirect" url="<?= getUrl('peopleReadList') ?>" class="btn btn-light">Cancel</a>
-        <a rv-on-click="actions.submit" method="post" url="<?= getUrl('peopleCreate') ?>" property="createRecord" on-success-redirect="<?= getUrl('peopleReadList') ?>" class="btn btn-primary">Submit</a>
+        <a rv-on-click="actions.swap" hide="form-create" show="main-grid" class="btn btn-light">Cancel</a>
+        <a rv-on-click="actions.submit" method="post" url="<?= getUrl('peopleCreate') ?>" property="createRecord" on-success-hide="form-create" on-success-show="main-grid" on-success-refresh="main-grid" class="btn btn-primary">Submit</a>
     </div>
 </div>
-<?php fig::end() ?>
-
-<?php fig::render() ?>

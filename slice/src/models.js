@@ -14,21 +14,14 @@ var models = {
     // rv-on-click="actions.redirect"
     // rv-on-click="actions.redirect | args '/go/here'"
     actions: {
+        swap() {
+            models.app.swap({ element: this, ...app.getAttr(this), app: arguments[1] });
+        },
         redirect() {
-            models.app.redirect({ element: this, ...getAttr(this), app: arguments[1] });
-        },
-        loadModal() {
-            models.app.loadModal({ element: this, ...getAttr(this), app: arguments[1] });
-        },
-        cancel() {
-            models.app.cancel({ element: this, ...getAttr(this), app: arguments[1] });
+            models.app.redirect({ element: this, ...app.getAttr(this), app: arguments[1] });
         },
         submit() {
-            models.app.submit({ element: this, ...getAttr(this), app: arguments[1] });
-        },
-        close() {
-            let args = { element: this, ...getAttr(this), app: arguments[1] };
-            models.app.closeModal(args.name);
+            models.app.submit({ element: this, ...app.getAttr(this), app: arguments[1] });
         },
     },
 };

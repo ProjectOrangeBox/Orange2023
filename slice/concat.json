@@ -10,10 +10,7 @@
             "/src/cdn/tinybind.js",
             "/src/models.js",
             "/src/app.js",
-            "/src/modal.js",
             "/src/gui.js",
-            "/src/loader.js",
-            "/src/functions.js",
             "/src/bootstrap.js",
             "/src/theme_scripts.js"
         ]
