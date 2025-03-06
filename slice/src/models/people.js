@@ -5,6 +5,8 @@ var people = {
     deleteRecord: {},
     readRecord: {},
 
+    validation: {},
+
     // list of records
     list: [],
     colorDropDown: [],

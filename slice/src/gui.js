@@ -6,36 +6,21 @@ class Gui {
     }
 
     notAcceptable(args) {
-        // tag the ui element based on the keys (array) if available 
-        if (args.json.keys) {
-            // add the highlights if we can
-            this.highlightErrorFields(args.json.keys);
+        let json = args.json;
+
+        if (json.keys) {
+            this.parent.model.validation =json.keys;
         }
 
         // show error dialog
-        this.showErrorDialog(args);
-    };
-
-    highlightErrorFields(invalidNames) {
-        // first remove all that might be on the screen now
-        this.removeIsInvalid(this.parent.id);
-
-        // then loop over the array and add the is-invalid class to
-        // each matching html form element by name
-        invalidNames.forEach(function (name) {
-            // where should we look for this data-autoload elements?
-            // find the matching form elements
-            this.addClass(this.parent.id + ' [name="' + name + '"]', 'is-invalid');
-        }, this);
+        this.showErrorDialog(json);
     };
 
     removeIsInvalid(selector) {
         this.removeClass(selector + ' .is-invalid', 'is-invalid');
     };
 
-    showErrorDialog(tags) {
-        let record = tags.json;
-
+    showErrorDialog(record) {
         // this responds is json so we grab the values or use the defaults provided
         // https://bootboxjs.com/documentation.html
         record.size = record.size || 'large'; // large alert

@@ -103,8 +103,13 @@ class App {
     submit(args) {
         var parent = this;
         let appProperty = args.property ?? 'record'
+        let payload = this.model;
 
-        var data = JSON.stringify(this.getProperty(this.model, appProperty));
+        if (appProperty) {
+            payload = this.getProperty(this.model, appProperty);
+        }
+
+        var data = JSON.stringify(payload);
 
         this.makeAjaxCall({
             // get the url to post to with # replacement from the objects uid
@@ -148,8 +153,6 @@ class App {
     };
 
     onSuccess(args) {
-        this.gui.removeIsInvalid(this.id);
-
         if (args['on-success-hide']) {
             this.hide(args['on-success-hide']);
         }

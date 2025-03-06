@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace application\shared\controllers;
 
+use peels\validate\exceptions\ValidationFailed;
 use orange\framework\controllers\BaseController;
 
 /**
@@ -22,8 +23,7 @@ abstract class CrudController extends BaseController
     ];
 
     // method to json response key
-    protected array $restGetMap = [
-    ];
+    protected array $restGetMap = [];
 
     protected function preformCRUD(string $model, string $method, array $args = [], ?string $jsonKey = null, ?int $success = -1): string
     {
@@ -57,7 +57,7 @@ abstract class CrudController extends BaseController
      *   contentType
      *   json
      */
-    public function restResponse(?int $statusCode = null, ?string $contentType = null, ?string $write = null): string
+    protected function restResponse(?int $statusCode = null, ?string $contentType = null, ?string $write = null): string
     {
         $statusCode = $statusCode ?? $this->data['statusCode'];
         $contentType = $contentType ?? $this->data['contentType'];
@@ -67,5 +67,19 @@ abstract class CrudController extends BaseController
         $this->output->responseCode($statusCode)->contentType($contentType)->write($write);
 
         return '';
+    }
+
+    protected function rest406(ValidationFailed $vf): string
+    {
+        $this->data['json'] = $vf->getArray();
+
+        // app.model.validation.color = true;
+        unset($this->data['json']['keys']);
+
+        foreach ($vf->getKeys() as $key) {
+            $this->data['json']['keys'][$key] = true;
+        }
+
+        return $this->restResponse(406);
     }
 }

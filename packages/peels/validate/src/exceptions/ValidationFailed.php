@@ -13,7 +13,7 @@ class ValidationFailed extends ValidateException
     protected array $errors = [];
 
     // default http 406 - Not Acceptable
-    public function __construct($message = '', $code = 406, Throwable $previous = null, ?array $errors = null)
+    public function __construct($message = '', $code = 406, ?Throwable $previous = null, ?array $errors = null)
     {
         if (is_array($errors)) {
             $this->merge($errors);
@@ -76,7 +76,7 @@ class ValidationFailed extends ValidateException
         return implode($separator, $elements);
     }
 
-    public function getErrorsAsJson(bool $raw = true, int $flags = null, int $depth = 512): string
+    public function getErrorsAsJson(bool $raw = true, ?int $flags = null, int $depth = 512): string
     {
         $value = $raw ? $this->errors : $this->getErrorsAsHtml();
 

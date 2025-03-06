@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace application\people\controllers;
 
 use orange\framework\traits\ConfigurationTrait;
+use peels\validate\exceptions\ValidationFailed;
 use application\shared\controllers\CrudController;
 
 class MainController extends CrudController
@@ -29,11 +30,9 @@ class MainController extends CrudController
 
     protected function beforeMethodCalled()
     {
-        $this->assets->scriptFiles([
-        ]);
+        $this->assets->scriptFiles([]);
 
-        $this->assets->linkFiles([
-        ]);
+        $this->assets->linkFiles([]);
     }
 
     # [route(get,/colordropdown,peoplecolordropdown)]
@@ -95,18 +94,36 @@ class MainController extends CrudController
     # [route(post, /people, peopleCreate)]
     public function create(): string
     {
-        return $this->preformCRUD($this->defaultModel, 'create', [$this->input->body()]);
+        try {
+            $response = $this->preformCRUD($this->defaultModel, 'create', [$this->input->body()]);
+        } catch (ValidationFailed $vf) {
+            $response = $this->rest406($vf);
+        }
+
+        return $response;
     }
 
     # [route(put, /people/(\d+), peopleUpdate)]
     public function update(): string
     {
-        return $this->preformCRUD($this->defaultModel, 'update', [$this->input->body()]);
+        try {
+            $response = $this->preformCRUD($this->defaultModel, 'update', [$this->input->body()]);
+        } catch (ValidationFailed $vf) {
+            $response = $this->rest406($vf);
+        }
+
+        return $response;
     }
 
     # [route(delete, /people/(\d+), peopleDelete)]
     public function delete(): string
     {
-        return $this->preformCRUD($this->defaultModel, 'delete', [$this->input->body()]);
+        try {
+            $response = $this->preformCRUD($this->defaultModel, 'delete', [$this->input->body()]);
+        } catch (ValidationFailed $vf) {
+            $response = $this->rest406($vf);
+        }
+
+        return $response;
     }
 }
