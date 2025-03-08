@@ -23,6 +23,9 @@ var people = {
         submit() {
             app.submit({ element: this, ...app.getAttr(this), app: arguments[1] });
         },
+        clearValidation() {
+            people.validation = {};
+        },
     },
 
     preload: ['main-grid', 'frm_color'],

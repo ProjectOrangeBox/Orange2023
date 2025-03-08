@@ -22,7 +22,7 @@
         </div>
     </div>
     <div class="mb-3 float-end">
-        <a rv-on-click="actions.swap" hide="modal-update" class="btn btn-light">Cancel</a>
+        <a rv-on-click="actions.swap" hide="modal-update" then="actions.clearValidation" class="btn btn-light">Cancel</a>
         <a rv-on-click="actions.submit" method="put" url="<?= getUrl('peopleUpdate', ['{id}'], true) ?>" property="updateRecord" rv-replace-id="updateRecord.id" on-success-hide="modal-update" on-success-refresh="main-grid" class="btn btn-primary">Submit</a>
     </div>
 </div>

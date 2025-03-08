@@ -61,6 +61,9 @@ class App {
         if (args.show) {
             this.show(args.show);
         }
+        if (args.then) {
+            this.getProperty(this.model,args.then)(this);
+        }
     };
 
     show(id) {
