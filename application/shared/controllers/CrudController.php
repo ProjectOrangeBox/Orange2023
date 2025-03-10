@@ -69,17 +69,24 @@ abstract class CrudController extends BaseController
         return '';
     }
 
+    /**
+     * convert this to the front end format
+     * so it can be directly inserted into the model
+     * 
+     * @param ValidationFailed $vf 
+     * @return string 
+     */
     protected function rest406(ValidationFailed $vf): string
     {
         // set rv-class-is-invalid="validation.invalid.firstname"
         foreach ($vf->getKeys() as $key) {
-            $this->data['json']['invalid'][$key] = true;
+            $this->data['json']['validation']['invalid'][$key] = true;
         }
 
         // array of errors <div rv-each-row="validation.array">
-        $this->data['json']['array'] = $vf->getErrorsAsArray();
+        $this->data['json']['validation']['array'] = $vf->getErrorsAsArray();
         // show dialog rv-theme-modal-show="validation.show"
-        $this->data['json']['show'] = true;
+        $this->data['json']['validation']['show'] = true;
 
         return $this->restResponse(406);
     }

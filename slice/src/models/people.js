@@ -45,11 +45,11 @@ var people = {
         },
         // called by on-then
         clearValidation() {
-            people.validation = {};
-        },
-        // show validation errors
-        showValidationErrors(app, args) {
-            people.validation = args.json;
+            // clear out all validation
+            people.validation.invalid = {};
+            people.validation.show = false;
+            people.validation.array = [];
+
         },
     },
 

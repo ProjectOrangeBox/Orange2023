@@ -19,7 +19,7 @@ class App {
             model.start(this);
         }
 
-        tinybind.bind(this.appElement, this.model);
+        this.rebind();
     };
 
     rebind() {
@@ -70,67 +70,48 @@ class App {
     submit(args) {
         let parent = this;
         // either get the property specified (dot notation) or the entire model
-        let payload = (args.property) ? this.getProperty(this.model, args.property) : this.model;
+        let payload = (args.property) ? this.getProperty(undefined, args.property) : this.model;
 
         this.makeAjaxCall({
             // get the url to post to with # replacement from the objects uid
             url: this.makeUrl(args.url, args),
             // what http method should we use
-            type: args.method ?? 'post',
+            type: args.method ?? 'POST',
             // what should we send as "data"
             data: JSON.stringify(payload),
             // when the request is "complete"
             complete: function (jqXHR) {
-                // capture the text and/or json response
-                let json = jqXHR.responseJSON;
                 // save these so we can pass them though
                 args.jqXHR = jqXHR;
-                args.json = json;
+                args.json = jqXHR.responseJSON;
 
                 // based on the responds code
                 switch (jqXHR.status) {
                     // 200 in this case is NOT a valid response code
+                    // Created 201
+                    // Accepted 202
                     case 201:
-                        // Created
-                        if (args['on-created']) {
-                            parent.callModelAction(args['on-created'], args);
-                        } else {
-                            parent.onSuccess(args);
-                        }
-                        break;
                     case 202:
-                        // Accepted
-                        if (args['on-accepted']) {
-                            parent.callModelAction(args['on-accepted'], args);
-                        } else {
-                            parent.onSuccess(args);
-                        }
+                        parent.onSuccess(args);
                         break;
                     case 406:
-                        // Not Acceptable
-                        if (args['on-failure-property']) {
-                            parent.setProperty(undefined, args['on-failure-property'], json)
-                        }
-                        if (args['on-failure']) {
-                            parent.callModelAction(args['on-failure'], args);
-                        } else {
-                            parent.notAcceptable(args);
-                        }
+                        parent.onFailure(args);
                         break;
                     default:
                         // anything other reponds code is an error
                         parent.alert('Record Access Issue (' + jqXHR.status + ').');
-                }
-
-                // call this model function usually something like actions.doSomethingCool
-                if (args.then) {
-                    this.callModelAction(args.then, args);
                 }
             }
         })
     };
 
     onSuccess(args) {
+        if (args['on-created']) {
+            this.callModelAction(args['on-created'], args);
+        }
+        if (args['on-accepted']) {
+            this.callModelAction(args['on-accepted'], args);
+        }
         // call hide in these DOM elements
         if (args['on-success-hide']) {
             this.hide(args['on-success-hide']);
@@ -146,7 +127,7 @@ class App {
             this.setTo(args['on-success-false'], false);
         }
         if (args['on-success-toggle']) {
-            this.setTo(args[''], '//toggle//');
+            this.setTo(args['on-success-toggle'], '//toggle//');
         }
         // call show in these DOM elements
         if (args['on-success-show']) {
@@ -163,6 +144,24 @@ class App {
         // reloads the ENTIRE URL full context switch
         if (args['on-success-reload']) {
             location.reload();
+        }
+    };
+
+    onFailure(args) {
+        // Not Acceptable
+        let alreadyProcessed = false;
+
+        if (args['on-failure-property']) {
+            this.setProperty(undefined, args['on-failure-property'], args.json)
+            alreadyProcessed = true;
+        }
+        if (args['on-failure']) {
+            this.callModelAction(args['on-failure'], args);
+            alreadyProcessed = true;
+        }
+        // defaults to merge
+        if (!alreadyProcessed) {
+            this.mergeModels(undefined, args.json);
         }
     };
 
@@ -205,32 +204,19 @@ class App {
 
         this.split(dotnotations).forEach(function (dotnotation) {
             if (value == '//toggle//') {
-                let current = parent.getProperty(parent.model, dotnotation);
+                let current = parent.getProperty(undefined, dotnotation);
                 value = !current;
             }
+            if (value == '//refresh//') {
+                value = new Date();
+            }
 
-            parent.setProperty(parent.model, dotnotation, value);
+            parent.setProperty(undefined, dotnotation, value);
         });
     };
 
     callModelAction(modelMethodName, args) {
-        this.getProperty(this.model, modelMethodName)(this, args);
-    };
-
-    // default not accepted form submission
-    notAcceptable(args) {
-        let json = args.json;
-
-        if (json.keys) {
-            // invalid highlighting
-            this.parent.model.validation = json.keys;
-        }
-
-        if (json.array) {
-            // fill in the modal and show it
-            this.parent.model.validations = json.array;
-            this.parent.model.show.validate = true;
-        }
+        this.getProperty(undefined, modelMethodName)(this, args);
     };
 
     // bootbox wrapper
@@ -298,7 +284,7 @@ class App {
 
                         if (appProperty) {
                             // if they only want to replace a single property on the model
-                            parent.setProperty(parent.model, appProperty, jsonObject);
+                            parent.setProperty(undefined, appProperty, jsonObject);
                         } else {
                             // if they want to merge the current model with the object received
                             parent.mergeModels(parent.model, jsonObject);
@@ -372,6 +358,7 @@ class App {
     mergeModels(currentModel, replacementModel) {
         // our default methods you can't replace
         let skip = ['construct', 'actions'];
+        currentModel = currentModel ?? this.model;
 
         for (const [key, value] of Object.entries(replacementModel)) {
             if (!skip.includes(key)) {

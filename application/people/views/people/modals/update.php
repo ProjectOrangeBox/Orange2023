@@ -23,7 +23,7 @@
     </div>
     <div class="mb-3 float-end">
         <a rv-on-click="actions.go" hide="show.update" then="actions.clearValidation" class="btn btn-light">Cancel</a>
-        <a rv-on-click="actions.go" method="put" url="<?= getUrl('peopleUpdate', ['{id}'], true) ?>" property="updateRecord" rv-replace-id="updateRecord.id" on-success-hide="show.update" on-success-refresh="refresh.grid" on-failure-property="validation" class="btn btn-primary">Submit</a>
+        <a rv-on-click="actions.go" method="put" url="<?= getUrl('peopleUpdate', ['{id}'], true) ?>" property="updateRecord" rv-replace-id="updateRecord.id" on-success-hide="show.update" on-success-refresh="refresh.grid" then="actions.clearValidation" class="btn btn-primary">Submit</a>
     </div>
 </div>
 <?php fig::include('partials/modal_footer') ?>
