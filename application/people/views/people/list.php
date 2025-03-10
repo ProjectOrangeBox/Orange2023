@@ -7,8 +7,8 @@
 <?php fig::include('people/create') ?>
 <?php fig::include('people/read') ?>
 
-<?php fig::include('people/modals/update', ['element_id' => 'modal-update', 'size' => 'xl']) ?>
-<?php fig::include('people/modals/delete', ['element_id' => 'modal-delete', 'size' => 'sm']) ?>
+<?php fig::include('people/modals/update', ['element_id' => 'update', 'size' => 'xl']) ?>
+<?php fig::include('people/modals/delete', ['element_id' => 'delete', 'size' => 'sm']) ?>
 
 <?php fig::end() ?>
 

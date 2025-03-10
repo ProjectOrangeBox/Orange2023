@@ -8,6 +8,8 @@
             "/src/cdn/bootstrap.bundle.min.js",
             "/src/cdn/all.js",
             "/src/cdn/tinybind.js",
+            "/src/binders.js",
+            "/src/formatters.js",
             "/src/globalFunctions.js",
             "/src/models/people.js",
             "/src/app.js",

@@ -1,118 +1,76 @@
 class App {
-    // root application DOM element
     id = undefined;
+    appElement = undefined;
     model = undefined;
     gui = undefined;
     // app internal storage
     storage = {};
 
     constructor(id, model) {
-        // save the passed id
+        // root application DOM id
         this.id = id;
+        this.appElement = document.getElementById(this.id);
         // save a reference to the gui object
-        // this should have all of the DOM interaction / css framework code
+        // this should have all of the DOM interaction / css framework code so it is easy to replace
         this.gui = new Gui(this);
-        // save a copy of the model object
+        // save a copy of the model we are working with in this App instance
         this.model = model;
 
+        window['@app'] = this;
+
+        // if they include any preload DOM ids [array]
+        /*
         if (model.preload) {
             this.updateModel(model.preload);
         }
+        */
 
+        // if they include a start function [function]
         if (model.start) {
             model.start(this);
         }
+
+        tinybind.bind(this.appElement, this.model);
     };
 
     rebind() {
-        tinybind.bind(document.getElementById(this.id), this.model);
+        tinybind.bind(this.appElement, this.model);
     };
 
-    updateModel(selector) {
-        var parent = this;
-
-        this.split(selector).forEach(function (selector) {
-            let element = document.getElementById(selector);
-
-            if (element) {
-                let args = parent.getAttr(element);
-
-                if (args.model) {
-                    // modelUrl, appProperty, modelProperty, options, thenCall
-                    parent.loadModel(parent.makeUrl(args.model, args), args.property, args.node, args.options);
-                }
-            } else {
-                console.error('Not an DOM element:', selector);
-            }
-        });
-    };
-
+    // swap html "element"
     swap(args) {
+        // hide 1 or more elements comma separated string [string] 
         if (args.hide) {
-            this.hide(args.hide);
+            this.setTo(args.hide, false);
         }
+        // make a model ajax request
         if (args.model) {
             // model(modelUrl, appProperty, modelProperty, options, thenCall)
             this.loadModel(this.makeUrl(args.model, args), args.property, args.node, args.options);
         }
+        // process 1 or more selectors comma separated string [string] 
         if (args.refresh) {
-            this.updateModel(args.refresh);
+            this.setTo(args.refresh, Date.now());
         }
+        // show 1 or more elements comma separated string [string] 
         if (args.show) {
-            this.show(args.show);
+            this.setTo(args.show, true);
         }
+        // call this model function usually something like actions.doSomethingCool
         if (args.then) {
-            this.getProperty(this.model,args.then)(this);
+            this.callModelAction(args.then);
         }
-    };
-
-    show(id) {
-        var parent = this;
-
-        this.split(id).forEach(function (value) {
-            const el = document.querySelector('#' + value);
-
-            // is this a modal or form?
-            if (el.classList.contains('modal')) {
-                if (!parent.storage['modal-' + value]) {
-                    parent.storage['modal-' + value] = new bootstrap.Modal('#' + value);
-                }
-
-                parent.storage['modal-' + value].show();
-            } else {
-                el.classList.remove('d-none');
-            }
-        });
-    };
-
-    hide(id) {
-        var parent = this;
-
-        this.split(id).forEach(function (value) {
-            const el = document.querySelector('#' + value);
-
-            if (el.classList.contains('modal')) {
-                parent.storage['modal-' + value].hide();
-            } else {
-                el.classList.add('d-none');
-            }
-        });
     };
 
     redirect(args) {
+        // redirect to another url
         window.location.href = this.makeUrl(args.url, args);
     };
 
     submit(args) {
-        var parent = this;
-        let appProperty = args.property ?? 'record'
-        let payload = this.model;
-
-        if (appProperty) {
-            payload = this.getProperty(this.model, appProperty);
-        }
-
-        var data = JSON.stringify(payload);
+        let parent = this;
+        // either get the property specified (dot notation) or the entire model
+        let payload = (args.property) ? this.getProperty(this.model, args.property) : this.model;
 
         this.makeAjaxCall({
             // get the url to post to with # replacement from the objects uid
@@ -120,21 +78,18 @@ class App {
             // what http method should we use
             type: args.method ?? 'post',
             // what should we send as "data"
-            data: data,
+            data: JSON.stringify(payload),
             // when the request is "complete"
             complete: function (jqXHR) {
                 // capture the text and/or json response
                 let json = jqXHR.responseJSON;
-
+                // save these so we can pass them though
                 args.jqXHR = jqXHR;
                 args.json = json;
 
                 // based on the responds code
                 switch (jqXHR.status) {
-                    case 200:
-                        // 200 in this case is NOT a valid response code
-                        parent.alert('200 is an invalid response.');
-                        break;
+                    // 200 in this case is NOT a valid response code
                     case 201:
                         // Created
                         parent.onSuccess(args);
@@ -149,34 +104,102 @@ class App {
                         break;
                     default:
                         // anything other reponds code is an error
-                        parent.alert('Record Access Issue.');
+                        parent.alert('Record Access Issue (' + jqXHR.status + ').');
+                }
+
+                // call this model function usually something like actions.doSomethingCool
+                if (args.then) {
+                    this.callModelAction(args.then);
                 }
             }
         })
     };
 
     onSuccess(args) {
+        // call hide in these DOM elements
         if (args['on-success-hide']) {
             this.hide(args['on-success-hide']);
         }
-
+        // process these DOM elements
+        if (args['on-success-refresh']) {
+            this.setTo(args['on-success-refresh'], Date.now());
+        }
+        if (args['on-success-true']) {
+            this.setTo(args['on-success-true'], true);
+        }
+        if (args['on-success-false']) {
+            this.setTo(args['on-success-false'], false);
+        }
+        if (args['on-success-toggle']) {
+            this.setTo(args[''], '//toggle//');
+        }
+        // call show in these DOM elements
         if (args['on-success-show']) {
             this.show(args['on-success-show']);
         }
-
-        if (args['on-success-refresh']) {
-            this.updateModel(args['on-success-refresh']);
+        // call this model function usually something like actions.doSomethingCool
+        if (args['on-success-then']) {
+            this.callModelAction(args['on-success-then']);
         }
-
+        // redirects to NEW URL full context switch
         if (args['on-success-redirect']) {
-            // redirects to NEW URL full context switch
             window.location.href = args['on-success-redirect'];
         }
-
+        // reloads the ENTIRE URL full context switch
         if (args['on-success-reload']) {
-            // reloads the ENTIRE URL full context switch
             location.reload();
         }
+    };
+
+    updateModel(selectors) {
+        let parent = this;
+
+        // for each selector
+        this.split(selectors).forEach(function (selector) {
+            // process the attributes on the DOM element
+            parent.updateModelElement(document.getElementById(selector));
+        });
+    };
+
+    updateModelElement(element) {
+        let parent = this;
+
+        if (element) {
+            let args = parent.getAttr(element);
+
+            if (args.model) {
+                // modelUrl, appProperty, modelProperty, options, thenCall
+                parent.loadModel(parent.makeUrl(args.model, args), args.property, args.node, args.options);
+            }
+        } else {
+            console.error('Not an DOM element:', element);
+        }
+    };
+
+    // handle show and hide automatically even if it is a modal
+    show(dotnotations) {
+        this.setTo(dotnotations, true);
+    };
+
+    hide(dotnotations) {
+        this.setTo(dotnotations, false);
+    };
+
+    setTo(dotnotations, value) {
+        var parent = this;
+
+        this.split(dotnotations).forEach(function (dotnotation) {
+            if (value == '//toggle//') {
+                let current = parent.getProperty(parent.model, dotnotation);
+                value = !current;
+            }
+
+            parent.setProperty(parent.model, dotnotation, value);
+        });
+    };
+
+    callModelAction(modelMethodName) {
+        this.getProperty(this.model, modelMethodName)(this);
     };
 
     // default not accepted form submission
@@ -247,8 +270,15 @@ class App {
                             jsonObject = parent.getProperty(jsonObject, modelProperty);
                         }
 
-                        parent.setProperty(parent.model, appProperty, jsonObject);
+                        if (appProperty) {
+                            // if they only want to replace a single property on the model
+                            parent.setProperty(parent.model, appProperty, jsonObject);
+                        } else {
+                            // if they want to merge the current model with the object received
+                            parent.mergeModels(parent.model, jsonObject);
+                        }
 
+                        // force update the DOM
                         parent.rebind();
 
                         if (typeof thenCall === 'function') {
@@ -303,11 +333,42 @@ class App {
         return args;
     };
 
-    split(input) {
+    split(input, on) {
+        on = on ?? ','
+
         if (!Array.isArray(input)) {
-            input = input.split(',');
+            input = input.split(on);
         }
 
         return input;
     };
+
+    mergeModels(currentModel, replacementModel) {
+        // our default methods you can't replace
+        let skip = ['actions', 'preload', 'start'];
+
+        for (const [key, value] of Object.entries(replacementModel)) {
+            if (!skip.includes(key)) {
+                currentModel[key] = value;
+            }
+        }
+    };
+
+    dotToObject(dotNotationString, value) {
+        const parts = dotNotationString.split('.');
+
+        let obj = {};
+        let current = obj;
+
+        for (let i = 0; i < parts.length - 1; i++) {
+            const part = parts[i];
+            current[part] = {};
+            current = current[part];
+        }
+
+        current[parts[parts.length - 1]] = value;
+
+        return obj;
+    };
+
 }

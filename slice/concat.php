@@ -40,7 +40,7 @@ while (1 == 1) {
         }
     }
 
-    usleep(500);
+    sleep(1);
 }
 
 function concat(string $compressedFilePath, array $files, &$hashes, string $compressor): void
