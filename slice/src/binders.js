@@ -28,7 +28,7 @@ tinybind.binders.height = function (el, value) {
 
     boolean T/F
 */
-tinybind.binders['theme-show'] = function (el, value) {
+tinybind.binders['add-show-class'] = function (el, value) {
     let elClass = " " + el.className + " ";
     let classname = 'd-none';
 
@@ -51,6 +51,10 @@ tinybind.binders['theme-modal-show'] = function (el, value) {
         window.modalStorage = {};
     }
 
+    if (!el.id) {
+        el.id = uuidv4();
+    }
+
     if (!window.modalStorage[el.id]) {
         window.modalStorage[el.id] = new bootstrap.Modal('#' + el.id);
     }
@@ -63,10 +67,7 @@ tinybind.binders['theme-modal-show'] = function (el, value) {
 };
 
 tinybind.binders['refresh'] = function (el, value) {
-    // run the updateModel method
     window['@app'].updateModelElement(el);
-    // hup the value
-    //window['@app'].setProperty(this.model, this.keypath, Date.now());
 };
 
 /*

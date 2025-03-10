@@ -1,4 +1,4 @@
-<div rv-theme-show="show.read" class="masthead container">
+<div rv-add-show-class="show.read" class="masthead container">
     <div class="mb-3">
         <label for="frm_firstname" class="form-label">First Name</label>
         <input type="text" readonly class="form-control" id="frm_firstname" name="firstname" rv-value="readRecord.firstname">
@@ -16,6 +16,6 @@
         <input type="text" readonly class="form-control" id="frm_age" name="colorname" rv-value="readRecord.colorname">
     </div>
     <div class="mb-3 float-end">
-        <a rv-on-click="actions.swap" hide="show.read" show="show.grid" class="btn btn-primary">Done</a>
+        <a rv-on-click="actions.go" hide="show.read" show="show.grid" class="btn btn-primary">Done</a>
     </div>
 </div>

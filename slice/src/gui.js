@@ -9,49 +9,18 @@ class Gui {
         let json = args.json;
 
         if (json.keys) {
-            this.parent.model.validation =json.keys;
+            // invalid highlighting
+            this.parent.model.validation = json.keys;
         }
 
-        // show error dialog
-        this.showErrorDialog(json);
+        if (json.array) {
+            // fill in the modal and show it
+            this.parent.model.validations = json.array;
+            this.parent.model.show.validate = true;
+        }
     };
 
-    removeIsInvalid(selector) {
-        this.removeClass(selector + ' .is-invalid', 'is-invalid');
-    };
-
-    showErrorDialog(record) {
-        // this responds is json so we grab the values or use the defaults provided
-        // https://bootboxjs.com/documentation.html
-        record.size = record.size || 'large'; // large alert
-        record.title = record.title || 'Your Form Has The Following Errors'; // default alert title
-        record.centerVertical = record.centerVertical || true; // default center vertically
-        record.closeButton = record.closeButton || false; // default hide close button
-        record.wrapPrefix = record.wrapPrefix || '<i class="fa-solid fa-triangle-exclamation"></i> '
-        record.wrapSuffix = record.wrapSuffix || '</br>';
-
-        // format the json errors (array) 
-        // here not on the server for display in the next step
-        record.message = this.wrap(record.errors, record.wrapPrefix, record.wrapSuffix);
-
-        // show the bootbox alert
-        this.parent.alert(record);
-    };
-
-    addClass(selector, classes) {
-        // !todo remove jquery dep.
-        $('#' + selector).addClass(classes);
-
-        return this;
-    };
-
-    removeClass(selector, classes) {
-        // !todo remove jquery dep.
-        $('#' + selector).removeClass(classes);
-
-        return this;
-    };
-
+    // extra 
     wrap(elements, preEach, postEach, preAll, postAll, index) {
         // set up built output
         let string = '';

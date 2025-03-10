@@ -6,6 +6,7 @@ var people = {
     readRecord: {},
 
     validation: {},
+    validations: [],
 
     watchme: false,
 
@@ -19,6 +20,7 @@ var people = {
         read: false,
         delete: false,
         update: false,
+        validate: false,
     },
 
     refresh: {
@@ -29,6 +31,9 @@ var people = {
     // rv-on-click="actions.redirect"
     // rv-on-click="actions.redirect | args '/go/here'"
     actions: {
+        go() {
+            app.go({ element: this, ...app.getAttr(this), app: arguments[1] });
+        },
         swap() {
             app.swap({ element: this, ...app.getAttr(this), app: arguments[1] });
         },
@@ -42,11 +47,24 @@ var people = {
         clearValidation() {
             people.validation = {};
         },
+        // show validation errors
+        showValidationErrors(app, args) {
+            let json = args.json;
+
+            if (json.keys) {
+                // invalid highlighting
+                people.validation = json.keys;
+            }
+
+            if (json.array) {
+                // fill in the modal and show it
+                people.validations = json.array;
+                people.show.validate = true;
+            }
+        },
     },
 
-    //preload: ['main-grid', 'frm_color'],
-
-    start(app) {
+    construct(app) {
         console.log('Welcome!', app);
     },
 };

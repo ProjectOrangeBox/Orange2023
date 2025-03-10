@@ -2,7 +2,6 @@ class App {
     id = undefined;
     appElement = undefined;
     model = undefined;
-    gui = undefined;
     // app internal storage
     storage = {};
 
@@ -10,20 +9,10 @@ class App {
         // root application DOM id
         this.id = id;
         this.appElement = document.getElementById(this.id);
-        // save a reference to the gui object
-        // this should have all of the DOM interaction / css framework code so it is easy to replace
-        this.gui = new Gui(this);
         // save a copy of the model we are working with in this App instance
         this.model = model;
 
         window['@app'] = this;
-
-        // if they include any preload DOM ids [array]
-        /*
-        if (model.preload) {
-            this.updateModel(model.preload);
-        }
-        */
 
         // if they include a start function [function]
         if (model.start) {
@@ -35,6 +24,17 @@ class App {
 
     rebind() {
         tinybind.bind(this.appElement, this.model);
+    };
+
+    // auto detect
+    go(args) {
+        if (args.method) {
+            this.submit(args);
+        } else if (args.url) {
+            this.redirect(args);
+        } else {
+            this.swap(args);
+        }
     };
 
     // swap html "element"
@@ -58,7 +58,7 @@ class App {
         }
         // call this model function usually something like actions.doSomethingCool
         if (args.then) {
-            this.callModelAction(args.then);
+            this.callModelAction(args.then, args);
         }
     };
 
@@ -92,15 +92,27 @@ class App {
                     // 200 in this case is NOT a valid response code
                     case 201:
                         // Created
-                        parent.onSuccess(args);
+                        if (args['on-created']) {
+                            parent.callModelAction(args['on-created'], args);
+                        } else {
+                            parent.onSuccess(args);
+                        }
                         break;
                     case 202:
                         // Accepted
-                        parent.onSuccess(args);
+                        if (args['on-accepted']) {
+                            parent.callModelAction(args['on-accepted'], args);
+                        } else {
+                            parent.onSuccess(args);
+                        }
                         break;
                     case 406:
                         // Not Acceptable
-                        parent.notAcceptable(args);
+                        if (args['on-failure']) {
+                            parent.callModelAction(args['on-failure'], args);
+                        } else {
+                            parent.notAcceptable(args);
+                        }
                         break;
                     default:
                         // anything other reponds code is an error
@@ -109,7 +121,7 @@ class App {
 
                 // call this model function usually something like actions.doSomethingCool
                 if (args.then) {
-                    this.callModelAction(args.then);
+                    this.callModelAction(args.then, args);
                 }
             }
         })
@@ -139,7 +151,7 @@ class App {
         }
         // call this model function usually something like actions.doSomethingCool
         if (args['on-success-then']) {
-            this.callModelAction(args['on-success-then']);
+            this.callModelAction(args['on-success-then'], args);
         }
         // redirects to NEW URL full context switch
         if (args['on-success-redirect']) {
@@ -198,13 +210,24 @@ class App {
         });
     };
 
-    callModelAction(modelMethodName) {
-        this.getProperty(this.model, modelMethodName)(this);
+    callModelAction(modelMethodName, args) {
+        this.getProperty(this.model, modelMethodName)(this, args);
     };
 
     // default not accepted form submission
     notAcceptable(args) {
-        this.gui.notAcceptable(args);
+        let json = args.json;
+
+        if (json.keys) {
+            // invalid highlighting
+            this.parent.model.validation = json.keys;
+        }
+
+        if (json.array) {
+            // fill in the modal and show it
+            this.parent.model.validations = json.array;
+            this.parent.model.show.validate = true;
+        }
     };
 
     // bootbox wrapper
@@ -297,7 +320,7 @@ class App {
 
     setProperty(obj, path, value) {
         let properties = path.split('.');
-        let current = obj;
+        let current = obj ?? this.model;
         for (let i = 0; i < properties.length - 1; i++) {
             let prop = properties[i];
             if (current[prop] === undefined || current[prop] === null) {
@@ -311,7 +334,7 @@ class App {
 
     getProperty(obj, path) {
         let properties = path.split('.');
-        let value = obj;
+        let value = obj ?? this.model;
         for (let prop of properties) {
             if (value && typeof value === 'object' && value.hasOwnProperty(prop)) {
                 value = value[prop];
@@ -345,7 +368,7 @@ class App {
 
     mergeModels(currentModel, replacementModel) {
         // our default methods you can't replace
-        let skip = ['actions', 'preload', 'start'];
+        let skip = ['construct', 'actions'];
 
         for (const [key, value] of Object.entries(replacementModel)) {
             if (!skip.includes(key)) {

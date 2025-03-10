@@ -9,6 +9,7 @@
 
 <?php fig::include('people/modals/update', ['element_id' => 'update', 'size' => 'xl']) ?>
 <?php fig::include('people/modals/delete', ['element_id' => 'delete', 'size' => 'sm']) ?>
+<?php fig::include('people/modals/validation', ['element_id' => 'validate']) ?>
 
 <?php fig::end() ?>
 
