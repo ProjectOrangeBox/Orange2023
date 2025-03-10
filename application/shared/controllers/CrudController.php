@@ -71,14 +71,15 @@ abstract class CrudController extends BaseController
 
     protected function rest406(ValidationFailed $vf): string
     {
-        $this->data['json'] = $vf->getArray();
-
-        // app.model.validation.color = true;
-        unset($this->data['json']['keys']);
-
+        // set rv-class-is-invalid="validation.invalid.firstname"
         foreach ($vf->getKeys() as $key) {
-            $this->data['json']['keys'][$key] = true;
+            $this->data['json']['invalid'][$key] = true;
         }
+
+        // array of errors <div rv-each-row="validation.array">
+        $this->data['json']['array'] = $vf->getErrorsAsArray();
+        // show dialog rv-theme-modal-show="validation.show"
+        $this->data['json']['show'] = true;
 
         return $this->restResponse(406);
     }

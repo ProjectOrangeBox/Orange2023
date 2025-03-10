@@ -5,10 +5,11 @@ var people = {
     deleteRecord: {},
     readRecord: {},
 
-    validation: {},
-    validations: [],
-
-    watchme: false,
+    validation: {
+        show: false,
+        invalid: {},
+        array: [],
+    },
 
     // list of records
     list: [],
@@ -20,7 +21,6 @@ var people = {
         read: false,
         delete: false,
         update: false,
-        validate: false,
     },
 
     refresh: {
@@ -49,18 +49,7 @@ var people = {
         },
         // show validation errors
         showValidationErrors(app, args) {
-            let json = args.json;
-
-            if (json.keys) {
-                // invalid highlighting
-                people.validation = json.keys;
-            }
-
-            if (json.array) {
-                // fill in the modal and show it
-                people.validations = json.array;
-                people.show.validate = true;
-            }
+            people.validation = args.json;
         },
     },
 

@@ -108,6 +108,9 @@ class App {
                         break;
                     case 406:
                         // Not Acceptable
+                        if (args['on-failure-property']) {
+                            parent.setProperty(undefined, args['on-failure-property'], json)
+                        }
                         if (args['on-failure']) {
                             parent.callModelAction(args['on-failure'], args);
                         } else {
