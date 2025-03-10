@@ -20,7 +20,7 @@
         </div>
     </div>
     <div class="mb-3 float-end">
-        <a rv-on-click="actions.go" hide="show.create" show="show.grid" then="actions.clearValidation" class="btn btn-light">Cancel</a>
-        <a rv-on-click="actions.go" method="post" url="<?= getUrl('peopleCreate') ?>" property="createRecord" on-success-hide="show.create" on-success-show="show.grid" on-success-refresh="refresh.grid" then="actions.clearValidation" class="btn btn-primary">Submit</a>
+        <a rv-on-click="actions.go" hide="show.create" show="show.grid" action="actions.clearValidation" class="btn btn-light">Cancel</a>
+        <a rv-on-click="actions.go" method="post" url="<?= getUrl('peopleCreate') ?>" property="createRecord" on-success-hide="show.create" on-success-show="show.grid" on-success-refresh="refresh.grid" on-success-action="actions.clearValidation" on-failure-property="validation" class="btn btn-primary">Submit</a>
     </div>
 </div>

@@ -139,22 +139,20 @@ var people={createRecord:{},updateRecord:{},deleteRecord:{},readRecord:{},valida
 class App{id=undefined;appElement=undefined;model=undefined;storage={};constructor(id,model){this.id=id;this.appElement=document.getElementById(this.id);this.model=model;window['@app']=this;if(model.start){model.start(this);}
 this.rebind();};rebind(){tinybind.bind(this.appElement,this.model);};go(args){if(args.method){this.submit(args);}else if(args.url){this.redirect(args);}else{this.swap(args);}};swap(args){if(args.hide){this.setTo(args.hide,false);}
 if(args.model){this.loadModel(this.makeUrl(args.model,args),args.property,args.node,args.options);}
-if(args.refresh){this.setTo(args.refresh,Date.now());}
+if(args.refresh){this.setTo(args.refresh,'//refresh//');}
 if(args.show){this.setTo(args.show,true);}
-if(args.then){this.callModelAction(args.then,args);}};redirect(args){window.location.href=this.makeUrl(args.url,args);};submit(args){let parent=this;let payload=(args.property)?this.getProperty(undefined,args.property):this.model;this.makeAjaxCall({url:this.makeUrl(args.url,args),type:args.method??'POST',data:JSON.stringify(payload),complete:function(jqXHR){args.jqXHR=jqXHR;args.json=jqXHR.responseJSON;switch(jqXHR.status){case 201:case 202:parent.onSuccess(args);break;case 406:parent.onFailure(args);break;default:parent.alert('Record Access Issue ('+jqXHR.status+').');}}})};onSuccess(args){if(args['on-created']){this.callModelAction(args['on-created'],args);}
-if(args['on-accepted']){this.callModelAction(args['on-accepted'],args);}
+if(args.action){this.callModelAction(args.action,args);}};redirect(args){window.location.href=this.makeUrl(args.url,args);};submit(args){let parent=this;let payload=(args.property)?this.getProperty(undefined,args.property):this.model;this.makeAjaxCall({url:this.makeUrl(args.url,args),type:args.method??'POST',data:JSON.stringify(payload),complete:function(jqXHR){args.jqXHR=jqXHR;args.json=jqXHR.responseJSON;switch(jqXHR.status){case 201:case 202:parent.onSuccess(args);break;case 406:parent.onFailure(args);break;default:parent.alert('Record Access Issue ('+jqXHR.status+').');}}})};onSuccess(args){if(args['on-created-action']){this.callModelAction(args['on-created-action'],args);}
+if(args['on-accepted-action']){this.callModelAction(args['on-accepted-action'],args);}
 if(args['on-success-hide']){this.hide(args['on-success-hide']);}
-if(args['on-success-refresh']){this.setTo(args['on-success-refresh'],Date.now());}
+if(args['on-success-refresh']){this.setTo(args['on-success-refresh'],'//refresh//');}
 if(args['on-success-true']){this.setTo(args['on-success-true'],true);}
 if(args['on-success-false']){this.setTo(args['on-success-false'],false);}
 if(args['on-success-toggle']){this.setTo(args['on-success-toggle'],'//toggle//');}
 if(args['on-success-show']){this.show(args['on-success-show']);}
-if(args['on-success-then']){this.callModelAction(args['on-success-then'],args);}
+if(args['on-success-action']){this.callModelAction(args['on-success-action'],args);}
 if(args['on-success-redirect']){window.location.href=args['on-success-redirect'];}
-if(args['on-success-reload']){location.reload();}};onFailure(args){let alreadyProcessed=false;if(args['on-failure-property']){this.setProperty(undefined,args['on-failure-property'],args.json)
-alreadyProcessed=true;}
-if(args['on-failure']){this.callModelAction(args['on-failure'],args);alreadyProcessed=true;}
-if(!alreadyProcessed){this.mergeModels(undefined,args.json);}};updateModel(selectors){let parent=this;this.split(selectors).forEach(function(selector){parent.updateModelElement(document.getElementById(selector));});};updateModelElement(element){let parent=this;if(element){let args=parent.getAttr(element);if(args.model){parent.loadModel(parent.makeUrl(args.model,args),args.property,args.node,args.options);}}else{console.error('Not an DOM element:',element);}};show(dotnotations){this.setTo(dotnotations,true);};hide(dotnotations){this.setTo(dotnotations,false);};setTo(dotnotations,value){var parent=this;this.split(dotnotations).forEach(function(dotnotation){if(value=='//toggle//'){let current=parent.getProperty(undefined,dotnotation);value=!current;}
+if(args['on-success-reload']){location.reload();}};onFailure(args){if(args['on-failure-property']){this.setProperty(undefined,args['on-failure-property'],args.json)}
+if(args['on-failure-action']){this.callModelAction(args['on-failure-action'],args);}};updateModel(selectors){let parent=this;this.split(selectors).forEach(function(selector){parent.updateModelElement(document.getElementById(selector));});};updateModelElement(element){let parent=this;if(element){let args=parent.getAttr(element);if(args.model){parent.loadModel(parent.makeUrl(args.model,args),args.property,args.node,args.options);}}else{console.error('Not an DOM element:',element);}};show(dotnotations){this.setTo(dotnotations,true);};hide(dotnotations){this.setTo(dotnotations,false);};setTo(dotnotations,value){var parent=this;this.split(dotnotations).forEach(function(dotnotation){if(value=='//toggle//'){let current=parent.getProperty(undefined,dotnotation);value=!current;}
 if(value=='//refresh//'){value=new Date();}
 parent.setProperty(undefined,dotnotation,value);});};callModelAction(modelMethodName,args){this.getProperty(undefined,modelMethodName)(this,args);};alert(record){bootbox.alert(record);};makeUrl(url,args){let segs=window.location.href.split('/');segs.shift();segs.shift();for(let index=0;index<segs.length;index++){url=url.replace('{'+index+'}',segs[index]);}
 for(let property in args){if(property.substring(0,8)=='replace-'){url=url.replace("{"+property.substring(8)+"}",args[property]);}}

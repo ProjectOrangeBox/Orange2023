@@ -11,7 +11,7 @@ class App {
         this.appElement = document.getElementById(this.id);
         // save a copy of the model we are working with in this App instance
         this.model = model;
-
+        // add me to the global scope for easy access
         window['@app'] = this;
 
         // if they include a start function [function]
@@ -50,15 +50,15 @@ class App {
         }
         // process 1 or more selectors comma separated string [string] 
         if (args.refresh) {
-            this.setTo(args.refresh, Date.now());
+            this.setTo(args.refresh, '//refresh//');
         }
         // show 1 or more elements comma separated string [string] 
         if (args.show) {
             this.setTo(args.show, true);
         }
         // call this model function usually something like actions.doSomethingCool
-        if (args.then) {
-            this.callModelAction(args.then, args);
+        if (args.action) {
+            this.callModelAction(args.action, args);
         }
     };
 
@@ -106,11 +106,11 @@ class App {
     };
 
     onSuccess(args) {
-        if (args['on-created']) {
-            this.callModelAction(args['on-created'], args);
+        if (args['on-created-action']) {
+            this.callModelAction(args['on-created-action'], args);
         }
-        if (args['on-accepted']) {
-            this.callModelAction(args['on-accepted'], args);
+        if (args['on-accepted-action']) {
+            this.callModelAction(args['on-accepted-action'], args);
         }
         // call hide in these DOM elements
         if (args['on-success-hide']) {
@@ -118,7 +118,7 @@ class App {
         }
         // process these DOM elements
         if (args['on-success-refresh']) {
-            this.setTo(args['on-success-refresh'], Date.now());
+            this.setTo(args['on-success-refresh'], '//refresh//');
         }
         if (args['on-success-true']) {
             this.setTo(args['on-success-true'], true);
@@ -134,8 +134,8 @@ class App {
             this.show(args['on-success-show']);
         }
         // call this model function usually something like actions.doSomethingCool
-        if (args['on-success-then']) {
-            this.callModelAction(args['on-success-then'], args);
+        if (args['on-success-action']) {
+            this.callModelAction(args['on-success-action'], args);
         }
         // redirects to NEW URL full context switch
         if (args['on-success-redirect']) {
@@ -148,20 +148,11 @@ class App {
     };
 
     onFailure(args) {
-        // Not Acceptable
-        let alreadyProcessed = false;
-
         if (args['on-failure-property']) {
             this.setProperty(undefined, args['on-failure-property'], args.json)
-            alreadyProcessed = true;
         }
-        if (args['on-failure']) {
-            this.callModelAction(args['on-failure'], args);
-            alreadyProcessed = true;
-        }
-        // defaults to merge
-        if (!alreadyProcessed) {
-            this.mergeModels(undefined, args.json);
+        if (args['on-failure-action']) {
+            this.callModelAction(args['on-failure-action'], args);
         }
     };
 
