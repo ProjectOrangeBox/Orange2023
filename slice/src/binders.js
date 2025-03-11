@@ -67,7 +67,7 @@ tinybind.binders['theme-modal-show'] = function (el, value) {
 };
 
 tinybind.binders['refresh'] = function (el, value) {
-    window['@app'].updateModelElement(el);
+    window['@tinybind'].updateModelElement(el);
 };
 
 /*

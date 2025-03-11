@@ -1,76 +1,113 @@
 #!/usr/bin/env php
 <?php
 
-// track changes
-$hashes = [];
+$concat = new concat();
 
-require __DIR__ . '/inc/minJs.php';
-require __DIR__ . '/inc/minCss.php';
+$concat->watch();
 
-while (1 == 1) {
-    $object = json_decode(file_get_contents(__DIR__ . '/concat.json'));
 
-    if ($object->js) {
-        if (is_array($object->js->compress)) {
-            foreach ($object->js->compress as $file) {
-                if (!isset($hashes[__DIR__ . $file])) {
-                    $hashes[__DIR__ . $file] = 0;
-                }
-
-                if ($hashes[__DIR__ . $file] != md5_file(__DIR__ . $file)) {
-                    concat($object->js->compressed, $object->js->compress, $hashes, 'javascript');
-                    break;
-                }
-            }
-        }
-    }
-
-    if ($object->css) {
-        if (is_array($object->css->compress)) {
-            foreach ($object->css->compress as $file) {
-                if (!isset($hashes[__DIR__ . $file])) {
-                    $hashes[__DIR__ . $file] = 0;
-                }
-
-                if ($hashes[__DIR__ . $file] != md5_file(__DIR__ . $file)) {
-                    concat($object->css->compressed, $object->css->compress, $hashes, 'css');
-                    break;
-                }
-            }
-        }
-    }
-
-    sleep(1);
-}
-
-function concat(string $compressedFilePath, array $files, &$hashes, string $compressor): void
+class concat
 {
-    echo '.';
+    // track changes
+    protected array $hashes = [];
+    protected int $sleep = 1;
+    protected mixed $object;
+    protected string $configFile;
 
-    $complete = '';
+    public function __construct()
+    {
+        require __DIR__ . '/inc/minJs.php';
+        require __DIR__ . '/inc/minCss.php';
 
-    foreach ($files as $file) {
-        if (file_exists(__DIR__ . $file)) {
-            $hashes[__DIR__ . $file] = md5_file(__DIR__ . $file);
+        $this->configFile = __DIR__ . '/concat.json';
+    }
 
-            $contents = file_get_contents(__DIR__ . $file);
+    public function watch()
+    {
+        while (1 == 1) {
+            $this->object = json_decode(file_get_contents($this->configFile));
 
-            if (strpos($file, '.min.') === false) {
-                switch ($compressor) {
-                    case 'css':
-                        $contents = CssMinifer::minify($contents);
-                        break;
-                    case 'javascript':
-                        $contents = \JShrink\Minifier::minify($contents);
-                        break;
-                }
+            if ($this->object !== null) {
+                $this->group('js');
+                $this->group('css');
+            } else {
+                echo 'x';
             }
 
-            $complete .= $contents . PHP_EOL;
-        } else {
-            echo 'can not find "' . __DIR__ . $file . '".' . PHP_EOL;
+            sleep($this->sleep);
         }
     }
 
-    file_put_contents(__DIR__ . $compressedFilePath, $complete);
+    protected function group(string $name): void
+    {
+        if ($this->object->$name) {
+            if (is_array($this->object->$name->compress)) {
+                foreach ($this->object->$name->compress as $file) {
+                    $filePath = __DIR__ . $file;
+
+                    if (file_exists($filePath)) {
+                        $this->set($filePath);
+
+                        if ($this->hashes[$filePath] != md5_file($filePath)) {
+                            $this->concat($name);
+                            break;
+                        }
+                    } else {
+                        echo 'Can not find "' . $filePath . '".' . PHP_EOL;
+                    }
+                }
+            }
+        }
+    }
+
+    protected function concat(string $compressor): void
+    {
+        $complete = '';
+
+        $files = $this->object->$compressor->compress;
+        $compressedFilePath = $this->object->$compressor->compressed;
+
+        foreach ($files as $file) {
+            $filePath = __DIR__ . $file;
+
+            if (file_exists($filePath)) {
+                $contents = file_get_contents($filePath);
+
+                $md5 = md5($contents);
+
+                $this->set($filePath);
+
+                if ($this->hashes[$filePath] != $md5) {
+
+                    $this->hashes[$filePath] = $md5;
+
+                    if (strpos($file, '.min.') === false) {
+                        echo $file.PHP_EOL;
+
+                        switch ($compressor) {
+                            case 'css':
+                                $contents = CssMinifer::minify($contents);
+                                break;
+                            case 'javascript':
+                                $contents = \JShrink\Minifier::minify($contents);
+                                break;
+                        }
+                    }
+                }
+
+                $complete .= $contents . PHP_EOL;
+            } else {
+                echo 'can not find "' . $filePath . '".' . PHP_EOL;
+            }
+        }
+
+        file_put_contents(__DIR__ . $compressedFilePath, $complete);
+    }
+
+    protected function set(string $filePath): void
+    {
+        if (!isset($this->hashes[$filePath])) {
+            $this->hashes[$filePath] = 0;
+        }
+    }
 }

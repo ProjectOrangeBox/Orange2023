@@ -1,6 +1,9 @@
 class App {
+    // DOM id to attach to
     id = undefined;
+    // DOM id element
     appElement = undefined;
+    // model we are using
     model = undefined;
     // app internal storage
     storage = {};
@@ -8,11 +11,12 @@ class App {
     constructor(id, model) {
         // root application DOM id
         this.id = id;
+        // DOM id element
         this.appElement = document.getElementById(this.id);
         // save a copy of the model we are working with in this App instance
         this.model = model;
         // add me to the global scope for easy access
-        window['@app'] = this;
+        window['@tinybind'] = this;
 
         // if they include a start function [function]
         if (model.start) {
@@ -28,38 +32,36 @@ class App {
 
     // auto detect
     go(args) {
-        console.log(args);
         if (args.method) {
             this.submit(args);
         } else if (args.url) {
             this.redirect(args);
         } else {
-            this.swap(args);
+            this.on(args);
         }
     };
 
-    // swap html "element"
-    swap(args) {
+    on(args) {
         // hide 1 or more elements comma separated string [string] 
-        if (args.hide) {
-            this.setTo(args.hide, false);
+        if (args['hide']) {
+            this.setTo(args['hide'], false);
         }
         // make a model ajax request
-        if (args.model) {
+        if (args['model']) {
             // model(modelUrl, appProperty, modelProperty, options, thenCall)
-            this.loadModel(args.model, args.property, args.node, args.options);
+            this.loadModel(args['model'], args.property, args.node, args.options);
         }
         // process 1 or more selectors comma separated string [string] 
-        if (args.refresh) {
-            this.setTo(args.refresh, '//refresh//');
+        if (args['refresh']) {
+            this.setTo(args['refresh'], '//refresh//');
         }
         // show 1 or more elements comma separated string [string] 
-        if (args.show) {
-            this.setTo(args.show, true);
+        if (args['show']) {
+            this.setTo(args['show'], true);
         }
         // call this model function usually something like actions.doSomethingCool
-        if (args.action) {
-            this.callModelAction(args.action, args);
+        if (args['action']) {
+            this.callModelAction(args['action'], args);
         }
     };
 
@@ -70,6 +72,7 @@ class App {
 
     submit(args) {
         let parent = this;
+
         // either get the property specified (dot notation) or the entire model
         let payload = (args.property) ? this.getProperty(undefined, args.property) : this.model;
 
@@ -113,72 +116,72 @@ class App {
         if (args['on-accepted-action']) {
             this.callModelAction(args['on-accepted-action'], args);
         }
+        this.onBlank('success', args);
+
+    };
+
+    onFailure(args) {
+        if (args['on-not-acceptable-action']) {
+            this.callModelAction(args['on-not-acceptable-action'], args);
+        }
+        this.onBlank('failure', args);
+    };
+
+    onBlank(txt, args) {
+        if (args['on-' + txt + '-property']) {
+            this.setProperty(undefined, args['on-' + txt + '-property'], args.json);
+        }
+        if (args['on-' + txt + '-action']) {
+            this.callModelAction(args['on-' + txt + '-action'], args);
+        }
+        if (args['on-' + txt + '-merge']) {
+            this.mergeModels(undefined, args.json);
+        }
         // call hide in these DOM elements
-        if (args['on-success-hide']) {
-            this.hide(args['on-success-hide']);
+        if (args['on-' + txt + '-hide']) {
+            this.hide(args['on-' + txt + '-hide']);
         }
         // process these DOM elements
-        if (args['on-success-refresh']) {
-            this.setTo(args['on-success-refresh'], '//refresh//');
+        if (args['on-' + txt + '-refresh']) {
+            this.setTo(args['on-' + txt + '-refresh'], '//refresh//');
         }
-        if (args['on-success-true']) {
-            this.setTo(args['on-success-true'], true);
+        if (args['on-' + txt + '-true']) {
+            this.setTo(args['on-' + txt + '-true'], true);
         }
-        if (args['on-success-false']) {
-            this.setTo(args['on-success-false'], false);
+        if (args['on-' + txt + '-false']) {
+            this.setTo(args['on-' + txt + '-false'], false);
         }
-        if (args['on-success-toggle']) {
-            this.setTo(args['on-success-toggle'], '//toggle//');
+        if (args['on-' + txt + '-toggle']) {
+            this.setTo(args['on-' + txt + '-toggle'], '//toggle//');
         }
         // call show in these DOM elements
-        if (args['on-success-show']) {
-            this.show(args['on-success-show']);
-        }
-        // call this model function usually something like actions.doSomethingCool
-        if (args['on-success-action']) {
-            this.callModelAction(args['on-success-action'], args);
+        if (args['on-' + txt + '-show']) {
+            this.show(args['on-' + txt + '-show']);
         }
         // redirects to NEW URL full context switch
-        if (args['on-success-redirect']) {
-            window.location.href = args['on-success-redirect'];
+        if (args['on-' + txt + '-redirect']) {
+            window.location.href = args['on-' + txt + '-redirect'];
         }
         // reloads the ENTIRE URL full context switch
-        if (args['on-success-reload']) {
+        if (args['on-' + txt + '-reload']) {
             location.reload();
         }
     };
 
-    onFailure(args) {
-        if (args['on-failure-property']) {
-            this.setProperty(undefined, args['on-failure-property'], args.json);
-        }
-        if (args['on-failure-action']) {
-            this.callModelAction(args['on-failure-action'], args);
-        }
-        if (args['on-failure-merge']) {
-            this.mergeModels(undefined, args.json);
-        }
-    };
-
     updateModel(selectors) {
-        let parent = this;
-
         // for each selector
-        this.split(selectors).forEach(function (selector) {
-            // process the attributes on the DOM element
-            parent.updateModelElement(document.getElementById(selector));
-        });
+        for (let selector of this.split(selectors)) {
+            this.updateModelElement(document.getElementById(selector));
+        };
     };
 
     updateModelElement(element) {
-        let parent = this;
-
         if (element) {
-            let args = parent.getAttr(element);
+            let args = this.getAttr(element);
 
             if (args.model) {
                 // modelUrl, appProperty, modelProperty, options, thenCall
-                parent.loadModel(args.model, args.property, args.node, args.options);
+                this.loadModel(args.model, args.property, args.node, args.options);
             }
         } else {
             console.error('Not an DOM element:', element);
@@ -195,20 +198,22 @@ class App {
     };
 
     setTo(dotnotations, value) {
-        var parent = this;
-
-        this.split(dotnotations).forEach(function (dotnotation) {
-            if (value == '//toggle//') {
-                let current = parent.getProperty(undefined, dotnotation);
-                value = !current;
-            }
-            if (value == '//refresh//') {
-                value = new Date();
-            }
-
-            parent.setProperty(undefined, dotnotation, value);
-        });
+        for (let dotnotation of this.split(dotnotations)) {
+            this.setToSingle(dotnotation,$value);
+        };
     };
+
+    setToSingle(dotnotation, value) {
+        if (value == '//toggle//') {
+            let current = this.getProperty(undefined, dotnotation);
+            value = !current;
+        }
+        if (value == '//refresh//') {
+            value = new Date();
+        }
+
+        this.setProperty(undefined, dotnotation, value);
+    }
 
     callModelAction(modelMethodName, args) {
         this.getProperty(undefined, modelMethodName)(this, args);
@@ -238,7 +243,7 @@ class App {
     loadModel(modelUrl, appProperty, modelProperty, options, thenCall) {
         options = options ?? {};
 
-        var parent = this;
+        let parent = this;
 
         this.makeAjaxCall({
             url: modelUrl,
@@ -330,9 +335,11 @@ class App {
         return input;
     };
 
+    // single level model merge
     mergeModels(currentModel, replacementModel) {
-        // our default methods you can't replace
+        // our default "methods" you can't replace
         let skip = ['construct', 'actions'];
+
         currentModel = currentModel ?? this.model;
 
         for (const [key, value] of Object.entries(replacementModel)) {
@@ -342,6 +349,13 @@ class App {
         }
     };
 
+    /**
+     * let object = dotToObject('person.name','Joe');
+     * 
+     * @param {string} dotNotationString 
+     * @param {mixed} value 
+     * @returns 
+     */
     dotToObject(dotNotationString, value) {
         const parts = dotNotationString.split('.');
 
