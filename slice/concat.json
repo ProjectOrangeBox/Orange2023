@@ -6,6 +6,7 @@
             "/src/cdn/popper.min.js",
             "/src/cdn/bootbox.min.js",
             "/src/cdn/bootstrap.bundle.min.js",
+            "/src/cdn/sprintf.js",
             "/src/cdn/all.js",
             "/src/cdn/tinybind.js",
             "/src/binders.js",

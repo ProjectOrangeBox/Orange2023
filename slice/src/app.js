@@ -28,6 +28,7 @@ class App {
 
     // auto detect
     go(args) {
+        console.log(args);
         if (args.method) {
             this.submit(args);
         } else if (args.url) {
@@ -46,7 +47,7 @@ class App {
         // make a model ajax request
         if (args.model) {
             // model(modelUrl, appProperty, modelProperty, options, thenCall)
-            this.loadModel(this.makeUrl(args.model, args), args.property, args.node, args.options);
+            this.loadModel(args.model, args.property, args.node, args.options);
         }
         // process 1 or more selectors comma separated string [string] 
         if (args.refresh) {
@@ -64,7 +65,7 @@ class App {
 
     redirect(args) {
         // redirect to another url
-        window.location.href = this.makeUrl(args.url, args);
+        window.location.href = args.url;
     };
 
     submit(args) {
@@ -74,7 +75,7 @@ class App {
 
         this.makeAjaxCall({
             // get the url to post to with # replacement from the objects uid
-            url: this.makeUrl(args.url, args),
+            url: args.url,
             // what http method should we use
             type: args.method ?? 'POST',
             // what should we send as "data"
@@ -149,10 +150,13 @@ class App {
 
     onFailure(args) {
         if (args['on-failure-property']) {
-            this.setProperty(undefined, args['on-failure-property'], args.json)
+            this.setProperty(undefined, args['on-failure-property'], args.json);
         }
         if (args['on-failure-action']) {
             this.callModelAction(args['on-failure-action'], args);
+        }
+        if (args['on-failure-merge']) {
+            this.mergeModels(undefined, args.json);
         }
     };
 
@@ -174,7 +178,7 @@ class App {
 
             if (args.model) {
                 // modelUrl, appProperty, modelProperty, options, thenCall
-                parent.loadModel(parent.makeUrl(args.model, args), args.property, args.node, args.options);
+                parent.loadModel(args.model, args.property, args.node, args.options);
             }
         } else {
             console.error('Not an DOM element:', element);
@@ -214,26 +218,6 @@ class App {
     alert(record) {
         // show the alert
         bootbox.alert(record);
-    };
-
-    makeUrl(url, args) {
-        // url segments /foo/bar/{$3}
-        let segs = window.location.href.split('/');
-
-        segs.shift(); // http(s)
-        segs.shift(); // /
-
-        for (let index = 0; index < segs.length; index++) {
-            url = url.replace('{' + index + '}', segs[index]);
-        }
-
-        for (let property in args) {
-            if (property.substring(0, 8) == 'replace-') {
-                url = url.replace("{" + property.substring(8) + "}", args[property]);
-            }
-        }
-
-        return url;
     };
 
     makeAjaxCall(request) {

@@ -968,6 +968,10 @@ tinybind.formatters.arrayValuesToString = function (target) {
     return target;
 };
 
+tinybind.formatters.replace = function (target) {
+    return String.format(target,...arguments);
+}
+
 /* Formatter Aliases */
 
 tinybind.formatters.eq = tinybind.formatters.isEqual;
@@ -1001,6 +1005,8 @@ tinybind.formatters.isLower = tinybind.formatters.isLess;
 tinybind.formatters.isLowerEqual = tinybind.formatters.isLessEqual;
 
 /* use external sprintf library */
-//tinybind.formatters.stringFormat = sprintf();
-//tinybind.formatters.inject = sprintf();
-//tinybind.formatters.sprintf = sprintf();
+/*
+tinybind.formatters.stringFormat = sprintf();
+tinybind.formatters.inject = sprintf();
+tinybind.formatters.sprintf = sprintf();
+*/

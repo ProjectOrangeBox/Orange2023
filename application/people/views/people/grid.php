@@ -20,9 +20,9 @@
                 <td>{row.age}</td>
                 <td>{row.colorname}</td>
                 <td>
-                    <button type="button" rv-on-click="actions.go" show="show.read" hide="show.grid" model="<?= getUrl('peopleReadOne', ['{id}'], true) ?>" rv-replace-id="row.id" property="readRecord" class="btn btn-primary"><i class="fa-solid fa-eye"></i></button>
-                    <button type="button" rv-on-click="actions.go" show="show.update" model="<?= getUrl('peopleReadOne', ['{id}'], true) ?>" rv-replace-id="row.id" property="updateRecord" class="btn btn-primary"><i class="fa-solid fa-square-pen"></i></button>
-                    <button type="button" rv-on-click="actions.go" show="show.delete" model="<?= getUrl('peopleReadOne', ['{id}'], true) ?>" rv-replace-id="row.id" property="deleteRecord" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button>
+                    <button type="button" rv-on-click="actions.go" show="show.read" hide="show.grid" rv-model="'<?= getUrl('peopleReadOne', ['{1}'], true) ?>' | replace row.id" property="readRecord" class="btn btn-primary"><i class="fa-solid fa-eye"></i></button>
+                    <button type="button" rv-on-click="actions.go" show="show.update" rv-model="'<?= getUrl('peopleReadOne', ['{1}'], true) ?>' | replace row.id" property="updateRecord" class="btn btn-primary"><i class="fa-solid fa-square-pen"></i></button>
+                    <button type="button" rv-on-click="actions.go" show="show.delete" rv-model="'<?= getUrl('peopleReadOne', ['{1}'], true) ?>' | replace row.id" property="deleteRecord" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button>
                 </td>
             </tr>
         </tbody>
