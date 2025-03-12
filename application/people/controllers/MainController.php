@@ -45,7 +45,7 @@ class MainController extends CrudController
     # [route(get,/people,peopleReadList)]
     public function readList(): string
     {
-        return $this->view->render($this->viewDirectory . 'list');
+        return $this->view->render($this->viewDirectory . 'main');
     }
 
     # [route(get, /people/show/(\d+), peopleReadForm)]

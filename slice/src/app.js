@@ -199,7 +199,7 @@ class App {
 
     setTo(dotnotations, value) {
         for (let dotnotation of this.split(dotnotations)) {
-            this.setToSingle(dotnotation,$value);
+            this.setToSingle(dotnotation, value);
         };
     };
 
@@ -325,6 +325,13 @@ class App {
         return args;
     };
 
+    /**
+     * Only split if it's not already an array
+     * 
+     * @param {array|string} input 
+     * @param {string} on 
+     * @returns 
+     */
     split(input, on) {
         on = on ?? ','
 
@@ -335,7 +342,12 @@ class App {
         return input;
     };
 
-    // single level model merge
+    /**
+     * single level model merge
+     * 
+     * @param {object} currentModel 
+     * @param {object} replacementModel 
+     */
     mergeModels(currentModel, replacementModel) {
         // our default "methods" you can't replace
         let skip = ['construct', 'actions'];
@@ -354,7 +366,7 @@ class App {
      * 
      * @param {string} dotNotationString 
      * @param {mixed} value 
-     * @returns 
+     * @returns object
      */
     dotToObject(dotNotationString, value) {
         const parts = dotNotationString.split('.');

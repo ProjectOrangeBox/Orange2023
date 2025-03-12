@@ -1,4 +1,3 @@
-<?php fig::include('partials/modal_header', ['show' => $show, 'size' => 'md']) ?>
 <div>
     <div class="mb-3 content">
         <div rv-each-row="validation.array">
@@ -9,4 +8,3 @@
         <a rv-on-click="actions.go" hide="validation.show" class="btn btn-primary">Close</a>
     </div>
 </div>
-<?php fig::include('partials/modal_footer') ?>

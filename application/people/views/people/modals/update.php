@@ -1,4 +1,3 @@
-<?php fig::include('partials/modal_header', ['show' => $show, 'size' => 'xl']) ?>
 <div>
     <input type="hidden" name="id" rv-value="updateRecord.id">
     <div class="mb-3">
@@ -26,4 +25,3 @@
         <a rv-on-click="actions.go" method="put" rv-url="'<?= getUrl('peopleUpdate', ['{1}'], true) ?>' | replace updateRecord.id" property="updateRecord" on-success-hide="show.update" on-success-refresh="refresh.grid" on-success-action="actions.clearValidation" on-failure-merge="true" class="btn btn-primary">Submit</a>
     </div>
 </div>
-<?php fig::include('partials/modal_footer') ?>

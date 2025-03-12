@@ -28,13 +28,13 @@ var people = {
         colordropdown: true,
     },
 
-    // rv-on-click="actions.redirect"
+    // rv-on-click="actions.go"
     // rv-on-click="actions.redirect | args '/go/here'"
     actions: {
         go() {
             app.go({ element: this, ...app.getAttr(this), app: arguments[1] });
         },
-        swap() {
+        on() {
             app.swap({ element: this, ...app.getAttr(this), app: arguments[1] });
         },
         redirect() {

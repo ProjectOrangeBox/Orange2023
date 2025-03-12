@@ -1,4 +1,3 @@
-<?php fig::include('partials/modal_header', ['show' => $show, 'size' => 'sm']) ?>
 <div>
     <input type="hidden" name="id" rv-value="deleteRecord.id">
     <div class="mb-3">
@@ -9,4 +8,3 @@
         <a rv-on-click="actions.go" method="delete" rv-url="'<?= getUrl('peopleDelete', ['{1}'], true) ?>' | replace deleteRecord.id" property="deleteRecord" on-success-hide="show.delete" on-success-refresh="refresh.grid" on-failure-merge="true" class="btn btn-primary">Submit</a>
     </div>
 </div>
-<?php fig::include('partials/modal_footer') ?>
