@@ -2961,15 +2961,6 @@ var people = {
         go() {
             app.go({ element: this, ...app.getAttr(this), app: arguments[1] });
         },
-        on() {
-            app.swap({ element: this, ...app.getAttr(this), app: arguments[1] });
-        },
-        redirect() {
-            app.redirect({ element: this, ...app.getAttr(this), app: arguments[1] });
-        },
-        submit() {
-            app.submit({ element: this, ...app.getAttr(this), app: arguments[1] });
-        },
         // called by on-then
         clearValidation() {
             // clear out all validation
@@ -2994,6 +2985,12 @@ class App {
     // app internal storage
     storage = {};
 
+    /**
+     * setup the App class
+     * 
+     * @param {string} id 
+     * @param {object} model 
+     */
     constructor(id, model) {
         // root application DOM id
         this.id = id;
@@ -3012,11 +3009,19 @@ class App {
         this.rebind();
     };
 
+    /**
+     * bind / rebind the element and model
+     */
     rebind() {
         tinybind.bind(this.appElement, this.model);
     };
 
-    // auto detect
+    /**
+     * auto detect what you are trying to do
+     * based on the arguments
+     * 
+     * @param {object} args 
+     */
     go(args) {
         if (args.method) {
             this.submit(args);
@@ -3027,35 +3032,30 @@ class App {
         }
     };
 
+    /**
+     * basic handlers
+     * 
+     * @param {object} args 
+     */
     on(args) {
-        // hide 1 or more elements comma separated string [string] 
-        if (args['hide']) {
-            this.setTo(args['hide'], false);
-        }
-        // make a model ajax request
-        if (args['model']) {
-            // model(modelUrl, appProperty, modelProperty, options, thenCall)
-            this.loadModel(args['model'], args.property, args.node, args.options);
-        }
-        // process 1 or more selectors comma separated string [string] 
-        if (args['refresh']) {
-            this.setTo(args['refresh'], '//refresh//');
-        }
-        // show 1 or more elements comma separated string [string] 
-        if (args['show']) {
-            this.setTo(args['show'], true);
-        }
-        // call this model function usually something like actions.doSomethingCool
-        if (args['action']) {
-            this.callModelAction(args['action'], args);
-        }
+        this.onBlank(undefined, args);
     };
 
+    /**
+     * redirect to a supplied url
+     * 
+     * @param {object} args 
+     */
     redirect(args) {
         // redirect to another url
         window.location.href = args.url;
     };
 
+    /**
+     * send a ajax request
+     * 
+     * @param {object} args
+     */
     submit(args) {
         let parent = this;
 
@@ -3078,14 +3078,25 @@ class App {
                 // based on the responds code
                 switch (jqXHR.status) {
                     // 200 in this case is NOT a valid response code
-                    // Created 201
-                    // Accepted 202
                     case 201:
+                        // 201 Created
+                        if (args['on-created-action']) {
+                            parent.callModelAction(args['on-created-action'], args);
+                        }
+                        parent.onBlank('success', args);
                     case 202:
-                        parent.onSuccess(args);
+                        // 202 Accepted
+                        if (args['on-accepted-action']) {
+                            parent.callModelAction(args['on-accepted-action'], args);
+                        }
+                        parent.onBlank('success', args);
                         break;
                     case 406:
-                        parent.onFailure(args);
+                        // 406 Not Acceptable
+                        if (args['on-not-acceptable-action']) {
+                            parent.callModelAction(args['on-not-acceptable-action'], args);
+                        }
+                        parent.onBlank('failure', args);
                         break;
                     default:
                         // anything other reponds code is an error
@@ -3095,65 +3106,67 @@ class App {
         })
     };
 
-    onSuccess(args) {
-        if (args['on-created-action']) {
-            this.callModelAction(args['on-created-action'], args);
-        }
-        if (args['on-accepted-action']) {
-            this.callModelAction(args['on-accepted-action'], args);
-        }
-        this.onBlank('success', args);
-
-    };
-
-    onFailure(args) {
-        if (args['on-not-acceptable-action']) {
-            this.callModelAction(args['on-not-acceptable-action'], args);
-        }
-        this.onBlank('failure', args);
-    };
-
+    /**
+     * handlers for the success & failure tags
+     * 
+     * @param {string} txt 
+     * @param {object} args 
+     */
     onBlank(txt, args) {
-        if (args['on-' + txt + '-property']) {
-            this.setProperty(undefined, args['on-' + txt + '-property'], args.json);
+        txt = (txt) ? txt = 'on-' + txt + '-' : '';
+
+        if (args[txt + 'action']) {
+            this.callModelAction(args[txt + 'action'], args);
         }
-        if (args['on-' + txt + '-action']) {
-            this.callModelAction(args['on-' + txt + '-action'], args);
+        if (args[txt + 'property']) {
+            if (args[txt + 'property'] == '@root') {
+                this.mergeModels(undefined, args.json);
+            } else {
+                this.setProperty(undefined, args[txt + 'property'], args.json);
+            }
         }
-        if (args['on-' + txt + '-merge']) {
-            this.mergeModels(undefined, args.json);
+        // make a model ajax request
+        if (args['model']) {
+            // model(modelUrl, appProperty, modelProperty, options, thenCall)
+            this.loadModel(args['model'], args.property, args.node, args.options);
         }
         // call hide in these DOM elements
-        if (args['on-' + txt + '-hide']) {
-            this.hide(args['on-' + txt + '-hide']);
+        if (args[txt + 'hide']) {
+            this.setTo(args[txt + 'hide'], false);
         }
         // process these DOM elements
-        if (args['on-' + txt + '-refresh']) {
-            this.setTo(args['on-' + txt + '-refresh'], '//refresh//');
+        if (args[txt + 'refresh']) {
+            this.setTo(args[txt + 'refresh'], new Date());
         }
-        if (args['on-' + txt + '-true']) {
-            this.setTo(args['on-' + txt + '-true'], true);
+        if (args[txt + 'true']) {
+            this.setTo(args[txt + 'true'], true);
         }
-        if (args['on-' + txt + '-false']) {
-            this.setTo(args['on-' + txt + '-false'], false);
+        if (args[txt + 'false']) {
+            this.setTo(args[txt + 'false'], false);
         }
-        if (args['on-' + txt + '-toggle']) {
-            this.setTo(args['on-' + txt + '-toggle'], '//toggle//');
+        if (args[txt + 'toggle']) {
+            this.setTo(args[txt + 'toggle'], !this.getProperty(undefined, args[txt + 'toggle']));
         }
         // call show in these DOM elements
-        if (args['on-' + txt + '-show']) {
-            this.show(args['on-' + txt + '-show']);
+        if (args[txt + 'show']) {
+            this.setTo(args[txt + 'show'], true);
         }
         // redirects to NEW URL full context switch
-        if (args['on-' + txt + '-redirect']) {
-            window.location.href = args['on-' + txt + '-redirect'];
+        if (args[txt + 'redirect']) {
+            window.location.href = args[txt + 'redirect'];
         }
         // reloads the ENTIRE URL full context switch
-        if (args['on-' + txt + '-reload']) {
+        if (args[txt + 'reload']) {
             location.reload();
         }
     };
 
+    /**
+     * update 1 or more models
+     * 1 or more dom (html) ids 
+     * 
+     * @param {string} selectors 
+     */
     updateModel(selectors) {
         // for each selector
         for (let selector of this.split(selectors)) {
@@ -3161,6 +3174,12 @@ class App {
         };
     };
 
+    /**
+     * update a individual model element
+     * based on it's attributes
+     * 
+     * @param {dom element} element 
+     */
     updateModelElement(element) {
         if (element) {
             let args = this.getAttr(element);
@@ -3174,43 +3193,45 @@ class App {
         }
     };
 
-    // handle show and hide automatically even if it is a modal
-    show(dotnotations) {
-        this.setTo(dotnotations, true);
-    };
-
-    hide(dotnotations) {
-        this.setTo(dotnotations, false);
-    };
-
+    /**
+     * set 1 or more properties using dot notation
+     * separated by commas
+     * to a value
+     * when supplying multiple dot notation they all get the same value
+     * 
+     * @param {string} dotnotations 
+     * @param {mixed} value 
+     */
     setTo(dotnotations, value) {
         for (let dotnotation of this.split(dotnotations)) {
-            this.setToSingle(dotnotation, value);
+            this.setProperty(undefined, dotnotation, value);
         };
     };
 
-    setToSingle(dotnotation, value) {
-        if (value == '//toggle//') {
-            let current = this.getProperty(undefined, dotnotation);
-            value = !current;
-        }
-        if (value == '//refresh//') {
-            value = new Date();
-        }
-
-        this.setProperty(undefined, dotnotation, value);
-    }
-
+    /**
+     * call a method on the model
+     * 
+     * @param {string} modelMethodName 
+     * @param {object} args 
+     */
     callModelAction(modelMethodName, args) {
         this.getProperty(undefined, modelMethodName)(this, args);
     };
 
-    // bootbox wrapper
-    alert(record) {
-        // show the alert
-        bootbox.alert(record);
+    /**
+     * bootbox wrrapper
+     * 
+     * @param {object} args 
+     */
+    alert(args) {
+        bootbox.alert(args);
     };
 
+    /**
+     * make the actual ajax call wrapper
+     * 
+     * @param {object} request 
+     */
     makeAjaxCall(request) {
         // the ajax call defaults
         let defaults = {
@@ -3226,6 +3247,15 @@ class App {
         $.ajax({ ...defaults, ...request });
     };
 
+    /**
+     * make a ajax call to load a model
+     * 
+     * @param {string} modelUrl 
+     * @param {string} appProperty 
+     * @param {string} modelProperty 
+     * @param {object} options 
+     * @param {function} thenCall 
+     */
     loadModel(modelUrl, appProperty, modelProperty, options, thenCall) {
         options = options ?? {};
 
@@ -3273,8 +3303,15 @@ class App {
         });
     };
 
-    setProperty(obj, path, value) {
-        let properties = path.split('.');
+    /**
+     * set a property on the model using dot notation
+     * 
+     * @param {object} obj 
+     * @param {string} dotnotation 
+     * @param {mixed} value 
+     */
+    setProperty(obj, dotnotation, value) {
+        let properties = dotnotation.split('.');
         let current = obj ?? this.model;
         for (let i = 0; i < properties.length - 1; i++) {
             let prop = properties[i];
@@ -3287,8 +3324,15 @@ class App {
         current[properties[properties.length - 1]] = value;
     };
 
-    getProperty(obj, path) {
-        let properties = path.split('.');
+    /**
+     * get a property off the model using dot notation
+     * 
+     * @param {object} obj 
+     * @param {string} dotnotation 
+     * @returns mixed
+     */
+    getProperty(obj, dotnotation) {
+        let properties = dotnotation.split('.');
         let value = obj ?? this.model;
         for (let prop of properties) {
             if (value && typeof value === 'object' && value.hasOwnProperty(prop)) {
@@ -3300,7 +3344,12 @@ class App {
         return value;
     };
 
-    // global capture all attributes on a element
+    /**
+     * global capture all attributes on a element
+     * 
+     * @param {dom element} element 
+     * @returns object
+     */
     getAttr(element) {
         let args = {};
 
@@ -3316,7 +3365,7 @@ class App {
      * 
      * @param {array|string} input 
      * @param {string} on 
-     * @returns 
+     * @returns array
      */
     split(input, on) {
         on = on ?? ','
@@ -3335,13 +3384,11 @@ class App {
      * @param {object} replacementModel 
      */
     mergeModels(currentModel, replacementModel) {
-        // our default "methods" you can't replace
-        let skip = ['construct', 'actions'];
-
         currentModel = currentModel ?? this.model;
 
         for (const [key, value] of Object.entries(replacementModel)) {
-            if (!skip.includes(key)) {
+            // our default "methods" you can't replace
+            if (!['construct', 'actions'].includes(key)) {
                 currentModel[key] = value;
             }
         }
@@ -3369,59 +3416,6 @@ class App {
         current[parts[parts.length - 1]] = value;
 
         return obj;
-    };
-
-}
-class Gui {
-    parent = undefined;
-
-    constructor(parent) {
-        this.parent = parent;
-    }
-
-    notAcceptable(args) {
-        let json = args.json;
-
-        if (json.keys) {
-            // invalid highlighting
-            this.parent.model.validation = json.keys;
-        }
-
-        if (json.array) {
-            // fill in the modal and show it
-            this.parent.model.validations = json.array;
-            this.parent.model.show.validate = true;
-        }
-    };
-
-    // extra 
-    wrap(elements, preEach, postEach, preAll, postAll, index) {
-        // set up built output
-        let string = '';
-
-        // setup defaults
-        preEach = preEach || '';
-        postEach = postEach || '';
-        preAll = preAll || '';
-        postAll = postAll || '';
-
-        // the index to use from the array
-        index = index || 'text';
-
-        // if elements is not an array then make it one
-        if (!Array.isArray(elements)) {
-            elements = [elements];
-        }
-
-        // for each element wrap it with preEach & postEach
-        elements.forEach(function (element) {
-            // get the index if it's an array or just the element itself if it is not
-            // do the actual wrapping
-            string += preEach + (element[index] || element) + postEach;
-        })
-
-        // wrap the built string
-        return preAll + string + postAll;
     };
 }
 var app = new App('app', window[getModelName()]);

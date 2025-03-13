@@ -34,15 +34,6 @@ var people = {
         go() {
             app.go({ element: this, ...app.getAttr(this), app: arguments[1] });
         },
-        on() {
-            app.swap({ element: this, ...app.getAttr(this), app: arguments[1] });
-        },
-        redirect() {
-            app.redirect({ element: this, ...app.getAttr(this), app: arguments[1] });
-        },
-        submit() {
-            app.submit({ element: this, ...app.getAttr(this), app: arguments[1] });
-        },
         // called by on-then
         clearValidation() {
             // clear out all validation

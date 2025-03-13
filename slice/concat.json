@@ -14,7 +14,6 @@
             "/src/globalFunctions.js",
             "/src/models/people.js",
             "/src/app.js",
-            "/src/gui.js",
             "/src/bootstrap.js",
             "/src/theme_scripts.js"
         ]
