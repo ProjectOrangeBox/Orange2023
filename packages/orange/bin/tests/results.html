@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <title>Test Documentation</title>
+        <style>
+            body {
+                text-rendering: optimizeLegibility;
+                font-family: Source SansSerif Pro, Arial, sans-serif;
+                font-variant-ligatures: common-ligatures;
+                font-kerning: normal;
+                margin-left: 2rem;
+                background-color: #fff;
+                color: #000;
+            }
+
+            body > ul > li {
+                font-size: larger;
+            }
+
+            h2 {
+                font-size: larger;
+                text-decoration-line: underline;
+                text-decoration-thickness: 2px;
+                margin: 0;
+                padding: 0.5rem 0;
+            }
+
+            ul {
+                list-style: none;
+                margin: 0 0 2rem;
+                padding: 0 0 0 1rem;
+                text-indent: -1rem;
+            }
+
+            .success:before {
+                color: #4e9a06;
+                content: '✓';
+                padding-right: 0.5rem;
+            }
+
+            .defect {
+                color: #a40000;
+            }
+
+            .defect:before {
+                color: #a40000;
+                content: '✗';
+                padding-right: 0.5rem;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Config</h2>
+        <ul>
+            <li class="success">Get</li>
+            <li class="success">Get key</li>
+            <li class="success">M M Get</li>
+            <li class="success">Invalid config file</li>
+        </ul>
+        <h2>Container</h2>
+        <ul>
+            <li class="success">get</li>
+            <li class="success">Get</li>
+            <li class="success">set</li>
+            <li class="success">Set</li>
+            <li class="success">isset</li>
+            <li class="success">Isset</li>
+            <li class="success">Has</li>
+            <li class="success">unset</li>
+            <li class="success">Unset</li>
+            <li class="success">Remove</li>
+            <li class="success">Service not found exception</li>
+        </ul>
+        <h2>Cookie</h2>
+        <ul>
+            <li class="success">Set</li>
+            <li class="success">Get</li>
+            <li class="success">Has</li>
+            <li class="success">Remove</li>
+        </ul>
+        <h2>Data</h2>
+        <ul>
+            <li class="success">Data</li>
+            <li class="success">Merge</li>
+        </ul>
+        <h2>Directory Search</h2>
+        <ul>
+            <li class="success">Add directory</li>
+            <li class="success">Add directories</li>
+            <li class="success">Remove directory</li>
+            <li class="success">Remove directories</li>
+            <li class="success">Replace directories</li>
+            <li class="success">Add resource</li>
+            <li class="success">Add resources</li>
+            <li class="success">Replace resources</li>
+            <li class="success">Find all</li>
+            <li class="success">Find first</li>
+            <li class="success">Find last</li>
+        </ul>
+        <h2>Dispatcher</h2>
+        <ul>
+            <li class="success">Call</li>
+            <li class="success">Controller class not found exception</li>
+            <li class="success">Method not found exception</li>
+        </ul>
+        <h2>Event</h2>
+        <ul>
+            <li class="success">Register closure</li>
+            <li class="success">Register class method</li>
+            <li class="success">Register event unknown callable exception</li>
+            <li class="success">Register event array count exception</li>
+            <li class="success">Register event called array exception</li>
+            <li class="success">Register multiple</li>
+            <li class="success">Trigger</li>
+            <li class="success">Trigger class method</li>
+            <li class="success">Unregister</li>
+            <li class="success">Unregister all</li>
+        </ul>
+        <h2>Helpers</h2>
+        <ul>
+            <li class="success">Container</li>
+            <li class="success">Log msg</li>
+            <li class="success">File put contents atomic</li>
+            <li class="success">Concat</li>
+            <li class="success">Config</li>
+        </ul>
+        <h2>Input</h2>
+        <ul>
+            <li class="success">Raw get</li>
+            <li class="success">Raw body</li>
+            <li class="success">Has</li>
+            <li class="success">Request uri</li>
+            <li class="success">Uri segment</li>
+            <li class="success">Request method</li>
+            <li class="success">Request type</li>
+            <li class="success">Is ajax request</li>
+            <li class="success">Is cli request</li>
+            <li class="success">Is https request</li>
+            <li class="success">Body</li>
+            <li class="success">Post</li>
+            <li class="success">Get</li>
+            <li class="success">Server</li>
+            <li class="success">Files</li>
+            <li class="success">Cookie</li>
+            <li class="success">Copy</li>
+            <li class="success">Replace</li>
+            <li class="success">Replace 2</li>
+        </ul>
+        <h2>Log</h2>
+        <ul>
+            <li class="success">Change threshold</li>
+            <li class="success">Get threshold</li>
+            <li class="success">Is enabled</li>
+            <li class="success">call</li>
+            <li class="success">Mono logger exception</li>
+        </ul>
+        <h2>Output</h2>
+        <ul>
+            <li class="success">Flush</li>
+            <li class="success">Set output</li>
+            <li class="success">Append output</li>
+            <li class="success">Get output</li>
+            <li class="success">Header</li>
+            <li class="success">Get headers</li>
+            <li class="success">Send headers</li>
+            <li class="success">Flush headers</li>
+            <li class="success">Content type</li>
+            <li class="success">Get content type short hand</li>
+            <li class="success">Char set</li>
+            <li class="success">Response code int</li>
+            <li class="success">Response code string</li>
+            <li class="success">Response code invalid</li>
+            <li class="success">Response code invalid int</li>
+            <li class="success">Get response code</li>
+            <li class="success">Send</li>
+            <li class="success">Redirect</li>
+            <li class="success">Flush all</li>
+        </ul>
+        <h2>Router</h2>
+        <ul>
+            <li class="success">Match 1</li>
+            <li class="success">Match 2</li>
+            <li class="success">Match 3</li>
+            <li class="success">Match 4</li>
+            <li class="success">Match 5</li>
+            <li class="success">Get url</li>
+            <li class="success">Site url</li>
+            <li class="success">Get matched invalid value exception</li>
+            <li class="success">Get url invalid value exception</li>
+            <li class="success">Get url parameter invalid value exception</li>
+            <li class="success">Match route not found exception 1</li>
+            <li class="success">Match route not found exception 2</li>
+            <li class="success">Get url router name not found</li>
+            <li class="success">Config not found exception</li>
+        </ul>
+        <h2>Security</h2>
+        <ul>
+            <li class="success">Encrypt</li>
+            <li class="success">Auth</li>
+            <li class="success">Remove invisible characters</li>
+            <li class="success">Clean filename</li>
+            <li class="success">Password hash</li>
+        </ul>
+        <h2>Viewer</h2>
+        <ul>
+            <li class="success">Render</li>
+            <li class="success">Render string</li>
+            <li class="success">Add path</li>
+            <li class="success">Add paths</li>
+            <li class="success">Render view not found exception</li>
+            <li class="success">Change option</li>
+            <li class="success">Recursive</li>
+        </ul>
+    </body>
+</html>
