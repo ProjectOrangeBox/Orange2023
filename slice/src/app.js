@@ -38,6 +38,19 @@ class App {
     // app internal storage
     storage = {};
 
+    sendMapping = {
+        // ok
+        200: { key: 'ok', attr: 'success' },
+        // 201 Created
+        201: { key: 'created', attr: 'success' },
+        // 202 Accepted
+        202: { key: 'accepted', attr: 'success' },
+        // 406 Not Acceptable
+        406: { key: 'not-acceptable', attr: 'failure' },
+        // ¯\_(ツ)_/¯
+        default: { key: 'unknown', attr: undefined },
+    };
+
     /**
      * Takes an id (DOM element ID) and a model (data object).
      * Stores references to:
@@ -180,7 +193,6 @@ class App {
      * 
      * @param {string} url 
      * @param {string} method 
-     * @param {string} property 
      * @param {object} args 
      */
     send(url, method, args) {
@@ -188,58 +200,34 @@ class App {
 
         method = method ?? 'GET';
 
-        $.ajax({
-            dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            // get the url to post to with # replacement from the objects uid
-            url: url,
-            // what http method should we use
-            type: method.toUpperCase(),
-            // what should we send as "data"
-            data: args.jsonText,
-            // when the request is "complete"
-            complete: function (jqXHR) {
-                // save these so we can pass them though
-                args.jqXHR = jqXHR;
-                args.json = jqXHR.responseJSON;
+        const xhr = new XMLHttpRequest();
 
-                // based on the responds code
-                switch (jqXHR.status) {
-                    case 200:
-                        if (args['on-ok-action']) {
-                            parent.callModelActions(args['on-ok-action'], args);
-                        }
-                        parent.onAttrs('success', args);
-                        break;
-                    case 201:
-                        // 201 Created
-                        if (args['on-created-action']) {
-                            parent.callModelActions(args['on-created-action'], args);
-                        }
-                        parent.onAttrs('success', args);
-                        break;
-                    case 202:
-                        // 202 Accepted
-                        if (args['on-accepted-action']) {
-                            parent.callModelActions(args['on-accepted-action'], args);
-                        }
-                        parent.onAttrs('success', args);
-                        break;
-                    case 406:
-                        // 406 Not Acceptable
-                        if (args['on-not-acceptable-action']) {
-                            parent.callModelActions(args['on-not-acceptable-action'], args);
-                        }
-                        parent.onAttrs('failure', args);
-                        break;
-                    default:
-                        // anything other reponds code is an error
-                        parent.alert('Unknown Status: ' + jqXHR.status);
-                }
+        xhr.open(method.toUpperCase(), url);
+        xhr.responseType = 'json';
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        xhr.onload = function () {
+            // save these so we can pass them though
+            args.xhr = xhr;
+            args.json = xhr.response;
+
+            let mapping = parent.sendMapping[xhr.status] ?? parent.sendMapping['default'];
+            let key = 'on-' + mapping.key + '-action';
+
+            if (args[key]) {
+                parent.callModelActions(args[key], args);
             }
-        });
-    }
+            if (mapping.attr) {
+                parent.onAttrs(mapping.attr, args);
+            }
+        };
 
+        xhr.onerror = function () {
+            console.error('Network error');
+        };
+
+        xhr.send(args.jsonText ?? undefined);
+    }
 
     /**
      * Model Updates (updateModel, updateModels)
@@ -388,14 +376,5 @@ class App {
      */
     split(arg) {
         return (!Array.isArray(arg)) ? arg.split(',') : arg;
-    }
-
-    /**
-     * Displays an alert using bootbox (wrapper)
-     * 
-     * @param {object} args 
-     */
-    alert(args) {
-        bootbox.alert(args);
     }
 }

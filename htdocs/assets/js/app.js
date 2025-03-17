@@ -222,7 +222,7 @@ if(!String.format){String.format=function(format){var args=Array.prototype.slice
 function dotToObject(dotNotationString,value){const parts=dotNotationString.split('.');let obj={};let current=obj;for(let i=0;i<parts.length-1;i++){const part=parts[i];current[part]={};current=current[part];}
 current[parts[parts.length-1]]=value;return obj;}
 var people={createRecord:{},updateRecord:{},deleteRecord:{},readRecord:{},validation:{show:false,invalid:{},array:[],},list:[],colorDropDown:[],show:{grid:true,create:false,read:false,delete:false,update:false,},refresh:{grid:true,colordropdown:true,},actions:{go(){app.go({element:this,app:arguments[1],...app.getAttr(this)});},redirect(url){app.redirect(url);},clearValidation(){people.validation.invalid={};people.validation.show=false;people.validation.array=[];},},construct(app){console.log('Welcome!',app);},};
-class App{id=undefined;appElement=undefined;model=undefined;storage={};constructor(id,model){this.id=id;this.appElement=document.getElementById(id);this.model=model;this.storage={};window['@tinybind']=this;model?.start?.(this);this.rebind();}
+class App{id=undefined;appElement=undefined;model=undefined;storage={};sendMapping={200:{key:'ok',attr:'success'},201:{key:'created',attr:'success'},202:{key:'accepted',attr:'success'},406:{key:'not-acceptable',attr:'failure'},default:{key:'unknown',attr:undefined},};constructor(id,model){this.id=id;this.appElement=document.getElementById(id);this.model=model;this.storage={};window['@tinybind']=this;model?.start?.(this);this.rebind();}
 rebind(){if(this.appElement)tinybind.bind(this.appElement,this.model);}
 redirect(url){if(url)window.location.href=url;}
 go(args){this.onAttrs(undefined,args);}
@@ -241,11 +241,8 @@ if(args[txt+'then']){this.callModelActions(args[txt+'then'],args);}
 if(args[txt+'rebind']){this.rebind();}
 if(args[txt+'redirect']){window.location.href=args[txt+'redirect'];}
 if(args[txt+'reload']){location.reload();}}
-send(url,method,args){let parent=this;method=method??'GET';$.ajax({dataType:'json',contentType:'application/json; charset=utf-8',url:url,type:method.toUpperCase(),data:args.jsonText,complete:function(jqXHR){args.jqXHR=jqXHR;args.json=jqXHR.responseJSON;switch(jqXHR.status){case 200:if(args['on-ok-action']){parent.callModelActions(args['on-ok-action'],args);}
-parent.onAttrs('success',args);break;case 201:if(args['on-created-action']){parent.callModelActions(args['on-created-action'],args);}
-parent.onAttrs('success',args);break;case 202:if(args['on-accepted-action']){parent.callModelActions(args['on-accepted-action'],args);}
-parent.onAttrs('success',args);break;case 406:if(args['on-not-acceptable-action']){parent.callModelActions(args['on-not-acceptable-action'],args);}
-parent.onAttrs('failure',args);break;default:parent.alert('Unknown Status: '+jqXHR.status);}}});}
+send(url,method,args){let parent=this;method=method??'GET';const xhr=new XMLHttpRequest();xhr.open(method.toUpperCase(),url);xhr.responseType='json';xhr.setRequestHeader('Content-Type','application/json');xhr.onload=function(){args.xhr=xhr;args.json=xhr.response;let mapping=parent.sendMapping[xhr.status]??parent.sendMapping['default'];let key='on-'+mapping.key+'-action';if(args[key]){parent.callModelActions(args[key],args);}
+if(mapping.attr){parent.onAttrs(mapping.attr,args);}};xhr.onerror=function(){console.error('Network error');};xhr.send(args.jsonText??undefined);}
 updateModels(selectors){for(let selector of this.split(selectors)){this.updateModel(selector);};}
 updateModel(element){if(typeof element==='string'||element instanceof String){element=document.getElementById(element);}
 if(element){this.onAttrs(undefined,{element:element,app:this,...this.getAttr(element)});}else{console.error('Not an DOM element:',element);}}
@@ -259,8 +256,7 @@ getProperty(obj,dotnotation){let value=obj??this.model;if(dotnotation!='@root'){
 return value;}
 getAttr(element){let args={};for(let attr of element.attributes){args[attr.name]=attr.value;}
 return args;}
-split(arg){return(!Array.isArray(arg))?arg.split(','):arg;}
-alert(args){bootbox.alert(args);}}
+split(arg){return(!Array.isArray(arg))?arg.split(','):arg;}}
 var app=new App('app',window[getModelName()]);
 /*!
 * Start Bootstrap - Freelancer v7.0.7 (https://startbootstrap.com/theme/freelancer)
