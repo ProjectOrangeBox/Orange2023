@@ -345,16 +345,20 @@ class App {
      * @returns mixed
      */
     getProperty(obj, dotnotation) {
-        let properties = dotnotation.split('.');
         let value = obj ?? this.model;
 
-        for (let prop of properties) {
-            if (value && typeof value === 'object' && value.hasOwnProperty(prop)) {
-                value = value[prop];
-            } else {
-                return undefined;
+        if (dotnotation != '@root') {
+            let properties = dotnotation.split('.');
+
+            for (let prop of properties) {
+                if (value && typeof value === 'object' && value.hasOwnProperty(prop)) {
+                    value = value[prop];
+                } else {
+                    return undefined;
+                }
             }
         }
+
         return value;
     }
 

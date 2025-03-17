@@ -255,7 +255,7 @@ setProperties(obj,properties,value){for(let property of this.split(properties)){
 setProperty(obj,dotnotation,value){let current=obj??this.model;if(dotnotation=='@root'){for(const[k,v]of Object.entries(value)){if(!['construct','actions'].includes(k)){current[k]=v;}}}else{let properties=dotnotation.split('.');for(let i=0;i<properties.length-1;i++){let prop=properties[i];if(current[prop]===undefined||current[prop]===null){current[prop]={};}
 current=current[prop];}
 current[properties[properties.length-1]]=value;}}
-getProperty(obj,dotnotation){let properties=dotnotation.split('.');let value=obj??this.model;for(let prop of properties){if(value&&typeof value==='object'&&value.hasOwnProperty(prop)){value=value[prop];}else{return undefined;}}
+getProperty(obj,dotnotation){let value=obj??this.model;if(dotnotation!='@root'){let properties=dotnotation.split('.');for(let prop of properties){if(value&&typeof value==='object'&&value.hasOwnProperty(prop)){value=value[prop];}else{return undefined;}}}
 return value;}
 getAttr(element){let args={};for(let attr of element.attributes){args[attr.name]=attr.value;}
 return args;}
