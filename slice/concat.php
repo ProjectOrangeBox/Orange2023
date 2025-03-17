@@ -10,14 +10,19 @@ class concat
 {
     // track changes
     protected array $hashes = [];
+    protected array $contents = [];
     protected int $sleep = 1;
     protected mixed $object;
     protected string $configFile;
+    protected string $null;
+    protected string $complete = '';
 
     public function __construct()
     {
         require __DIR__ . '/inc/minJs.php';
         require __DIR__ . '/inc/minCss.php';
+
+        $this->null = chr(0);
 
         $this->configFile = __DIR__ . '/concat.json';
     }
@@ -40,77 +45,82 @@ class concat
 
     protected function group(string $name): void
     {
+        $recompress = 0;
+
         if ($this->object->$name) {
             if (is_array($this->object->$name->compress)) {
                 foreach ($this->object->$name->compress as $file) {
-                    $filePath = __DIR__ . $file;
-
-                    if (file_exists($filePath)) {
-                        $this->set($filePath);
-
-                        if ($this->hashes[$filePath] != md5_file($filePath)) {
-                            $this->concat($name);
-                            break;
-                        }
-                    } else {
-                        echo 'Can not find "' . $filePath . '".' . PHP_EOL;
+                    if ($this->groupOne(__DIR__ . $file)) {
+                        $recompress++;
                     }
                 }
             }
         }
+
+        if ($recompress > 0) {
+            $this->concat($name);
+        }
+    }
+
+    protected function groupOne(string $filePath): bool
+    {
+        $triggerRecompress = false;
+
+        if (file_exists($filePath)) {
+            // if never set we need to set it
+            if (!isset($this->hashes[$filePath])) {
+                $this->hashes[$filePath] = $this->null;
+                $this->contents[$filePath] = $this->null;
+            }
+
+            $md5 = md5_file($filePath);
+
+            if ($this->hashes[$filePath] != $md5) {
+                $this->hashes[$filePath] = $md5;
+                // clear it to trigger a new minify
+                $this->contents[$filePath] = $this->null;
+                $triggerRecompress = true;
+            }
+        } else {
+            echo 'Can not find "' . $filePath . '".' . PHP_EOL;
+        }
+
+        return $triggerRecompress;
     }
 
     protected function concat(string $compressor): void
     {
-        $complete = '';
+        $this->complete = '';
 
-        $files = $this->object->$compressor->compress;
-        $compressedFilePath = $this->object->$compressor->compressed;
+        foreach ($this->object->$compressor->compress as $file) {
+            $this->concatOne(__DIR__ . $file, $compressor);
+        }
 
-        foreach ($files as $file) {
-            $filePath = __DIR__ . $file;
+        file_put_contents(__DIR__ . $this->object->$compressor->compressed, $this->complete);
+    }
 
-            if (file_exists($filePath)) {
-                $contents = file_get_contents($filePath);
+    protected function concatOne(string $filePath, string $compressor)
+    {
+        if ($this->contents[$filePath] == $this->null) {
+            echo date('H:i:s ') . $filePath . PHP_EOL;
 
-                $md5 = md5($contents);
+            $this->contents[$filePath] = file_get_contents($filePath);
 
-                $this->set($filePath);
-
-                if ($this->hashes[$filePath] != $md5) {
-
-                    $this->hashes[$filePath] = $md5;
-
-                    if (strpos($file, '.min.') === false) {
-                        echo date('H:i:s ') . $file . PHP_EOL;
-
-                        switch ($compressor) {
-                            case 'css':
-                                $contents = CssMinifer::minify($contents);
-                                break;
-                            case 'js':
-                                $contents = \JShrink\Minifier::minify($contents);
-                                break;
-                            default:
-                                die('unknown compressor type ' . $compressor . PHP_EOL);
-                                break;
-                        }
-                    }
+            if (strpos($filePath, '.min.') === false) {
+                switch ($compressor) {
+                    case 'css':
+                        $this->contents[$filePath] = CssMinifer::minify($this->contents[$filePath]);
+                        break;
+                    case 'js':
+                        $this->contents[$filePath] = \JShrink\Minifier::minify($this->contents[$filePath]);
+                        break;
+                    default:
+                        die('unknown compressor type ' . $compressor . PHP_EOL);
+                        break;
                 }
-
-                $complete .= $contents . PHP_EOL;
-            } else {
-                echo 'can not find "' . $filePath . '".' . PHP_EOL;
             }
         }
 
-        file_put_contents(__DIR__ . $compressedFilePath, $complete);
-    }
-
-    protected function set(string $filePath): void
-    {
-        if (!isset($this->hashes[$filePath])) {
-            $this->hashes[$filePath] = 0;
-        }
+        $this->complete .= $this->contents[$filePath] . PHP_EOL;
     }
 }

@@ -185,7 +185,7 @@ class App {
      */
     send(url, method, args) {
         let parent = this;
-        
+
         method = method ?? 'GET';
 
         $.ajax({
