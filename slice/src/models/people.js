@@ -32,7 +32,10 @@ var people = {
     // rv-on-click="actions.redirect | args '/go/here'"
     actions: {
         go() {
-            app.go({ element: this, ...app.getAttr(this), app: arguments[1] });
+            app.go({ element: this, app: arguments[1], ...app.getAttr(this) });
+        },
+        redirect(url) {
+            app.redirect(url);
         },
         // called by on-then
         clearValidation() {

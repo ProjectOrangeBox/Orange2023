@@ -82,14 +82,17 @@ class concat
                     $this->hashes[$filePath] = $md5;
 
                     if (strpos($file, '.min.') === false) {
-                        echo date('H:i:s ').$file.PHP_EOL;
+                        echo date('H:i:s ') . $file . PHP_EOL;
 
                         switch ($compressor) {
                             case 'css':
                                 $contents = CssMinifer::minify($contents);
                                 break;
-                            case 'javascript':
+                            case 'js':
                                 $contents = \JShrink\Minifier::minify($contents);
+                                break;
+                            default:
+                                die('unknown compressor type ' . $compressor . PHP_EOL);
                                 break;
                         }
                     }
