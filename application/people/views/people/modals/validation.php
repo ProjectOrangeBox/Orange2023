@@ -1,7 +1,7 @@
 <div>
     <div class="mb-3 content">
         <div rv-each-row="validation.array">
-            <i class="fa-solid fa-triangle-exclamation"></i> {row.text}
+            <i class="fa-solid fa-triangle-exclamation text-danger"></i> {row.text}
         </div>
     </div>
     <div class="mb-3 float-end">
