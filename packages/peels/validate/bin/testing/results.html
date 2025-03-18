@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <title>Test Documentation</title>
+        <style>
+            body {
+                text-rendering: optimizeLegibility;
+                font-family: Source SansSerif Pro, Arial, sans-serif;
+                font-variant-ligatures: common-ligatures;
+                font-kerning: normal;
+                margin-left: 2rem;
+                background-color: #fff;
+                color: #000;
+            }
+
+            body > ul > li {
+                font-size: larger;
+            }
+
+            h2 {
+                font-size: larger;
+                text-decoration-line: underline;
+                text-decoration-thickness: 2px;
+                margin: 0;
+                padding: 0.5rem 0;
+            }
+
+            ul {
+                list-style: none;
+                margin: 0 0 2rem;
+                padding: 0 0 0 1rem;
+                text-indent: -1rem;
+            }
+
+            .success:before {
+                color: #4e9a06;
+                content: '✓';
+                padding-right: 0.5rem;
+            }
+
+            .defect {
+                color: #a40000;
+            }
+
+            .defect:before {
+                color: #a40000;
+                content: '✗';
+                padding-right: 0.5rem;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>another</h2>
+        <ul>
+            <li class="success">One</li>
+            <li class="success">Two</li>
+        </ul>
+        <h2>json</h2>
+        <ul>
+            <li class="success">Validate json</li>
+            <li class="success">Validate json counts</li>
+        </ul>
+        <h2>notation</h2>
+        <ul>
+            <li class="success">Set</li>
+            <li class="success">Get</li>
+            <li class="success">Is set</li>
+            <li class="success">Un set</li>
+            <li class="success">Flatten</li>
+            <li class="success">Expand</li>
+        </ul>
+        <h2>remap</h2>
+        <ul>
+            <li class="success">Array</li>
+        </ul>
+        <h2>test Rules Directly</h2>
+        <ul>
+            <li class="success">Empty</li>
+            <li class="success">My s q l</li>
+            <li class="success">Long</li>
+            <li class="success">Invalid as array</li>
+            <li class="success">Invalid as class</li>
+        </ul>
+        <h2>validate</h2>
+        <ul>
+            <li class="success">Validate date invalid</li>
+            <li class="success">Validate convert date</li>
+            <li class="success">Validate not integer</li>
+            <li class="success">Validate set</li>
+            <li class="success">Validate set dot notation</li>
+            <li class="success">Validate set error</li>
+        </ul>
+    </body>
+</html>

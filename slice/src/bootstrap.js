@@ -1,0 +1,1 @@
+var app = new App('app', window[getModelName()]);
