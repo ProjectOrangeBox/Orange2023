@@ -225,7 +225,7 @@ var people={createRecord:{},updateRecord:{},deleteRecord:{},readRecord:{},valida
 class App{id;appElement;model;storage={};sendMapping={200:{key:'ok',attr:'success'},201:{key:'created',attr:'success'},202:{key:'accepted',attr:'success'},406:{key:'not-acceptable',attr:'failure'},default:{key:'unknown',attr:undefined},};constructor(id,model){this.id=id;this.appElement=document.getElementById(id);this.model=model;window['@tinybind']=this;if(model?.start){model.start(this);}
 this.rebind();}
 rebind(){if(this.appElement){tinybind.bind(this.appElement,this.model);}}
-redirect(url){if(url)window.location.href=url;}
+redirect(url){if(url){window.location.href=url;}}
 go(args){this.onAttrs(undefined,args);}
 onAttrs(prefixText,args){const prefix=prefixText?`on-${prefixText}-`:'';if(args[`${prefix}action`]){this.callModelActions(args[`${prefix}action`],args);}
 if(args[`${prefix}node`]){args.json=this.getProperty(args.json,args[`${prefix}node`]);}

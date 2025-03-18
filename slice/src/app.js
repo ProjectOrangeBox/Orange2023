@@ -60,7 +60,9 @@ class App {
      * @param {string} url 
      */
     redirect(url) {
-        if (url) window.location.href = url;
+        if (url) {
+            window.location.href = url;
+        }
     }
 
     /**
