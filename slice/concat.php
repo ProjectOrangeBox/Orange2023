@@ -102,11 +102,10 @@ class concat
     protected function concatOne(string $filePath, string $compressor)
     {
         if ($this->contents[$filePath] == $this->null) {
-            echo date('H:i:s ') . $filePath . PHP_EOL;
-
             $this->contents[$filePath] = file_get_contents($filePath);
 
             if (strpos($filePath, '.min.') === false) {
+                $start = hrtime(true);
                 switch ($compressor) {
                     case 'css':
                         $this->contents[$filePath] = CssMinifer::minify($this->contents[$filePath]);
@@ -118,6 +117,12 @@ class concat
                         die('unknown compressor type ' . $compressor . PHP_EOL);
                         break;
                 }
+                $end = hrtime(true);
+
+                $sec = round(($end - $start) / 1000000000, 3);
+                $sec = str_pad($sec, 5, ' ', STR_PAD_LEFT);
+
+                echo date('H:i:s ') . $sec . ' ' . $filePath . PHP_EOL;
             }
         }
 

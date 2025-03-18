@@ -242,18 +242,18 @@ if(args[`${prefix}then`]){this.callModelActions(args[`${prefix}then`],args);}
 if(args[`${prefix}rebind`]){this.rebind();}
 if(args[`${prefix}redirect`]){window.location.href=args[`${prefix}redirect`];}
 if(args[`${prefix}reload`]){location.reload();}}
-send(url,method='GET',args){const xhr=new XMLHttpRequest();xhr.open(method.toUpperCase(),url);xhr.responseType='json';xhr.setRequestHeader('Content-Type','application/json');xhr.onload=()=>{args.xhr=xhr;args.json=xhr.response;const mapping=this.sendMapping[xhr.status]||this.sendMapping.default;if(args[`on-${mapping.key}-action`]){this.callModelActions(args[`on-${mapping.key}-action`],args);}
-if(mapping.attr){this.onAttrs(mapping.attr,args);}};xhr.onerror=()=>{console.error('Network error');};xhr.send(args.jsonText??undefined);}
+send(url,method='GET',args){const xhr=new XMLHttpRequest();xhr.open(method.toUpperCase(),url);xhr.setRequestHeader('Content-Type','application/json');xhr.responseType='json';xhr.onload=()=>{args.xhr=xhr;args.json=xhr.response;const mapping=this.sendMapping[xhr.status]||this.sendMapping.default;if(args[`on-${mapping.key}-action`]){this.callModelActions(args[`on-${mapping.key}-action`],args);}
+if(mapping.attr){this.onAttrs(mapping.attr,args);}};xhr.onerror=()=>{console.error('Network Error');};xhr.send(args.jsonText??undefined);}
 updateModels(selectors){for(const selector of this.split(selectors)){this.updateModel(selector);}}
 updateModel(element){if(typeof element==='string'){element=document.getElementById(element);}
 if(element){this.onAttrs(undefined,{element,app:this,...this.getAttr(element)});}else{console.error('Not a DOM element:',element);}}
 callModelActions(modelMethodNames,args){for(const methodName of this.split(modelMethodNames)){this.callModelAction(methodName,args);}}
 callModelAction(modelMethodName,args){const action=this.getProperty(undefined,modelMethodName);if(typeof action==='function'){action(this,args);}else{console.error(`Model action "${modelMethodName}" is not a function.`);}}
 setProperties(obj,properties,value){for(const property of this.split(properties)){this.setProperty(obj,property,value);}}
-setProperty(obj,dotnotation,value){let current=obj??this.model;if(dotnotation==='@root'){Object.entries(value).forEach(([k,v])=>{if(!['construct','actions'].includes(k)){current[k]=v;}});}else{const properties=dotnotation.split('.');for(let i=0;i<properties.length-1;i++){const prop=properties[i];if(current[prop]===undefined||current[prop]===null){current[prop]={};}
+setProperty(obj,dotnotation,value){let current=obj??this.model;if(dotnotation===tinybind.rootInterface){Object.entries(value).forEach(([k,v])=>{if(!['construct','actions'].includes(k)){current[k]=v;}});}else{const properties=dotnotation.split('.');for(let i=0;i<properties.length-1;i++){const prop=properties[i];if(current[prop]===undefined||current[prop]===null){current[prop]={};}
 current=current[prop];}
 current[properties[properties.length-1]]=value;}}
-getProperty(obj,dotnotation){let value=obj??this.model;if(dotnotation!=='@root'){for(const prop of dotnotation.split('.')){if(value&&typeof value==='object'&&Object.prototype.hasOwnProperty.call(value,prop)){value=value[prop];}else{return undefined;}}}
+getProperty(obj,dotnotation){let value=obj??this.model;if(dotnotation!==tinybind.rootInterface){for(const prop of dotnotation.split('.')){if(value&&typeof value==='object'&&Object.prototype.hasOwnProperty.call(value,prop)){value=value[prop];}else{return undefined;}}}
 return value;}
 getAttr(element){const attrs={};for(const attr of element.attributes){attrs[attr.name]=attr.value;}
 return attrs;}

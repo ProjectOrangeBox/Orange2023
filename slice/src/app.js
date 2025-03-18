@@ -152,9 +152,10 @@ class App {
      */
     send(url, method = 'GET', args) {
         const xhr = new XMLHttpRequest();
+
         xhr.open(method.toUpperCase(), url);
-        xhr.responseType = 'json';
         xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.responseType = 'json';
 
         xhr.onload = () => {
             args.xhr = xhr;
@@ -171,7 +172,7 @@ class App {
         };
 
         xhr.onerror = () => {
-            console.error('Network error');
+            console.error('Network Error');
         };
 
         xhr.send(args.jsonText ?? undefined);
@@ -255,7 +256,7 @@ class App {
     setProperty(obj, dotnotation, value) {
         let current = obj ?? this.model;
 
-        if (dotnotation === '@root') {
+        if (dotnotation === tinybind.rootInterface) {
             Object.entries(value).forEach(([k, v]) => {
                 if (!['construct', 'actions'].includes(k)) {
                     current[k] = v;
@@ -283,7 +284,7 @@ class App {
      */
     getProperty(obj, dotnotation) {
         let value = obj ?? this.model;
-        if (dotnotation !== '@root') {
+        if (dotnotation !== tinybind.rootInterface) {
             for (const prop of dotnotation.split('.')) {
                 if (value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, prop)) {
                     value = value[prop];
