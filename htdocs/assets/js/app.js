@@ -222,41 +222,42 @@ if(!String.format){String.format=function(format){var args=Array.prototype.slice
 function dotToObject(dotNotationString,value){const parts=dotNotationString.split('.');let obj={};let current=obj;for(let i=0;i<parts.length-1;i++){const part=parts[i];current[part]={};current=current[part];}
 current[parts[parts.length-1]]=value;return obj;}
 var people={createRecord:{},updateRecord:{},deleteRecord:{},readRecord:{},validation:{show:false,invalid:{},array:[],},list:[],colorDropDown:[],show:{grid:true,create:false,read:false,delete:false,update:false,},refresh:{grid:true,colordropdown:true,},actions:{go(){app.go({element:this,app:arguments[1],...app.getAttr(this)});},redirect(url){app.redirect(url);},clearValidation(){people.validation.invalid={};people.validation.show=false;people.validation.array=[];},},construct(app){console.log('Welcome!',app);},};
-class App{id=undefined;appElement=undefined;model=undefined;storage={};sendMapping={200:{key:'ok',attr:'success'},201:{key:'created',attr:'success'},202:{key:'accepted',attr:'success'},406:{key:'not-acceptable',attr:'failure'},default:{key:'unknown',attr:undefined},};constructor(id,model){this.id=id;this.appElement=document.getElementById(id);this.model=model;this.storage={};window['@tinybind']=this;model?.start?.(this);this.rebind();}
-rebind(){if(this.appElement)tinybind.bind(this.appElement,this.model);}
+class App{id;appElement;model;storage={};sendMapping={200:{key:'ok',attr:'success'},201:{key:'created',attr:'success'},202:{key:'accepted',attr:'success'},406:{key:'not-acceptable',attr:'failure'},default:{key:'unknown',attr:undefined},};constructor(id,model){this.id=id;this.appElement=document.getElementById(id);this.model=model;window['@tinybind']=this;if(model?.start){model.start(this);}
+this.rebind();}
+rebind(){if(this.appElement){tinybind.bind(this.appElement,this.model);}}
 redirect(url){if(url)window.location.href=url;}
 go(args){this.onAttrs(undefined,args);}
-onAttrs(txt,args){txt=(txt)?txt='on-'+txt+'-':'';if(args[txt+'action']){this.callModelActions(args[txt+'action'],args);}
-if(args[txt+'node']){args.json=this.getProperty(args.json,args[txt+'node']);}
-if(args.json&&args[txt+'property']){this.setProperty(undefined,args[txt+'property'],args.json);}
-if(args[txt+'model']){if(args[txt+'property']){args.jsonText=JSON.stringify(this.getProperty(undefined,args[txt+'property']));}
-this.send(args[txt+'model'],args[txt+'method'],args);}
-if(args[txt+'refresh']){this.setProperties(undefined,args[txt+'refresh'],new Date());}
-if(args[txt+'toggle']){this.setProperties(undefined,args[txt+'toggle'],!this.getProperty(undefined,args[txt+'toggle']));}
-if(args[txt+'hide']){this.setProperties(undefined,args[txt+'hide'],false);}
-if(args[txt+'false']){this.setProperties(undefined,args[txt+'false'],false);}
-if(args[txt+'show']){this.setProperties(undefined,args[txt+'show'],true);}
-if(args[txt+'true']){this.setProperties(undefined,args[txt+'true'],true);}
-if(args[txt+'then']){this.callModelActions(args[txt+'then'],args);}
-if(args[txt+'rebind']){this.rebind();}
-if(args[txt+'redirect']){window.location.href=args[txt+'redirect'];}
-if(args[txt+'reload']){location.reload();}}
-send(url,method,args){let parent=this;method=method??'GET';const xhr=new XMLHttpRequest();xhr.open(method.toUpperCase(),url);xhr.responseType='json';xhr.setRequestHeader('Content-Type','application/json');xhr.onload=function(){args.xhr=xhr;args.json=xhr.response;let mapping=parent.sendMapping[xhr.status]??parent.sendMapping['default'];let key='on-'+mapping.key+'-action';if(args[key]){parent.callModelActions(args[key],args);}
-if(mapping.attr){parent.onAttrs(mapping.attr,args);}};xhr.onerror=function(){console.error('Network error');};xhr.send(args.jsonText??undefined);}
-updateModels(selectors){for(let selector of this.split(selectors)){this.updateModel(selector);};}
-updateModel(element){if(typeof element==='string'||element instanceof String){element=document.getElementById(element);}
-if(element){this.onAttrs(undefined,{element:element,app:this,...this.getAttr(element)});}else{console.error('Not an DOM element:',element);}}
-callModelActions(modelMethodNames,args){for(let modelMethodName of this.split(modelMethodNames)){this.callModelAction(modelMethodName,args);};}
-callModelAction(modelMethodName,args){this.getProperty(undefined,modelMethodName)(this,args);}
-setProperties(obj,properties,value){for(let property of this.split(properties)){this.setProperty(obj,property,value);};}
-setProperty(obj,dotnotation,value){let current=obj??this.model;if(dotnotation=='@root'){for(const[k,v]of Object.entries(value)){if(!['construct','actions'].includes(k)){current[k]=v;}}}else{let properties=dotnotation.split('.');for(let i=0;i<properties.length-1;i++){let prop=properties[i];if(current[prop]===undefined||current[prop]===null){current[prop]={};}
+onAttrs(prefixText,args){const prefix=prefixText?`on-${prefixText}-`:'';if(args[`${prefix}action`]){this.callModelActions(args[`${prefix}action`],args);}
+if(args[`${prefix}node`]){args.json=this.getProperty(args.json,args[`${prefix}node`]);}
+if(args.json&&args[`${prefix}property`]){this.setProperty(undefined,args[`${prefix}property`],args.json);}
+if(args[`${prefix}model`]){if(args[`${prefix}property`]){args.jsonText=JSON.stringify(this.getProperty(undefined,args[`${prefix}property`]));}
+this.send(args[`${prefix}model`],args[`${prefix}method`],args);}
+if(args[`${prefix}refresh`]){this.setProperties(undefined,args[`${prefix}refresh`],new Date());}
+if(args[`${prefix}toggle`]){this.setProperties(undefined,args[`${prefix}toggle`],!this.getProperty(undefined,args[`${prefix}toggle`]));}
+if(args[`${prefix}hide`]){this.setProperties(undefined,args[`${prefix}hide`],false);}
+if(args[`${prefix}false`]){this.setProperties(undefined,args[`${prefix}false`],false);}
+if(args[`${prefix}show`]){this.setProperties(undefined,args[`${prefix}show`],true);}
+if(args[`${prefix}true`]){this.setProperties(undefined,args[`${prefix}true`],true);}
+if(args[`${prefix}then`]){this.callModelActions(args[`${prefix}then`],args);}
+if(args[`${prefix}rebind`]){this.rebind();}
+if(args[`${prefix}redirect`]){window.location.href=args[`${prefix}redirect`];}
+if(args[`${prefix}reload`]){location.reload();}}
+send(url,method='GET',args){const xhr=new XMLHttpRequest();xhr.open(method.toUpperCase(),url);xhr.responseType='json';xhr.setRequestHeader('Content-Type','application/json');xhr.onload=()=>{args.xhr=xhr;args.json=xhr.response;const mapping=this.sendMapping[xhr.status]||this.sendMapping.default;if(args[`on-${mapping.key}-action`]){this.callModelActions(args[`on-${mapping.key}-action`],args);}
+if(mapping.attr){this.onAttrs(mapping.attr,args);}};xhr.onerror=()=>{console.error('Network error');};xhr.send(args.jsonText??undefined);}
+updateModels(selectors){for(const selector of this.split(selectors)){this.updateModel(selector);}}
+updateModel(element){if(typeof element==='string'){element=document.getElementById(element);}
+if(element){this.onAttrs(undefined,{element,app:this,...this.getAttr(element)});}else{console.error('Not a DOM element:',element);}}
+callModelActions(modelMethodNames,args){for(const methodName of this.split(modelMethodNames)){this.callModelAction(methodName,args);}}
+callModelAction(modelMethodName,args){const action=this.getProperty(undefined,modelMethodName);if(typeof action==='function'){action(this,args);}else{console.error(`Model action "${modelMethodName}" is not a function.`);}}
+setProperties(obj,properties,value){for(const property of this.split(properties)){this.setProperty(obj,property,value);}}
+setProperty(obj,dotnotation,value){let current=obj??this.model;if(dotnotation==='@root'){Object.entries(value).forEach(([k,v])=>{if(!['construct','actions'].includes(k)){current[k]=v;}});}else{const properties=dotnotation.split('.');for(let i=0;i<properties.length-1;i++){const prop=properties[i];if(current[prop]===undefined||current[prop]===null){current[prop]={};}
 current=current[prop];}
 current[properties[properties.length-1]]=value;}}
-getProperty(obj,dotnotation){let value=obj??this.model;if(dotnotation!='@root'){let properties=dotnotation.split('.');for(let prop of properties){if(value&&typeof value==='object'&&value.hasOwnProperty(prop)){value=value[prop];}else{return undefined;}}}
+getProperty(obj,dotnotation){let value=obj??this.model;if(dotnotation!=='@root'){for(const prop of dotnotation.split('.')){if(value&&typeof value==='object'&&Object.prototype.hasOwnProperty.call(value,prop)){value=value[prop];}else{return undefined;}}}
 return value;}
-getAttr(element){let args={};for(let attr of element.attributes){args[attr.name]=attr.value;}
-return args;}
-split(arg){return(!Array.isArray(arg))?arg.split(','):arg;}}
+getAttr(element){const attrs={};for(const attr of element.attributes){attrs[attr.name]=attr.value;}
+return attrs;}
+split(arg){return Array.isArray(arg)?arg:arg.split(',');}}
 var app=new App('app',window[getModelName()]);
 /*!
 * Start Bootstrap - Freelancer v7.0.7 (https://startbootstrap.com/theme/freelancer)

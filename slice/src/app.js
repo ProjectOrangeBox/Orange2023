@@ -1,40 +1,10 @@
-/*
-action [method on model call]
-property [incoming or outgoing model property] (supports @root)
-method [ajax send] (defaults to GET)
-model [ajax get] (url of end point)
-refresh [refresh a property]
-toggle [invert boolean]
-hide [set to false]
-false [set to false]
-show [set to true]
-true [set to true]
-redirect [redirect to url]
-reload [reload this page]
-then [method on model call]
-rebind (force rebind) (value doesn't matter)
-
-on-success-*
-on-failure-*
-
-# 200's
-on-ok-action [method call]
-on-created-action [method call]
-on-accepted-action [method call]
-
-# 400's
-on-not-acceptable-action [method call]
-
-all method calls are on the model and you must specify the action.
-*/
-
 class App {
     // DOM id to attach to
-    id = undefined;
+    id;
     // DOM id element
-    appElement = undefined;
+    appElement;
     // model we are using
-    model = undefined;
+    model;
     // app internal storage
     storage = {};
 
@@ -52,56 +22,49 @@ class App {
     };
 
     /**
-     * Takes an id (DOM element ID) and a model (data object).
-     * Stores references to:
-     * The root element (appElement).
-     * The model.
-     * Exposes the instance globally (window['@tinybind'] = this).
-     * Calls a start function if it exists in the model.
-     * Binds the model to the DOM using tinybind.
+     * Takes a DOM element ID and a model.
+     * Stores references to the root element, the model,
+     * exposes the instance globally, calls the model's start function (if exists),
+     * and binds the model to the DOM using tinybind.
      * 
-     * @param {string} id 
-     * @param {object} model 
+     * @param {string} id - DOM element ID
+     * @param {object} model - Data model
      */
     constructor(id, model) {
-        // root application DOM id
         this.id = id;
-        // DOM id element
         this.appElement = document.getElementById(id);
-        // save a copy of the model we are working with in this App instance
         this.model = model;
-        // app internal storage
-        this.storage = {};
-        // add me to the global scope for easy access
+        // Expose the instance globally for easy access
         window['@tinybind'] = this;
 
-        // if they include a start function [function]
-        model?.start?.(this);
+        // If a start function is defined in the model, execute it
+        if (model?.start) {
+            model.start(this);
+        }
 
         this.rebind();
     }
 
     /**
-     * Uses tinybind.bind(this.appElement, this.model) to update the DOM when the model changes.
+     * Binds the model to the DOM using tinybind.
      */
     rebind() {
-        if (this.appElement) tinybind.bind(this.appElement, this.model);
+        if (this.appElement) {
+            tinybind.bind(this.appElement, this.model);
+        }
     }
 
-    /* Navigation (redirect and go) */
-
     /**
-     * redirect(args): Redirects the page using window.location.href = args.url.
+     * Redirects the page to the provided URL.
      * 
-     * 
-     * @param {object} args 
+     * @param {string} url 
      */
     redirect(url) {
         if (url) window.location.href = url;
     }
 
     /**
-     * go(args): Determines if a redirection is needed or another method should be executed.
+     * Determines if a redirection or another action is needed.
      * 
      * @param {object} args 
      */
@@ -110,119 +73,102 @@ class App {
     }
 
     /**
-     * Event Handling (onAttrs)
-     * Handles different actions based on event attributes (e.g., on-success-action).
-     * Triggers model actions, AJAX requests, UI updates, or navigation based on arguments.
+     * Handles various actions based on event attributes.
      * 
-     * @param {string} txt 
-     * @param {object} args 
+     * @param {string} prefixText - A prefix for attribute keys
+     * @param {object} args - Arguments containing action keys and values
      */
-    onAttrs(txt, args) {
-        txt = (txt) ? txt = 'on-' + txt + '-' : '';
+    onAttrs(prefixText, args) {
+        const prefix = prefixText ? `on-${prefixText}-` : '';
 
-        if (args[txt + 'action']) {
-            this.callModelActions(args[txt + 'action'], args);
+        if (args[`${prefix}action`]) {
+            this.callModelActions(args[`${prefix}action`], args);
         }
 
-        if (args[txt + 'node']) {
-            args.json = this.getProperty(args.json, args[txt + 'node']);
+        if (args[`${prefix}node`]) {
+            args.json = this.getProperty(args.json, args[`${prefix}node`]);
         }
 
-        // ONLY if json is INCOMING set */
-        if (args.json && args[txt + 'property']) {
-            this.setProperty(undefined, args[txt + 'property'], args.json);
+        if (args.json && args[`${prefix}property`]) {
+            this.setProperty(undefined, args[`${prefix}property`], args.json);
         }
 
-        if (args[txt + 'model']) {
-            if (args[txt + 'property']) {
-                args.jsonText = JSON.stringify(this.getProperty(undefined, args[txt + 'property']));
+        if (args[`${prefix}model`]) {
+            if (args[`${prefix}property`]) {
+                args.jsonText = JSON.stringify(this.getProperty(undefined, args[`${prefix}property`]));
             }
-
-            this.send(args[txt + 'model'], args[txt + 'method'], args);
+            this.send(args[`${prefix}model`], args[`${prefix}method`], args);
         }
 
-        if (args[txt + 'refresh']) {
-            this.setProperties(undefined, args[txt + 'refresh'], new Date());
+        if (args[`${prefix}refresh`]) {
+            this.setProperties(undefined, args[`${prefix}refresh`], new Date());
         }
 
-        if (args[txt + 'toggle']) {
-            this.setProperties(undefined, args[txt + 'toggle'], !this.getProperty(undefined, args[txt + 'toggle']));
+        if (args[`${prefix}toggle`]) {
+            this.setProperties(undefined, args[`${prefix}toggle`], !this.getProperty(undefined, args[`${prefix}toggle`]));
         }
 
-        if (args[txt + 'hide']) {
-            this.setProperties(undefined, args[txt + 'hide'], false);
+        if (args[`${prefix}hide`]) {
+            this.setProperties(undefined, args[`${prefix}hide`], false);
         }
 
-        if (args[txt + 'false']) {
-            this.setProperties(undefined, args[txt + 'false'], false);
+        if (args[`${prefix}false`]) {
+            this.setProperties(undefined, args[`${prefix}false`], false);
         }
 
-        if (args[txt + 'show']) {
-            this.setProperties(undefined, args[txt + 'show'], true);
+        if (args[`${prefix}show`]) {
+            this.setProperties(undefined, args[`${prefix}show`], true);
         }
 
-        if (args[txt + 'true']) {
-            this.setProperties(undefined, args[txt + 'true'], true);
+        if (args[`${prefix}true`]) {
+            this.setProperties(undefined, args[`${prefix}true`], true);
         }
 
-        if (args[txt + 'then']) {
-            this.callModelActions(args[txt + 'then'], args);
+        if (args[`${prefix}then`]) {
+            this.callModelActions(args[`${prefix}then`], args);
         }
 
-        if (args[txt + 'rebind']) {
+        if (args[`${prefix}rebind`]) {
             this.rebind();
         }
 
-        // redirects to NEW URL full context switch
-        if (args[txt + 'redirect']) {
-            window.location.href = args[txt + 'redirect'];
+        if (args[`${prefix}redirect`]) {
+            window.location.href = args[`${prefix}redirect`];
         }
 
-        // reloads the ENTIRE URL full context switch
-        if (args[txt + 'reload']) {
+        if (args[`${prefix}reload`]) {
             location.reload();
         }
     }
 
     /**
-     * AJAX Requests (send)
      * Makes an AJAX call with JSON data.
-     * Supports different HTTP methods (GET, POST, etc.).
-     * Handles responses based on status codes (200, 201, 202, 406, etc.).
-     * Calls appropriate model actions on success/failure.
      * 
      * @param {string} url 
      * @param {string} method 
      * @param {object} args 
      */
-    send(url, method, args) {
-        let parent = this;
-
-        method = method ?? 'GET';
-
+    send(url, method = 'GET', args) {
         const xhr = new XMLHttpRequest();
-
         xhr.open(method.toUpperCase(), url);
         xhr.responseType = 'json';
         xhr.setRequestHeader('Content-Type', 'application/json');
 
-        xhr.onload = function () {
-            // save these so we can pass them though
+        xhr.onload = () => {
             args.xhr = xhr;
             args.json = xhr.response;
 
-            let mapping = parent.sendMapping[xhr.status] ?? parent.sendMapping['default'];
-            let key = 'on-' + mapping.key + '-action';
+            const mapping = this.sendMapping[xhr.status] || this.sendMapping.default;
 
-            if (args[key]) {
-                parent.callModelActions(args[key], args);
+            if (args[`on-${mapping.key}-action`]) {
+                this.callModelActions(args[`on-${mapping.key}-action`], args);
             }
             if (mapping.attr) {
-                parent.onAttrs(mapping.attr, args);
+                this.onAttrs(mapping.attr, args);
             }
         };
 
-        xhr.onerror = function () {
+        xhr.onerror = () => {
             console.error('Network error');
         };
 
@@ -230,151 +176,144 @@ class App {
     }
 
     /**
-     * Model Updates (updateModel, updateModels)
-     * @param {string|array} selectors 
+     * Updates multiple models based on selectors.
+     * 
+     * @param {string|Array} selectors 
      */
     updateModels(selectors) {
-        for (let selector of this.split(selectors)) {
+        for (const selector of this.split(selectors)) {
             this.updateModel(selector);
-        };
+        }
     }
 
     /**
+     * Updates a model from a DOM element or its ID.
      * 
-     * @param {string|DOM Element} element 
+     * @param {string|HTMLElement} element 
      */
     updateModel(element) {
-        if (typeof element === 'string' || element instanceof String) {
+        if (typeof element === 'string') {
             element = document.getElementById(element);
         }
 
         if (element) {
-            this.onAttrs(undefined, { element: element, app: this, ...this.getAttr(element) });
+            this.onAttrs(undefined, { element, app: this, ...this.getAttr(element) });
         } else {
-            console.error('Not an DOM element:', element);
+            console.error('Not a DOM element:', element);
         }
     }
 
     /**
-     * Model Actions (callModelAction, callModelActions)
-     * Calls functions within the model dynamically.
+     * Calls one or more model actions.
      * 
-     * @param {string|array} modelMethodNames 
+     * @param {string|Array} modelMethodNames 
      * @param {object} args 
      */
     callModelActions(modelMethodNames, args) {
-        for (let modelMethodName of this.split(modelMethodNames)) {
-            this.callModelAction(modelMethodName, args);
-        };
+        for (const methodName of this.split(modelMethodNames)) {
+            this.callModelAction(methodName, args);
+        }
     }
 
     /**
-     * call a method on the model
+     * Calls a specific model action.
      * 
      * @param {string} modelMethodName 
      * @param {object} args 
      */
     callModelAction(modelMethodName, args) {
-        this.getProperty(undefined, modelMethodName)(this, args);
+        const action = this.getProperty(undefined, modelMethodName);
+        if (typeof action === 'function') {
+            action(this, args);
+        } else {
+            console.error(`Model action "${modelMethodName}" is not a function.`);
+        }
     }
 
     /**
-     * Property Management (setProperty, getProperty)
-     * Uses dot notation (a.b.c) to set or get properties from the model.
+     * Updates multiple properties.
      * 
      * @param {object} obj 
-     * @param {array|string} properties 
-     * @param {mixed} value 
+     * @param {string|Array} properties 
+     * @param {*} value 
      */
     setProperties(obj, properties, value) {
-        for (let property of this.split(properties)) {
+        for (const property of this.split(properties)) {
             this.setProperty(obj, property, value);
-        };
+        }
     }
 
     /**
-     * Property Management (setProperty, getProperty)
-     * Uses dot notation (a.b.c) to set or get properties from the model.
+     * Sets a property using dot notation.
      * 
-     * @param {object} obj [this.model]
-     * @param {string} dotnotation 
-     * @param {mixed} value 
+     * @param {object} obj - The object to modify (defaults to this.model)
+     * @param {string} dotnotation - Dot notation string (e.g., "a.b.c")
+     * @param {*} value - The value to set
      */
     setProperty(obj, dotnotation, value) {
         let current = obj ?? this.model;
 
-        if (dotnotation == '@root') {
-            for (const [k, v] of Object.entries(value)) {
-                // our default "methods" you can't replace
+        if (dotnotation === '@root') {
+            Object.entries(value).forEach(([k, v]) => {
                 if (!['construct', 'actions'].includes(k)) {
                     current[k] = v;
                 }
-            }
+            });
         } else {
-            let properties = dotnotation.split('.');
+            const properties = dotnotation.split('.');
             for (let i = 0; i < properties.length - 1; i++) {
-                let prop = properties[i];
+                const prop = properties[i];
                 if (current[prop] === undefined || current[prop] === null) {
                     current[prop] = {};
                 }
                 current = current[prop];
             }
-
             current[properties[properties.length - 1]] = value;
         }
     }
 
     /**
-     * Property Management (setProperty, getProperty)
-     * Uses dot notation (a.b.c) to set or get properties from the model.
+     * Retrieves a property using dot notation.
      * 
-     * @param {object} obj [this.model]
-     * @param {string} dotnotation 
-     * @returns mixed
+     * @param {object} obj - The object to search (defaults to this.model)
+     * @param {string} dotnotation - Dot notation string (e.g., "a.b.c")
+     * @returns {*} The retrieved value, or undefined if not found
      */
     getProperty(obj, dotnotation) {
         let value = obj ?? this.model;
-
-        if (dotnotation != '@root') {
-            let properties = dotnotation.split('.');
-
-            for (let prop of properties) {
-                if (value && typeof value === 'object' && value.hasOwnProperty(prop)) {
+        if (dotnotation !== '@root') {
+            for (const prop of dotnotation.split('.')) {
+                if (value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, prop)) {
                     value = value[prop];
                 } else {
                     return undefined;
                 }
             }
         }
-
         return value;
     }
 
-    /* Utility Methods */
-
     /**
-     * Extracts attributes from an HTML element.
+     * Extracts attributes from a DOM element.
      * 
-     * @param {dom element} element 
-     * @returns {object}
+     * @param {HTMLElement} element 
+     * @returns {object} An object mapping attribute names to values
      */
     getAttr(element) {
-        let args = {};
-
-        for (let attr of element.attributes) {
-            args[attr.name] = attr.value;
+        const attrs = {};
+        for (const attr of element.attributes) {
+            attrs[attr.name] = attr.value;
         }
-
-        return args;
+        return attrs;
     }
 
     /**
-     * Converts a comma-separated string into an array.
+     * Splits a comma-separated string into an array.
      * 
-     * @param {string|array} arg 
-     * @returns {array}
+     * @param {string|Array} arg 
+     * @returns {Array}
      */
     split(arg) {
-        return (!Array.isArray(arg)) ? arg.split(',') : arg;
+        return Array.isArray(arg) ? arg : arg.split(',');
     }
 }
