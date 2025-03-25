@@ -37,7 +37,7 @@ var people = {
             app.go({ element: this, app: arguments[1], ...app.getAttr(this) });
         },
         update(index) {
-            app.onAttrs({...app.getAttr(this)});
+            app.onAttrs({ ...app.getAttr(this) });
 
             people.currentIndex = index;
             people.updateRecord = Object.assign({}, people.list[people.currentIndex]);
@@ -51,7 +51,7 @@ var people = {
             }
         },
         create() {
-            app.onAttrs({...app.getAttr(this)});
+            app.onAttrs({ ...app.getAttr(this) });
 
             // defaults
             people.createRecord = {
@@ -63,14 +63,7 @@ var people = {
             people.actions.clearValidation();
 
             people.createRecord.id = args.json.id;
-
-            // find the select text name not the id
-            for (const key in  people.colorDropDown) {
-                if (people.colorDropDown[key].id == people.createRecord.color) {
-                    people.createRecord.colorname = people.colorDropDown[key].name;
-                    break;
-                }
-            }
+            people.createRecord.colorname = searchArrayOfObjects(people.colorDropDown, people.createRecord.color, 'id', 'name');
 
             people.list.push(people.createRecord);
         },

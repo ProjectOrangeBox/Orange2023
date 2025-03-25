@@ -98,32 +98,3 @@ tinybind.binders.intcheck = {
         return (t.checked) ? t.value : 0;
     }
 };
-
-tinybind.binders.select = {
-    publishes: true,
-    priority: 2000,
-
-    bind: function (el) {
-        var self = this;
-
-        if (!this.callback) {
-            this.callback = function () {
-                self.publish();
-            };
-        }
-
-        el.addEventListener('change', this.callback);
-    },
-    unbind: function (el) {
-        el.removeEventListener('change', this.callback);
-    },
-    routine: function (el, value) {
-        console.log(el);
-    },
-    getValue: function (el) {
-        el.selectedHuman = el.options[el.selectedIndex].text;
-
-        return el.value;
-    }
-
-}
