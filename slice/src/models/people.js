@@ -53,6 +53,7 @@ var people = {
         create() {
             app.onAttrs({...app.getAttr(this)});
 
+            // defaults
             people.createRecord = {
                 age: 18,
                 color: 6,
@@ -63,7 +64,13 @@ var people = {
 
             people.createRecord.id = args.json.id;
 
-            // !todo color human name
+            // find the select text name not the id
+            for (const key in  people.colorDropDown) {
+                if (people.colorDropDown[key].id == people.createRecord.color) {
+                    people.createRecord.colorname = people.colorDropDown[key].name;
+                    break;
+                }
+            }
 
             people.list.push(people.createRecord);
         },
