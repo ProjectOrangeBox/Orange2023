@@ -37,12 +37,12 @@ var people = {
             app.go({ element: this, app: arguments[1], ...app.getAttr(this) });
         },
         update(index) {
-            people.show.update = true;
+            app.onAttrs({...app.getAttr(this)});
+
             people.currentIndex = index;
             people.updateRecord = Object.assign({}, people.list[people.currentIndex]);
         },
         updated(app, args) {
-            people.show.update = false;
             people.actions.clearValidation();
 
             // trigger each property update
@@ -51,20 +51,19 @@ var people = {
             }
         },
         create() {
-            people.show.create = true;
-            people.show.grid = false;
+            app.onAttrs({...app.getAttr(this)});
+
             people.createRecord = {
                 age: 18,
-                color: 3,
-                colorname: 'yellow',
+                color: 6,
             }
         },
         created(app, args) {
-            people.show.create = false;
-            people.show.grid = true;
             people.actions.clearValidation();
 
             people.createRecord.id = args.json.id;
+
+            // !todo color human name
 
             people.list.push(people.createRecord);
         },

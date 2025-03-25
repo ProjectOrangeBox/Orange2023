@@ -13,15 +13,15 @@
         <input type="text" rv-class-is-invalid="validation.invalid.age" class="form-control" id="frm_age" name="age" rv-value="updateRecord.age">
     </div>
     <div class="mb-3">
-        <div class="form-group">
+    <div class="form-group">
             <label for="frm_color" class="form-label">Color</label>
-            <select rv-select="updateRecord.color" select-property="updateRecord.colorname" rv-refresh="refresh.colordropdown" rv-class-is-invalid="validation.invalid.color" class="form-control" name="color" rv-value="updateRecord.color | default 1" model="<?= getUrl('peopleColorDropdown') ?>" on-success-property="colorDropDown">
+            <select  rv-value="updateRecord.color | default 4" rv-refresh="refresh.colordropdown" rv-class-is-invalid="validation.invalid.color" model="<?= getUrl('peopleColorDropdown') ?>" on-success-property="colorDropDown" name="color" class="form-control">
                 <option rv-each-row="colorDropDown" rv-value="row.id" rv-text="row.name"></option>
             </select>
         </div>
     </div>
     <div class="mb-3 float-end">
         <a rv-on-click="actions.go" hide="show.update" action="actions.clearValidation" class="btn btn-light">Cancel</a>
-        <a rv-on-click="actions.go" method="put" rv-model="'<?= getUrl('peopleUpdate', ['{1}'], true) ?>' | replace updateRecord.id" property="updateRecord" on-success-action="actions.updated" on-failure-property="." class="btn btn-primary">Submit</a>
+        <a rv-on-click="actions.go" method="put" rv-model="'<?= getUrl('peopleUpdate', ['{1}'], true) ?>' | replace updateRecord.id" property="updateRecord" on-success-action="actions.updated" on-success-hide="show.update" on-failure-property="." class="btn btn-primary">Submit</a>
     </div>
 </div>

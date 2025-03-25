@@ -8,7 +8,7 @@
                 <th>Age</th>
                 <th>Color</th>
                 <th>
-                    <button type="button" rv-on-click="actions.create" class="btn btn-primary"><i class="fa-solid fa-square-plus"></i></button>
+                    <button type="button" rv-on-click="actions.create" hide="show.grid" show="show.create" class="btn btn-primary"><i class="fa-solid fa-square-plus"></i></button>
                 </th>
             </tr>
         </thead>

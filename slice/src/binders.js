@@ -111,19 +111,17 @@ tinybind.binders.select = {
                 self.publish();
             };
         }
-        
+
         el.addEventListener('change', this.callback);
     },
     unbind: function (el) {
         el.removeEventListener('change', this.callback);
     },
     routine: function (el, value) {
-        // do nothing
+        console.log(el);
     },
     getValue: function (el) {
-        const attr = app.getAttr(el);
-
-        app.setProperty(app.model, attr['select-property'], el.options[el.selectedIndex].text);
+        el.selectedHuman = el.options[el.selectedIndex].text;
 
         return el.value;
     }

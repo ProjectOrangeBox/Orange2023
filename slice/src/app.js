@@ -10,13 +10,13 @@ class App {
 
     sendMapping = {
         // ok
-        200: { key: 'ok', attr: 'success' },
+        200: { key: 'ok', attr: 'on-success-' },
         // 201 Created
-        201: { key: 'created', attr: 'success' },
+        201: { key: 'created', attr: 'on-success-' },
         // 202 Accepted
-        202: { key: 'accepted', attr: 'success' },
+        202: { key: 'accepted', attr: 'on-success-' },
         // 406 Not Acceptable
-        406: { key: 'not-acceptable', attr: 'failure' },
+        406: { key: 'not-acceptable', attr: 'on-failure-' },
         // ¯\_(ツ)_/¯
         default: { key: 'unknown', attr: undefined },
     };
@@ -77,6 +77,14 @@ class App {
         this.onAttrs(args);
     }
 
+    onSuccessAttrs(args) {
+        this.onAttrs(args, 'on-success-');
+    }
+
+    onFailureAttrs(args) {
+        this.onAttrs(args, 'on-failure-');
+    }
+
     /**
      * Handles various actions based on event attributes.
      * 
@@ -84,7 +92,7 @@ class App {
      * @param {object} args - Arguments containing action keys and values
      */
     onAttrs(args, prefixText) {
-        const prefix = prefixText ? `on-${prefixText}-` : '';
+        const prefix = prefixText ?? '';
 
         if (args[`${prefix}action`]) {
             this.callModelActions(args[`${prefix}action`], args);
