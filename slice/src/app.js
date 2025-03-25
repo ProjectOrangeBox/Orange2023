@@ -10,15 +10,15 @@ class App {
 
     sendMapping = {
         // ok
-        200: { key: 'ok', attr: 'on-success-' },
+        200: { status: 'ok', prefix: 'success' },
         // 201 Created
-        201: { key: 'created', attr: 'on-success-' },
+        201: { status: 'created', prefix: 'success' },
         // 202 Accepted
-        202: { key: 'accepted', attr: 'on-success-' },
+        202: { status: 'accepted', prefix: 'success' },
         // 406 Not Acceptable
-        406: { key: 'not-acceptable', attr: 'on-failure-' },
+        406: { status: 'not-acceptable', prefix: 'failure' },
         // ¯\_(ツ)_/¯
-        default: { key: 'unknown', attr: undefined },
+        default: { status: 'unknown', prefix: undefined },
     };
 
     /**
@@ -174,11 +174,14 @@ class App {
 
             const mapping = this.sendMapping[xhr.status] || this.sendMapping.default;
 
-            if (args[`on-${mapping.key}-action`]) {
-                this.callModelActions(args[`on-${mapping.key}-action`], args);
+            // ie. on-created-action
+            if (mapping.status) {
+                this.onAttrs(args, 'on-' + mapping.status + '-');
             }
-            if (mapping.attr) {
-                this.onAttrs(args, mapping.attr);
+
+            // ie. on-success-*
+            if (mapping.prefix) {
+                this.onAttrs(args, 'on-' + mapping.prefix + '-');
             }
         };
 

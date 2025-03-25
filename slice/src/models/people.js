@@ -46,6 +46,7 @@ var people = {
             app.onAttrs({ ...app.getAttr(this) });
         },
         updatedSuccess(app, args) {
+            // called from on-success-action
             people.actions.clearValidation();
 
             // trigger each property "update" so tinybind updates the list
@@ -64,6 +65,7 @@ var people = {
             app.onAttrs({ ...app.getAttr(this) });
         },
         createdSuccess(app, args) {
+            // called from on-success-action
             people.actions.clearValidation();
 
             // put the returned primary id in the record for rests calls back to the server
@@ -84,6 +86,8 @@ var people = {
             app.onAttrs({ ...app.getAttr(this) });
         },
         deletedSuccess() {
+            // called from on-success-action
+
             // pull the records from the list view array
             people.list.splice(people.currentIndex, 1);
         },
