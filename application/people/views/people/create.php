@@ -14,13 +14,13 @@
     <div class="mb-3">
         <div class="form-group">
             <label for="frm_color" class="form-label">Color</label>
-            <select rv-refresh="refresh.colordropdown" name="color" rv-class-is-invalid="validation.invalid.color" class="form-control" rv-value="createRecord.color | default 4" model="<?= getUrl('peopleColorDropdown') ?>" on-success-property="colorDropDown">
+            <select rv-select="createRecord.color" select-property="createRecord.colorname" rv-refresh="refresh.colordropdown" name="color" rv-class-is-invalid="validation.invalid.color" class="form-control" rv-value="createRecord.color | default 4" model="<?= getUrl('peopleColorDropdown') ?>" on-success-property="colorDropDown">
                 <option rv-each-row="colorDropDown" rv-value="row.id" rv-text="row.name"></option>
             </select>
         </div>
     </div>
     <div class="mb-3 float-end">
         <a rv-on-click="actions.go" hide="show.create" show="show.grid" action="actions.clearValidation" class="btn btn-light">Cancel</a>
-        <a rv-on-click="actions.go" method="post" model="<?= getUrl('peopleCreate') ?>" property="createRecord" on-success-hide="show.create" on-success-show="show.grid" on-success-refresh="refresh.grid" on-success-action="actions.clearValidation" on-failure-property="." class="btn btn-primary">Submit</a>
+        <a rv-on-click="actions.go" method="post" model="<?= getUrl('peopleCreate') ?>" property="createRecord" on-success-action="actions.created" on-failure-property="." class="btn btn-primary">Submit</a>
     </div>
 </div>

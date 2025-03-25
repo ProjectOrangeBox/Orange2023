@@ -5,6 +5,8 @@ var people = {
     deleteRecord: {},
     readRecord: {},
 
+    currentIndex: 0,
+
     validation: {
         show: false,
         invalid: {},
@@ -34,6 +36,38 @@ var people = {
         go() {
             app.go({ element: this, app: arguments[1], ...app.getAttr(this) });
         },
+        update(index) {
+            people.show.update = true;
+            people.currentIndex = index;
+            people.updateRecord = Object.assign({}, people.list[people.currentIndex]);
+        },
+        updated(app, args) {
+            people.show.update = false;
+            people.actions.clearValidation();
+
+            // trigger each property update
+            for (const key in people.updateRecord) {
+                people.list[people.currentIndex][key] = people.updateRecord[key];
+            }
+        },
+        create() {
+            people.show.create = true;
+            people.show.grid = false;
+            people.createRecord = {
+                age: 18,
+                color: 3,
+                colorname: 'yellow',
+            }
+        },
+        created(app, args) {
+            people.show.create = false;
+            people.show.grid = true;
+            people.actions.clearValidation();
+
+            people.createRecord.id = args.json.id;
+
+            people.list.push(people.createRecord);
+        },
         redirect(url) {
             app.redirect(url);
         },
@@ -43,7 +77,6 @@ var people = {
             people.validation.invalid = {};
             people.validation.show = false;
             people.validation.array = [];
-
         },
     },
 

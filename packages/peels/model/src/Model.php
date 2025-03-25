@@ -138,4 +138,9 @@ abstract class Model
 
         return $tablename;
     }
+
+    public function getLastInsertId(): string|false
+    {
+        return $this->pdo->lastInsertId();
+    }
 }

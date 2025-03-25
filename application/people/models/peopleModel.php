@@ -48,12 +48,14 @@ class PeopleModel extends Model
         return $this->sql->select(['people.id', 'people.firstname', 'people.lastname', 'people.age', 'people.color as color', 'color.name as colorname'])->from($this->tablename)->leftJoin('color', 'people.color', 'color.id')->wherePrimary($fields[$this->primaryColumn])->execute()->row();
     }
 
-    public function create(array $fields): void
+    public function create(array $fields): string|false
     {
         // throws an ValidationFailed
         $fields = $this->validateFields('create', $fields);
 
         $this->sql->insert()->into()->set($fields)->execute();
+
+        return $this->getLastInsertId();
     }
 
     public function update(array $fields): void

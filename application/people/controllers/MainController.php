@@ -95,7 +95,7 @@ class MainController extends CrudController
     public function create(): string
     {
         try {
-            $response = $this->preformCRUD($this->defaultModel, 'create', [$this->input->body()]);
+            $response = $this->preformCRUD($this->defaultModel, 'create', [$this->input->body()], 'id');
         } catch (ValidationFailed $vf) {
             $response = $this->rest406($vf);
         }

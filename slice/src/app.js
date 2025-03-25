@@ -50,7 +50,10 @@ class App {
      */
     rebind() {
         if (this.appElement) {
+            console.log(this.model);
             tinybind.bind(this.appElement, this.model);
+        } else {
+            console.error('app element invalid.');
         }
     }
 
@@ -71,7 +74,7 @@ class App {
      * @param {object} args 
      */
     go(args) {
-        this.onAttrs(undefined, args);
+        this.onAttrs(args);
     }
 
     /**
@@ -80,7 +83,7 @@ class App {
      * @param {string} prefixText - A prefix for attribute keys
      * @param {object} args - Arguments containing action keys and values
      */
-    onAttrs(prefixText, args) {
+    onAttrs(args, prefixText) {
         const prefix = prefixText ? `on-${prefixText}-` : '';
 
         if (args[`${prefix}action`]) {
@@ -167,7 +170,7 @@ class App {
                 this.callModelActions(args[`on-${mapping.key}-action`], args);
             }
             if (mapping.attr) {
-                this.onAttrs(mapping.attr, args);
+                this.onAttrs(args, mapping.attr);
             }
         };
 
@@ -200,7 +203,7 @@ class App {
         }
 
         if (element) {
-            this.onAttrs(undefined, { element, app: this, ...this.getAttr(element) });
+            this.onAttrs({ element, app: this, ...this.getAttr(element) });
         } else {
             console.error('Not a DOM element:', element);
         }
@@ -304,9 +307,15 @@ class App {
      */
     getAttr(element) {
         const attrs = {};
-        for (const attr of element.attributes) {
-            attrs[attr.name] = attr.value;
+
+        if (element.attributes) {
+            for (const attr of element.attributes) {
+                attrs[attr.name] = attr.value;
+            }
+        } else {
+            console.error('does not have attributes', element);
         }
+
         return attrs;
     }
 
