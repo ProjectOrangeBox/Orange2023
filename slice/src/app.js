@@ -7,7 +7,7 @@ class App {
     model;
     // app internal storage
     storage = {};
-
+    // ajax call mapping - action to call
     sendMapping = {
         // ok
         200: { status: 'ok', prefix: 'success' },
@@ -77,10 +77,22 @@ class App {
         this.onAttrs(args);
     }
 
+    /**
+     * wrapper for successful ajax response
+     * do the on-success-* attributes
+     * 
+     * @param {object} args - Arguments containing action keys and values
+     */
     onSuccessAttrs(args) {
         this.onAttrs(args, 'on-success-');
     }
 
+    /**
+     * wrapper for failed ajax response
+     * do the on-failure-* attributes
+     * 
+     * @param {object} args - Arguments containing action keys and values
+     */
     onFailureAttrs(args) {
         this.onAttrs(args, 'on-failure-');
     }
@@ -88,8 +100,8 @@ class App {
     /**
      * Handles various actions based on event attributes.
      * 
-     * @param {string} prefixText - A prefix for attribute keys
      * @param {object} args - Arguments containing action keys and values
+     * @param {string} prefixText - A prefix for attribute keys
      */
     onAttrs(args, prefixText) {
         const prefix = prefixText ?? '';
@@ -161,7 +173,7 @@ class App {
      * @param {string} method 
      * @param {object} args 
      */
-    send(url, method = 'GET', args) {
+    send(url, method = 'GET', args = {}) {
         const xhr = new XMLHttpRequest();
 
         xhr.open(method.toUpperCase(), url);
@@ -174,7 +186,7 @@ class App {
 
             const mapping = this.sendMapping[xhr.status] || this.sendMapping.default;
 
-            // ie. on-created-action
+            // ie. on-created-*
             if (mapping.status) {
                 this.onAttrs(args, 'on-' + mapping.status + '-');
             }
@@ -186,7 +198,12 @@ class App {
         };
 
         xhr.onerror = () => {
+            args.xhr = xhr;
+            args.json = xhr.response;
+
             console.error('Network Error');
+
+            this.onAttrs(args, 'on-error-');
         };
 
         xhr.send(args.jsonText ?? undefined);

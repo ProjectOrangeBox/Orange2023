@@ -49,6 +49,8 @@ var people = {
             // called from on-success-action
             people.actions.clearValidation();
 
+            people.updateRecord.colorname = searchArrayOfObjects(people.colorDropDown, people.updateRecord.color, 'id', 'name');
+
             // trigger each property "update" so tinybind updates the list
             for (const key in people.updateRecord) {
                 people.list[people.currentIndex][key] = people.updateRecord[key];

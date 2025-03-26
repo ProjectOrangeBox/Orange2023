@@ -15,7 +15,7 @@
     <div class="mb-3">
     <div class="form-group">
             <label for="frm_color" class="form-label">Color</label>
-            <select  rv-value="updateRecord.color | default 4" rv-refresh="refresh.colordropdown" rv-class-is-invalid="validation.invalid.color" model="<?= getUrl('peopleColorDropdown') ?>" on-success-property="colorDropDown" name="color" class="form-control">
+            <select rv-class-is-invalid="validation.invalid.color" class="form-control" name="color" id="frm_color" rv-value="updateRecord.color">
                 <option rv-each-row="colorDropDown" rv-value="row.id" rv-text="row.name"></option>
             </select>
         </div>
