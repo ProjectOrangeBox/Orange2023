@@ -1,1 +1,1 @@
-var app = new App('app', window[getModelName()]);
+var tbapp = new App('app', window[getModelName()]);

@@ -35,7 +35,7 @@ class App {
         this.appElement = document.getElementById(id);
         this.model = model;
         // Expose the instance globally for easy access
-        window['@tinybind'] = this;
+        window['@tinybindApp'] = this;
 
         // If a start function is defined in the model, execute it
         if (model?.start) {

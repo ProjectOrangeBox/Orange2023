@@ -48,8 +48,10 @@ tinybind.binders['theme-modal-show'] = function (el, value) {
     }
 };
 
-tinybind.binders['refresh'] = function (el, value) {
-    window['@tinybind'].updateModel(el);
+tinybind.binders['refresh'] = function (element) {
+    const app = window['@tinybindApp'];
+
+    app.onAttrs({ element, app: app, ...app.getAttr(element) });
 };
 
 /*

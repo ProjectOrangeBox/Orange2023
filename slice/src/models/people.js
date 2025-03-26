@@ -34,7 +34,7 @@ var people = {
     // rv-on-click="actions.redirect | args '/go/here'"
     actions: {
         go() {
-            app.go({ element: this, app: arguments[1], ...app.getAttr(this) });
+            tbapp.go({ element: this, tbapp: arguments[1], ...tbapp.getAttr(this) });
         },
         update(index) {
             // save this for success
@@ -43,7 +43,7 @@ var people = {
             people.updateRecord = Object.assign({}, people.list[people.currentIndex]);
 
             // do the other stuff on the DOM element
-            app.onAttrs({ ...app.getAttr(this) });
+            tbapp.onAttrs({ ...app.getAttr(this) });
         },
         updatedSuccess(app, args) {
             // called from on-success-action
@@ -64,7 +64,7 @@ var people = {
             }
 
             // do the other stuff on the DOM element
-            app.onAttrs({ ...app.getAttr(this) });
+            tbapp.onAttrs({ ...tbapp.getAttr(this) });
         },
         createdSuccess(app, args) {
             // called from on-success-action
@@ -85,7 +85,7 @@ var people = {
             people.deleteRecord = people.list[people.currentIndex];
 
             // do the other stuff on the DOM element
-            app.onAttrs({ ...app.getAttr(this) });
+            tbapp.onAttrs({ ...tbapp.getAttr(this) });
         },
         deletedSuccess() {
             // called from on-success-action
@@ -94,7 +94,7 @@ var people = {
             people.list.splice(people.currentIndex, 1);
         },
         redirect(url) {
-            app.redirect(url);
+            tbapp.redirect(url);
         },
         // called by on-then
         clearValidation() {
