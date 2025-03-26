@@ -1,4 +1,4 @@
-<div rv-add-show-class="show.read" class="masthead container">
+<div rv-show="show.read" class="masthead container">
     <div class="mb-3">
         <label for="frm_firstname" class="form-label">First Name</label>
         <input type="text" readonly class="form-control" id="frm_firstname" name="firstname" rv-value="readRecord.firstname">

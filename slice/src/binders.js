@@ -28,24 +28,6 @@ tinybind.binders.height = function (el, value) {
 
     boolean T/F
 */
-tinybind.binders['add-show-class'] = function (el, value) {
-    let elClass = " " + el.className + " ";
-    let classname = 'd-none';
-
-    if (value === elClass.indexOf(" " + classname + " ") > -1) {
-        if (elClass.indexOf(" " + classname + " ") == -1) {
-            el.className = el.className + " " + classname;
-        } else {
-            el.className = elClass.replace(" " + classname + " ", ' ').trim();
-        }
-    }
-};
-
-/*
-    rv-theme-modal-show="model.property"
-
-    boolean T/F
-*/
 tinybind.binders['theme-modal-show'] = function (el, value) {
     if (!window.modalStorage) {
         window.modalStorage = {};

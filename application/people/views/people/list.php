@@ -1,4 +1,4 @@
-<div rv-refresh="refresh.grid" rv-add-show-class="show.grid" class="masthead container" model="<?= getUrl('peopleReadAll') ?>" on-success-property="list">
+<div rv-refresh="refresh.grid" rv-show="show.grid" class="masthead container" model="<?= getUrl('peopleReadAll') ?>" on-success-property="list">
     <table id="table" class="table table-striped">
         <thead>
             <tr>
