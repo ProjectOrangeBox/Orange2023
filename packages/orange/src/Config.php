@@ -122,7 +122,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
      * @param mixed $defaultValue Default value if the key does not exist.
      * @return mixed Configuration value or default value if key not found.
      */
-    public function get(string $filename, string $key = null, mixed $defaultValue = null): mixed
+    public function get(string $filename, ?string $key = null, mixed $defaultValue = null): mixed
     {
         logMsg('INFO', __METHOD__ . ' ' . $filename . '.' . ($key ?? '*'));
 

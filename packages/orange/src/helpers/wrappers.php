@@ -34,10 +34,14 @@ if (!function_exists('logMsg')) {
 
 /* wrapper to read a config value */
 if (!function_exists('config')) {
-    function config(string $filename, string $key, mixed $default = null): mixed
+    function config(?string $filename = null, ?string $key = null, mixed $default = null): mixed
     {
         try {
-            $config = container()->config->get($filename, $key, $default);
+            if ($filename === null && $key === null && $default === null) {
+                $config = container()->config;
+            } else {
+                $config = container()->config->get($filename, $key, $default);
+            }
         } catch (Throwable $e) {
             // config not setup?
             // fallback to default
@@ -50,9 +54,19 @@ if (!function_exists('config')) {
 
 /* wrapper for router get url */
 if (!function_exists('getUrl')) {
-    function getUrl(string $searchName, array $arguments = [], bool $skipCheckingType = null): string
+    function getUrl(string $searchName, array $arguments = [], ?bool $skipCheckingType = null): string
     {
         // throws an exception if the router service isn't setup
         return container()->router->getUrl($searchName, $arguments, $skipCheckingType);
     }
+}
+
+/* wrapper for input */
+if (!function_exists('input')) {
+    return container()->input;
+}
+
+/* wrapper for output */
+if (!function_exists('output')) {
+    return container()->output;
 }

@@ -1,4 +1,4 @@
-var people = {
+const people = {
     // single records
     createRecord: {},
     updateRecord: {},
