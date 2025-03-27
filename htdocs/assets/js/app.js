@@ -216,7 +216,7 @@ return tinybind.formatters.toArray(target).length;};tinybind.formatters.join=fun
 return"";};tinybind.formatters.enum=function(el,value){return arguments[parseInt(arguments[0])+1];};tinybind.formatters.arrayValuesToString=function(target){if(Array.isArray(target)){target.forEach(function(value,index){target[index]=value.toString();});}
 return target;};tinybind.formatters.replace=function(target){return String.format(target,...arguments);}
 tinybind.formatters.eq=tinybind.formatters.isEqual;tinybind.formatters.ne=function(target,val){return tinybind.formatters.negate(tinybind.formatters.isEqual(target,val));};tinybind.formatters.lt=tinybind.formatters.isLess;tinybind.formatters.gt=tinybind.formatters.isGreater;tinybind.formatters.le=tinybind.formatters.isLessEqual;tinybind.formatters.lte=tinybind.formatters.isLessEqual;tinybind.formatters.ge=tinybind.formatters.isGreaterEqual;tinybind.formatters.gte=tinybind.formatters.isGreaterEqual;tinybind.formatters.prv=tinybind.formatters.preventDefault;tinybind.formatters.format=tinybind.formatters.dateFormat;tinybind.formatters.len=tinybind.formatters.length;tinybind.formatters.def=tinybind.formatters.default;tinybind.formatters.neg=tinybind.formatters.negate;tinybind.formatters.date=tinybind.formatters.dateFormat;tinybind.formatters.stringify=tinybind.formatters.prettyPrint;tinybind.formatters.int=tinybind.formatters.integer;tinybind.formatters.isLower=tinybind.formatters.isLess;tinybind.formatters.isLowerEqual=tinybind.formatters.isLessEqual;
-function getModelName(){let modelname=window.location.pathname.replace(/^\/+|\/+$/g,'').replaceAll('/',' ');modelname.replace(/(?:^\w|[A-Z]|\b\w)/g,function(word,index){return index==0?word.toLowerCase():word.toUpperCase();}).replace(/\s+/g,'');return modelname.charAt(0).toUpperCase()+modelname.slice(1);}
+function getModelName(){let modelname=window.location.pathname.replace(/^\/+|\/+$/g,'').replaceAll('/',' ');modelname.replace(/(?:^\w|[A-Z]|\b\w)/g,function(word,index){return index==0?word.toLowerCase():word.toUpperCase();}).replace(/\s+/g,'_');return modelname.charAt(0).toUpperCase()+modelname.slice(1);}
 function uuidv4(){return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){const r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16);});}
 if(!String.format){String.format=function(format){var args=Array.prototype.slice.call(arguments,1);return format.replace(/{(\d+)}/g,function(match,number){return typeof args[number]!='undefined'?args[number]:match;});};}
 function dotToObject(dotNotationString,value){const parts=dotNotationString.split('.');let obj={};let current=obj;for(let i=0;i<parts.length-1;i++){const part=parts[i];current[part]={};current=current[part];}
@@ -263,7 +263,7 @@ return value;}
 getAttr(element){const attrs={};if(element.attributes){for(const attr of element.attributes){attrs[attr.name]=attr.value;}}else{console.error('does not have attributes',element);}
 return attrs;}
 split(arg){return Array.isArray(arg)?arg:arg.split(',');}}
-var ourApplication=new App('app',People);
+var ourApplication=new App('app',window[getModelName()]);
 /*!
 * Start Bootstrap - Freelancer v7.0.7 (https://startbootstrap.com/theme/freelancer)
 * Copyright 2013-2023 Start Bootstrap
