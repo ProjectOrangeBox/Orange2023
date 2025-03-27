@@ -1,4 +1,4 @@
-const people = {
+var People = {
     // single records
     createRecord: {},
     updateRecord: {},
@@ -30,82 +30,82 @@ const people = {
         colordropdown: true,
     },
 
+    construct(app) {
+        console.log('Welcome!', app);
+    },
+
     // rv-on-click="actions.go"
     // rv-on-click="actions.redirect | args '/go/here'"
     actions: {
         go() {
-            tbapp.go({ element: this, tbapp: arguments[1], ...tbapp.getAttr(this) });
+            window['@app'].go({ element: this, app: arguments[1], ...window['@app'].getAttr(this) });
         },
         update(index) {
             // save this for success
-            people.currentIndex = index;
+            People.currentIndex = index;
             // make a copy of this so we are not working on a reference to the original record
-            people.updateRecord = Object.assign({}, people.list[people.currentIndex]);
+            People.updateRecord = Object.assign({}, People.list[People.currentIndex]);
 
             // do the other stuff on the DOM element
-            tbapp.onAttrs({ ...app.getAttr(this) });
+            window['@app'].onAttrs({ ...window['@app'].getAttr(this) });
         },
         updatedSuccess(app, args) {
             // called from on-success-action
-            people.actions.clearValidation();
+            People.actions.clearValidation();
 
-            people.updateRecord.colorname = searchArrayOfObjects(people.colorDropDown, people.updateRecord.color, 'id', 'name');
+            People.updateRecord.colorname = searchArrayOfObjects(People.colorDropDown, People.updateRecord.color, 'id', 'name');
 
             // trigger each property "update" so tinybind updates the list
-            for (const key in people.updateRecord) {
-                people.list[people.currentIndex][key] = people.updateRecord[key];
+            for (const key in People.updateRecord) {
+                People.list[People.currentIndex][key] = People.updateRecord[key];
             }
         },
         create() {
             // defaults - this could also be retrieved from a rest call
-            people.createRecord = {
+            People.createRecord = {
                 age: 18,
                 color: 6,
             }
 
             // do the other stuff on the DOM element
-            tbapp.onAttrs({ ...tbapp.getAttr(this) });
+            window['@app'].onAttrs({ ...window['@app'].getAttr(this) });
         },
         createdSuccess(app, args) {
             // called from on-success-action
-            people.actions.clearValidation();
+            People.actions.clearValidation();
 
             // put the returned primary id in the record for rests calls back to the server
-            people.createRecord.id = args.json.id;
+            People.createRecord.id = args.json.id;
             // find the human readable version of the color id (which is a integer foreign key on the server)
-            people.createRecord.colorname = searchArrayOfObjects(people.colorDropDown, people.createRecord.color, 'id', 'name');
+            People.createRecord.colorname = searchArrayOfObjects(People.colorDropDown, People.createRecord.color, 'id', 'name');
 
             // push the record onto the list array and tinybind will update it
-            people.list.push(people.createRecord);
+            People.list.push(People.createRecord);
         },
         delete(index) {
             // save this for success
-            people.currentIndex = index;
+            People.currentIndex = index;
             // put a copy in the delete views record object
-            people.deleteRecord = people.list[people.currentIndex];
+            People.deleteRecord = People.list[People.currentIndex];
 
             // do the other stuff on the DOM element
-            tbapp.onAttrs({ ...tbapp.getAttr(this) });
+            window['@app'].onAttrs({ ...window['@app'].getAttr(this) });
         },
         deletedSuccess() {
             // called from on-success-action
 
             // pull the records from the list view array
-            people.list.splice(people.currentIndex, 1);
+            People.list.splice(People.currentIndex, 1);
         },
         redirect(url) {
-            tbapp.redirect(url);
+            window['@app'].redirect(url);
         },
         // called by on-then
         clearValidation() {
             // clear out all validation
-            people.validation.invalid = {};
-            people.validation.show = false;
-            people.validation.array = [];
+            People.validation.invalid = {};
+            People.validation.show = false;
+            People.validation.array = [];
         },
-    },
-
-    construct(app) {
-        console.log('Welcome!', app);
     },
 };

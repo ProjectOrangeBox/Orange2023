@@ -34,12 +34,13 @@ class App {
         this.id = id;
         this.appElement = document.getElementById(id);
         this.model = model;
+
         // Expose the instance globally for easy access
-        window['@tinybindApp'] = this;
+        window['@app'] = this;
 
         // If a start function is defined in the model, execute it
-        if (model?.start) {
-            model.start(this);
+        if (model?.construct) {
+            model.construct(this);
         }
 
         this.rebind();
@@ -50,7 +51,6 @@ class App {
      */
     rebind() {
         if (this.appElement) {
-            console.log(this.model);
             tinybind.bind(this.appElement, this.model);
         } else {
             console.error('app element invalid.');

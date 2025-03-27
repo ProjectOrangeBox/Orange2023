@@ -49,7 +49,7 @@ tinybind.binders['theme-modal-show'] = function (el, value) {
 };
 
 tinybind.binders['refresh'] = function (element) {
-    const app = window['@tinybindApp'];
+    const app = window['@app'];
 
     app.onAttrs({ element, app: app, ...app.getAttr(element) });
 };

@@ -2,10 +2,14 @@
 
 declare(strict_types=1);
 
+use orange\framework\interfaces\InputInterface;
+use orange\framework\interfaces\OutputInterface;
+
 /*
  * This is the easiest way to get the container instance
  * which is attached to the Application Class
  */
+
 if (!function_exists('container')) {
     function container(): orange\framework\interfaces\ContainerInterface
     {
@@ -63,10 +67,16 @@ if (!function_exists('getUrl')) {
 
 /* wrapper for input */
 if (!function_exists('input')) {
-    return container()->input;
+    function input(): InputInterface
+    {
+        return container()->input;
+    }
 }
 
 /* wrapper for output */
 if (!function_exists('output')) {
-    return container()->output;
+    function output(): OutputInterface
+    {
+        return container()->output;
+    }
 }
