@@ -111,17 +111,23 @@ class App {
         }
 
         if (args[`${prefix}node`]) {
-            args.json = this.getProperty(args.json, args[`${prefix}node`]);
+            args.json = this.getProperties(args.json, args[`${prefix}node`]);
         }
 
+        // if there is json and the want to put it into a property
         if (args.json && args[`${prefix}property`]) {
             this.setProperty(undefined, args[`${prefix}property`], args.json);
         }
 
+        // if it has a model url
         if (args[`${prefix}model`]) {
+            // and it has a property to make the json from 
             if (args[`${prefix}property`]) {
-                args.jsonText = JSON.stringify(this.getProperty(undefined, args[`${prefix}property`]));
+                const payload = this.getProperties(undefined, args[`${prefix}property`]);
+                console.log(payload);
+                args.jsonText = JSON.stringify(payload);
             }
+            // now send the ajax request
             this.send(args[`${prefix}model`], args[`${prefix}method`], args);
         }
 
@@ -130,7 +136,9 @@ class App {
         }
 
         if (args[`${prefix}toggle`]) {
-            this.setProperties(undefined, args[`${prefix}toggle`], !this.getProperty(undefined, args[`${prefix}toggle`]));
+            const current = this.getProperties(undefined, args[`${prefix}toggle`]);
+
+            this.setProperties(undefined, args[`${prefix}toggle`], !current);
         }
 
         if (args[`${prefix}hide`]) {
@@ -257,6 +265,7 @@ class App {
      */
     callModelAction(modelMethodName, args) {
         const action = this.getProperty(undefined, modelMethodName);
+
         if (typeof action === 'function') {
             action(this, args);
         } else {
@@ -268,12 +277,12 @@ class App {
      * Updates multiple properties.
      * 
      * @param {object} obj 
-     * @param {string|Array} properties 
+     * @param {string|Array} dotnotations 
      * @param {*} value 
      */
-    setProperties(obj, properties, value) {
-        for (const property of this.split(properties)) {
-            this.setProperty(obj, property, value);
+    setProperties(obj, dotnotations, value) {
+        for (const dotnotation of this.split(dotnotations)) {
+            this.setProperty(obj, dotnotation, value);
         }
     }
 
@@ -304,6 +313,30 @@ class App {
             }
             current[properties[properties.length - 1]] = value;
         }
+    }
+
+    /**
+     * get properties and build a new object from them
+     * if there is only 1 property you want to read then it is only that property
+     * if it is more than 1 property then the key will be the dot notation to each property
+     * 
+     * @param {object} obj - The object to read from (defaults to this.model)
+     * @param {string|Array} dotnotations 
+     * @returns 
+     */
+    getProperties(obj, dotnotations) {
+        let newObject = {};
+        const dns = this.split(dotnotations)
+
+        if (dns.length == 1) {
+            newObject = this.getProperty(obj, dotnotations);
+        } else {
+            for (const dotnotation of dns) {
+                newObject[dotnotation] = this.getProperty(obj, dotnotation);
+            }
+        }
+
+        return newObject;
     }
 
     /**

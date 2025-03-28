@@ -233,12 +233,12 @@ go(args){this.onAttrs(args);}
 onSuccessAttrs(args){this.onAttrs(args,'on-success-');}
 onFailureAttrs(args){this.onAttrs(args,'on-failure-');}
 onAttrs(args,prefixText){const prefix=prefixText??'';if(args[`${prefix}action`]){this.callModelActions(args[`${prefix}action`],args);}
-if(args[`${prefix}node`]){args.json=this.getProperty(args.json,args[`${prefix}node`]);}
+if(args[`${prefix}node`]){args.json=this.getProperties(args.json,args[`${prefix}node`]);}
 if(args.json&&args[`${prefix}property`]){this.setProperty(undefined,args[`${prefix}property`],args.json);}
-if(args[`${prefix}model`]){if(args[`${prefix}property`]){args.jsonText=JSON.stringify(this.getProperty(undefined,args[`${prefix}property`]));}
+if(args[`${prefix}model`]){if(args[`${prefix}property`]){const payload=this.getProperties(undefined,args[`${prefix}property`]);console.log(payload);args.jsonText=JSON.stringify(payload);}
 this.send(args[`${prefix}model`],args[`${prefix}method`],args);}
 if(args[`${prefix}refresh`]){this.setProperties(undefined,args[`${prefix}refresh`],new Date());}
-if(args[`${prefix}toggle`]){this.setProperties(undefined,args[`${prefix}toggle`],!this.getProperty(undefined,args[`${prefix}toggle`]));}
+if(args[`${prefix}toggle`]){const current=this.getProperties(undefined,args[`${prefix}toggle`]);this.setProperties(undefined,args[`${prefix}toggle`],!current);}
 if(args[`${prefix}hide`]){this.setProperties(undefined,args[`${prefix}hide`],false);}
 if(args[`${prefix}false`]){this.setProperties(undefined,args[`${prefix}false`],false);}
 if(args[`${prefix}show`]){this.setProperties(undefined,args[`${prefix}show`],true);}
@@ -254,10 +254,13 @@ updateModel(element){if(typeof element==='string'){element=document.getElementBy
 if(element){this.onAttrs({element,app:this,...this.getAttr(element)});}else{console.error('Not a DOM element:',element);}}
 callModelActions(modelMethodNames,args){for(const methodName of this.split(modelMethodNames)){this.callModelAction(methodName,args);}}
 callModelAction(modelMethodName,args){const action=this.getProperty(undefined,modelMethodName);if(typeof action==='function'){action(this,args);}else{console.error(`Model action "${modelMethodName}" is not a function.`);}}
-setProperties(obj,properties,value){for(const property of this.split(properties)){this.setProperty(obj,property,value);}}
+setProperties(obj,dotnotations,value){for(const dotnotation of this.split(dotnotations)){this.setProperty(obj,dotnotation,value);}}
 setProperty(obj,dotnotation,value){let current=obj??this.model;if(dotnotation===tinybind.rootInterface){Object.entries(value).forEach(([k,v])=>{if(!['construct','actions'].includes(k)){current[k]=v;}});}else{const properties=dotnotation.split('.');for(let i=0;i<properties.length-1;i++){const prop=properties[i];if(current[prop]===undefined||current[prop]===null){current[prop]={};}
 current=current[prop];}
 current[properties[properties.length-1]]=value;}}
+getProperties(obj,dotnotations){let newObject={};const dns=this.split(dotnotations)
+if(dns.length==1){newObject=this.getProperty(obj,dotnotations);}else{for(const dotnotation of dns){newObject[dotnotation]=this.getProperty(obj,dotnotation);}}
+return newObject;}
 getProperty(obj,dotnotation){let value=obj??this.model;if(dotnotation!==tinybind.rootInterface){for(const prop of dotnotation.split('.')){if(value&&typeof value==='object'&&Object.prototype.hasOwnProperty.call(value,prop)){value=value[prop];}else{return undefined;}}}
 return value;}
 getAttr(element){const attrs={};if(element.attributes){for(const attr of element.attributes){attrs[attr.name]=attr.value;}}else{console.error('does not have attributes',element);}
