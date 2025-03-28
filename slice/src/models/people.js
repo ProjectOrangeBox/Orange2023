@@ -109,3 +109,5 @@ var People = {
         },
     },
 };
+
+export default People;

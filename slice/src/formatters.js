@@ -1,3 +1,5 @@
+import tinybind from 'tinybind';
+
 /**
  * These are formatters attached directly to tinybind
  *

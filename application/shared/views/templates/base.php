@@ -10,14 +10,13 @@
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
     <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
-    <link href="/assets/css/app.css" rel="stylesheet">
     <?= fig::value('css') ?>
 </head>
 
 <body id="app">
     <?= fig::include('partials/nav') ?>
     <?= fig::value('body') ?>
-    <script src="/assets/js/app.js"></script>
+    <script src="/assets/bundle.js"></script>
     <?= fig::value('script') ?>
     <?= fig::value('js') ?>
 </body>

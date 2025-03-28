@@ -1,3 +1,6 @@
+import tinybind from 'tinybind';
+import * as bootstrap from 'bootstrap'
+
 /**
  * These are attached directly to tinybind
  *

@@ -1,4 +1,6 @@
-class App {
+import tinybind from 'tinybind';
+
+export default class App {
     // DOM id to attach to
     id;
     // DOM id element
@@ -31,6 +33,7 @@ class App {
      * @param {object} model - Data model
      */
     constructor(id, model) {
+        console.log(id,model);
         this.id = id;
         this.appElement = document.getElementById(id);
         this.model = model;
@@ -389,4 +392,4 @@ class App {
     split(arg) {
         return Array.isArray(arg) ? arg : arg.split(',');
     }
-}
+};
