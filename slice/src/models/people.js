@@ -1,3 +1,5 @@
+import { searchArrayOfObjects } from '../globalFunctions.js';
+
 var People = {
     // single records
     createRecord: {},
@@ -53,6 +55,7 @@ var People = {
             // called from on-success-action
             People.actions.clearValidation();
 
+            // find the color name in People.colorDropDown based on the color id in People.updateRecord.color
             People.updateRecord.colorname = searchArrayOfObjects(People.colorDropDown, People.updateRecord.color, 'id', 'name');
 
             // trigger each property "update" so tinybind updates the list

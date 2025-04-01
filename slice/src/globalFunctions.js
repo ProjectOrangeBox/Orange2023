@@ -29,6 +29,7 @@ export function searchArrayOfObjects(array, id2Match, idKey, nameKey) {
     }
     return matched;
 }
+
 if (!String.format) {
     String.format = function (format) {
         var args = Array.prototype.slice.call(arguments, 1);
@@ -39,4 +40,9 @@ if (!String.format) {
                 ;
         });
     };
+}
+
+// module1.js
+export const greet = (name) => {
+    console.log(`Hello, ${name}!`);
 }

@@ -30,9 +30,7 @@ abstract class CrudController extends BaseController
         $this->data['json'] = [];
         $this->data['contentType'] = 'json';
 
-        // throws an exception which is caught by
-        // exceptionHandler(Throwable $exception): void
-        // which sends output based on the exception thrown
+        // throws an exception on error(s)
         $results = $this->$model->$method(...$args);
 
         // if you get here it is a success

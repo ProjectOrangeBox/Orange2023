@@ -294,7 +294,7 @@ class Input extends Singleton implements InputInterface
      * @param string|null $key Optional sub-key.
      * @return bool
      */
-    public function has(string $name, string $key = null): bool
+    public function has(string $name, ?string $key = null): bool
     {
         logMsg('INFO', __METHOD__ . ' ' . $name . ' ' . $key);
 

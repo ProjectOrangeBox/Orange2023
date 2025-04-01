@@ -242,7 +242,7 @@ class Router extends Singleton implements RouterInterface
      * @return mixed The value of the matched key or all matched data.
      * @throws InvalidValue If an invalid key is requested.
      */
-    public function getMatched(string $key = null): mixed /* mixed string|array */
+    public function getMatched(?string $key = null): mixed /* mixed string|array */
     {
         logMsg('DEBUG', __METHOD__, ['key' => $key]);
 

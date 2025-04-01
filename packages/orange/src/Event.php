@@ -214,7 +214,7 @@ class Event extends Singleton implements EventInterface
      * @param string|null $trigger Event trigger name (optional).
      * @return bool True if listeners were removed.
      */
-    public function unregisterAll(string $trigger = null): bool
+    public function unregisterAll(?string $trigger = null): bool
     {
         logMsg('DEBUG', __METHOD__, ['trigger' => $trigger]);
 

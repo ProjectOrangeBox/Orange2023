@@ -9,7 +9,7 @@ use orange\framework\exceptions\OrangeException;
 
 class Http extends OrangeException
 {
-    public function __construct(string $message = '', int $code = 0, Throwable $previous = null)
+    public function __construct(string $message = '', int $code = 0, ?Throwable $previous = null)
     {
         if ($code == 0) {
             // get the last 3 digits of the class name ie. Http304
@@ -23,6 +23,7 @@ class Http extends OrangeException
 
         if (empty($message)) {
             // if the message is empty then use the HTTP message for the status code
+            // config may or may not be setup so we will just go old school and grab ours directly
             $statusCodes = require __DIR__ . '/../../config/statusCodes.php';
 
             // if we have a match then use that
