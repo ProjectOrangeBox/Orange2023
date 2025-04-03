@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace peels\mergeView;
 
-use orange\framework\ViewAbstract;
+use orange\framework\abstract\ViewAbstract;
 use orange\framework\interfaces\DataInterface;
 use orange\framework\interfaces\ViewInterface;
 
@@ -23,8 +23,6 @@ use orange\framework\interfaces\ViewInterface;
 
 class MergeView extends ViewAbstract implements ViewInterface
 {
-    private static ?ViewInterface $instance = null;
-
     protected Merge $merge;
     protected array $pluginHandler;
 
@@ -36,23 +34,12 @@ class MergeView extends ViewAbstract implements ViewInterface
         parent::__construct($config, $data);
     }
 
-    public static function getInstance(array $configMergeview, ?DataInterface $data = null): self
-    {
-        if (self::$instance === null) {
-            // because this is an abstract class we can not instantiate it
-            // so get the calling class
-            self::$instance = new self($configMergeview, $data);
-        }
-
-        return self::$instance;
-    }
-
-    public function render(string $view = '', array $data = []): string
+    public function render(string $view = '', array $data = [], array $options = []): string
     {
         return $this->merge->parse(file_get_contents($view), $this->data($data), $this->pluginHandler);
     }
 
-    public function renderString(string $string, array $data = []): string
+    public function renderString(string $string, array $data = [], array $options = []): string
     {
         return $this->merge->parse($string, $this->data($data), $this->pluginHandler);
     }

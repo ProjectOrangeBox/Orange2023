@@ -107,7 +107,7 @@ class Security extends Singleton implements SecurityInterface
     {
         $key = file_get_contents($this->getKeyFilePath('public'));
 
-        // Convert to hex without side-chanels
+        // Convert to hex without side-channels
         $encrypted = sodium_bin2hex(sodium_crypto_box_seal($data, $key));
 
         // Overwrite a string with NUL characters
@@ -134,7 +134,7 @@ class Security extends Singleton implements SecurityInterface
             throw new SecurityException('decrypt data argument invalid');
         }
 
-        // Convert from hex without side-chanels
+        // Convert from hex without side-channels
         $data = sodium_hex2bin($data);
 
         // Anonymous public-key encryption (decrypt)
@@ -157,7 +157,7 @@ class Security extends Singleton implements SecurityInterface
     {
         $key = file_get_contents($this->getKeyFilePath('auth'));
 
-        // Convert to hex without side-chanels
+        // Convert to hex without side-channels
         $token = sodium_bin2hex(sodium_crypto_auth($message, $key));
 
         // Overwrite a string with NUL characters
@@ -180,7 +180,7 @@ class Security extends Singleton implements SecurityInterface
 
         // Check for character(s) representing a hexadecimal digit
         if (ctype_xdigit($signature)) {
-            // Convert from hex without side-chanels
+            // Convert from hex without side-channels
             $signature = sodium_hex2bin($signature);
 
             if (mb_strlen($signature, '8bit') === SODIUM_CRYPTO_AUTH_BYTES) {
