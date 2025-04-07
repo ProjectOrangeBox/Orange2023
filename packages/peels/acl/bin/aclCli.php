@@ -30,7 +30,7 @@ try {
     // #1
     $user = $acl->createUser('dmyers', 'dmyers@email.com', 'password', ['is_active' => 1]);
 } catch (ValidationFailed $e) {
-    echo 'ValidationFailed: ' . $e->getErrorsAsHtml('<i class="fa-solid fa-triangle-exclamation"></i> ','','</br>') . PHP_EOL;
+    echo 'ValidationFailed: ' . $e->getErrorsAsHtml('<i class="fa-solid fa-triangle-exclamation"></i> ', '', '</br>') . PHP_EOL;
 } catch (Throwable $e) {
     echo 'Throwable: ' . $e->getMessage() . PHP_EOL;
 }
