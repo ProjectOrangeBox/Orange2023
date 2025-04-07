@@ -349,7 +349,7 @@ class Error extends Singleton
 
             // default orange namespace
             $namespace = '\\orange\\framework\\' . $className;
-            
+
             if (empty($arguments)) {
                 $service = $namespace::getInstance();
             } else {

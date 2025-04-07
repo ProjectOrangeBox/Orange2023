@@ -6,6 +6,7 @@ namespace orange\framework\base;
 
 use ArrayObject;
 use orange\framework\exceptions\MagicMethodNotFound;
+use orange\framework\exceptions\container\CannotCloneSingleton;
 use orange\framework\exceptions\container\CannotUnserializeSingleton;
 
 class SingletonArrayObject extends ArrayObject
@@ -33,6 +34,7 @@ class SingletonArrayObject extends ArrayObject
      */
     protected function __clone()
     {
+        throw new CannotCloneSingleton();
     }
 
     public function __wakeup()
@@ -45,14 +47,14 @@ class SingletonArrayObject extends ArrayObject
      */
     public static function getInstance(): mixed
     {
+        // Note that here we use the "static" keyword instead of the actual
+        // class name. In this context, the "static" keyword means "the name
+        // of the current class". That detail is important because when the
+        // method is called on the subclass, we want an instance of that
+        // subclass to be created here.
         $subclass = static::class;
 
         if (!isset(self::$instances[$subclass])) {
-            // Note that here we use the "static" keyword instead of the actual
-            // class name. In this context, the "static" keyword means "the name
-            // of the current class". That detail is important because when the
-            // method is called on the subclass, we want an instance of that
-            // subclass to be created here.
             $args = func_get_args();
 
             self::$instances[$subclass] = self::newInstance(...$args);
