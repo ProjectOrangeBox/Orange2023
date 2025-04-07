@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use peels\acl\Acl;
 use peels\acl\User;
+use \orange\framework\Application;
 use peels\validate\exceptions\ValidationFailed;
 
 define('__ROOT__', realpath(__DIR__ . '/../../../../'));
@@ -12,7 +13,7 @@ define('__ROOT__', realpath(__DIR__ . '/../../../../'));
 require_once __ROOT__ . '/vendor/autoload.php';
 
 /* send config into application */
-$container = cli(include __ROOT__ . '/config/config.php');
+$container = Application::cli(include __ROOT__ . '/config/config.php');
 
 $pdo = $container->pdo;
 
