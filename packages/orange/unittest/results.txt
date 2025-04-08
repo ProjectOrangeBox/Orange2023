@@ -1,0 +1,147 @@
+Config
+ [x] Get
+ [x] Get key
+ [x] M M Get
+ [x] Invalid config file
+
+Container
+ [x] get
+ [x] Get
+ [x] set
+ [x] Set
+ [x] isset
+ [x] Isset
+ [x] Has
+ [x] unset
+ [x] Unset
+ [x] Remove
+ [x] Service not found exception
+
+Cookie
+ [x] Set
+ [x] Get
+ [x] Has
+ [x] Remove
+
+Data
+ [x] Data
+ [x] Merge
+
+Directory Search
+ [x] Add directory
+ [x] Add directories
+ [x] Remove directory
+ [x] Remove directories
+ [x] Replace directories
+ [x] Add resource
+ [x] Add resources
+ [x] Replace resources
+ [x] Find all
+ [x] Find first
+ [x] Find last
+
+Dispatcher
+ [x] Call
+ [x] Controller class not found exception
+ [x] Method not found exception
+
+Event
+ [x] Register closure
+ [x] Register class method
+ [x] Register event unknown callable exception
+ [x] Register event array count exception
+ [x] Register event called array exception
+ [x] Register multiple
+ [x] Trigger
+ [x] Trigger class method
+ [x] Unregister
+ [x] Unregister all
+
+Helpers
+ [x] Container
+ [x] Log msg
+ [x] File put contents atomic
+ [x] Concat
+ [x] Config
+
+Input
+ [x] Raw get
+ [x] Raw body
+ [x] Has
+ [x] Request uri
+ [x] Uri segment
+ [x] Request method
+ [x] Request type
+ [x] Is ajax request
+ [x] Is cli request
+ [x] Is https request
+ [x] Body
+ [x] Post
+ [x] Get
+ [x] Server
+ [x] Files
+ [x] Cookie
+ [x] Copy
+ [x] Replace
+ [x] Replace 2
+
+Log
+ [x] Change threshold
+ [x] Get threshold
+ [x] Is enabled
+ [x] call
+ [x] Mono logger exception
+
+Output
+ [x] Flush
+ [x] Set output
+ [x] Append output
+ [x] Get output
+ [x] Header
+ [x] Get headers
+ [x] Send headers
+ [x] Flush headers
+ [x] Content type
+ [x] Get content type short hand
+ [x] Char set
+ [x] Response code int
+ [x] Response code string
+ [x] Response code invalid
+ [x] Response code invalid int
+ [x] Get response code
+ [x] Send
+ [x] Redirect
+ [x] Flush all
+
+Router
+ [x] Match 1
+ [x] Match 2
+ [x] Match 3
+ [x] Match 4
+ [x] Match 5
+ [x] Get url
+ [x] Site url
+ [x] Get matched invalid value exception
+ [x] Get url invalid value exception
+ [x] Get url parameter invalid value exception
+ [x] Match route not found exception 1
+ [x] Match route not found exception 2
+ [x] Get url router name not found
+ [x] Config not found exception
+
+Security
+ [x] Encrypt
+ [x] Auth
+ [x] Remove invisible characters
+ [x] Clean filename
+ [x] Password hash
+
+Viewer
+ [x] Render
+ [x] Render string
+ [x] Add path
+ [x] Add paths
+ [x] Render view not found exception
+ [x] Change option
+ [x] Recursive
+

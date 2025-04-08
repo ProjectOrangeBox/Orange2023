@@ -1,0 +1,9 @@
+../../vendor/bin/phinx status
+
+../../vendor/bin/phinx migrate
+
+../../vendor/bin/phinx rollback -t ##########
+
+../../vendor/bin/phinx create MyNewMigration
+
+../../vendor/bin/phinx seed:run
