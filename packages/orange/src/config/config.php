@@ -5,7 +5,6 @@ declare(strict_types=1);
 return [
     // the end user should provide these but the defaults are below
     'config directory' => __ROOT__ . '/config',
-    'services' => __ROOT__ . '/config/services.php',
 
     // additional configuration the end user can change
     'environment errors config' => [

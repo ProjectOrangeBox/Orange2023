@@ -11,7 +11,6 @@ use orange\framework\interfaces\ContainerInterface;
 use orange\framework\exceptions\filesystem\FileNotFound;
 use orange\framework\exceptions\config\ConfigFileNotFound;
 use orange\framework\exceptions\filesystem\DirectoryNotFound;
-use orange\framework\exceptions\config\ConfigDirectoryNotFound;
 
 /**
  * Application class responsible for bootstrapping the application in either HTTP or CLI mode.
@@ -27,6 +26,8 @@ class Application
      * @var array $config Stores the application's configuration settings.
      */
     protected static array $config;
+
+    protected static string $servicesFileName = 'services.php';
 
     /**
      * Bootstraps the application for HTTP requests.
@@ -82,7 +83,6 @@ class Application
      * This method performs the initial setup required for running the application in CLI mode, without routing or outputting.
      *
      * @param array $config The configuration array, including required and optional settings for the application.
-     *                       - 'services': Path to the services configuration file (required).
      *                       - 'config directory': Path to the directory where the configuration files are stored (required).
      *                       - 'environment': Current environment (optional).
      *                       - 'debug': Debug mode (optional).
@@ -121,11 +121,13 @@ class Application
 
         // this is part of the orange framework so we know it's there and an array
         // we also can't assume this was included with the config sent in
-        self::$config = self::include(__DIR__ . '/config/config.php', self::$config);
+        $defaultConfig = self::include(__DIR__ . '/config/config.php');
+
+        self::$config = array_replace($defaultConfig, self::$config);
 
         // let's make sure they setup __ROOT__
         if (!defined('__ROOT__')) {
-            throw new InvalidValue('__ROOT__ not defined.');
+            throw new InvalidValue('The "__ROOT__" constant must be defined to indicate the root directory.');
         }
 
         // is root a real directory?
@@ -187,7 +189,6 @@ class Application
         $container = self::bootstrapContainer();
 
         // the developer can extend this class and override these methods
-        // just make sure they still do the default functionality
         self::postContainer($container);
 
         return $container;
@@ -247,24 +248,23 @@ class Application
      * @throws ConfigFileNotFound If the services configuration file is not found.
      * @throws InvalidValue If the services configuration file does not return an array.
      * @throws IncorrectInterface If the container service is not a valid closure or container instance.
-
-
      */
     protected static function bootstrapContainer(): ContainerInterface
     {
-        // make sure we have services
-        if (!realpath(self::$config['config directory'])) {
-            throw new ConfigDirectoryNotFound('Could not locate the services configuration directory.');
-        }
+        // orange default services
+        $defaultServices = require __DIR__ . '/config/services.php';
 
-        // base services if present
-        // environmental services if present
-        // we know these are here because they are in the same project
-        // replace build final services array
-        $services = self::loadRecursiveConfig(self::$config['config directory'] . '/services.php');
+        // user config services
+        $userServices = self::findServiceConfigFile(self::$config['config directory'] ?? '', true);
+
+        // user environment config services
+        $userEnvironmentServices = self::findServiceConfigFile(self::$config['config directory'] ?? '' . '/' . self::$config['environment'], false);
+
+        // final services array
+        $services = array_replace($defaultServices, $userServices, $userEnvironmentServices);
 
         if (!isset($services['container'])) {
-            throw new InvalidValue('Container services not found.');
+            throw new InvalidValue('Container Service not found.');
         }
 
         // Make sure container is a Closure
@@ -273,65 +273,59 @@ class Application
         }
 
         // now get the empty container and save a copy in our object
-        $container = $services['container']()::getInstance();
+        $container = $services['container']($services);
 
         if (!$container instanceof ContainerInterface) {
             throw new IncorrectInterface('The service "container" did not return an object using the container interface.');
         }
 
-        // save bootstrapping config for the config service in the container as self::$config
+        // add our configuration
         $container->set('$config', self::$config);
-
-        // send in our services
-        $container->set($services);
 
         return $container;
     }
 
     /**
+     * Try and locate the services config file
+     * 
+     * @param string $directory 
+     * @param bool $required 
+     * @return array 
+     * @throws ConfigFileNotFound 
+     */
+    protected static function findServiceConfigFile(string $directory, bool $required): array
+    {
+        $return = [];
+
+        if (file_exists($directory . '/' . self::$servicesFileName)) {
+            $return = require $directory . '/' . self::$servicesFileName;
+        } elseif ($required) {
+            throw new ConfigFileNotFound($directory . '/' . self::$servicesFileName);
+        }
+
+        return $return;
+    }
+
+    /**
      * Post-container setup. This is called after the container is set up.
-     *
-     * This method is responsible for setting up constants as defined in the configuration file.
+     * 
+     * If you extend this class this is a good place to do any post container code :P
      *
      * @param ContainerInterface $container The container instance after it has been set up.
      */
     protected static function postContainer(ContainerInterface $container): void
     {
-        // set up constants
-        // even if there are no user constants, the config service should return an empty array
-        foreach (self::include(__DIR__ . '/config/constants.php', $container->config->constants) as $name => $value) {
+
+        // set up constants local constants + any user supplied in the user config folder
+        $constants = self::include(__DIR__ . '/config/constants.php') + $container->config->constants;
+
+        foreach ($constants as $name => $value) {
             // Constants should all be uppercase - not an option!
             $name = strtoupper($name);
-
             if (!defined($name)) {
                 define($name, $value);
             }
         }
-    }
-
-    /**
-     * Most simple include for config files
-     * with supplied config file
-     * with matching in orange config folder
-     * and matching in environmental config folder
-     *
-     * @param string $path
-     * @return array
-     * @throws InvalidValue
-     */
-    public static function loadRecursiveConfig(string $path): array
-    {
-        $info = pathinfo($path);
-
-        // orange config + config supplied
-        $config = array_replace(self::include(__DIR__ . '/config/' . $info['basename']), self::include($path));
-
-        // + env path
-        if (defined('ENVIRONMENT')) {
-            $config = array_replace($config, self::include($info['dirname'] . '/' . ENVIRONMENT . '/' . $info['basename']));
-        }
-
-        return $config;
     }
 
     /**
@@ -343,7 +337,7 @@ class Application
      * @return array
      * @throws InvalidValue
      */
-    public static function include(string $path): array
+    protected static function include(string $path): array
     {
         $config = [];
 

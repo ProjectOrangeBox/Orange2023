@@ -17,7 +17,7 @@ interface ContainerInterface
     public function get(string $serviceName): mixed;
 
     public function __set(string $serviceName, $arg): void;
-    public function set(array|string $serviceName, mixed $arg = null): void;
+    public function set(string $serviceName, mixed $arg = null): void;
 
     public function __isset(string $serviceName): bool;
     public function isset(string $serviceName): bool;

@@ -50,6 +50,8 @@ class Config extends SingletonArrayObject implements ConfigInterface
     {
         logMsg('INFO', __METHOD__);
 
+        $this->config = $config;
+
         // Setup the default configuration directory
         if (isset($config['config directory'])) {
             // Validate and add the default configuration directory
@@ -209,8 +211,10 @@ class Config extends SingletonArrayObject implements ConfigInterface
 
     protected function loadCache(CacheInterface $cache): void
     {
+        $key = $this->config['environment'] . '\\' . __CLASS__;
+
         // has anything already been cached?
-        if (!$payload = $cache->get(ENVIRONMENT . '\\' . __CLASS__)) {
+        if (!$payload = $cache->get($key)) {
             // no
             // find all of the cache file names by reading all of the searchDirectories
             foreach ($this->searchPaths as $sp) {
@@ -219,7 +223,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
                     $this->__get(basename($f, '.php'));
 
                     // cache the results
-                    $cache->set(ENVIRONMENT . '\\' . __CLASS__, ['configuration' => $this->configuration, 'foundConfigFiles' => $this->foundConfigFiles]);
+                    $cache->set($key, ['configuration' => $this->configuration, 'foundConfigFiles' => $this->foundConfigFiles]);
                 }
             }
         } else {

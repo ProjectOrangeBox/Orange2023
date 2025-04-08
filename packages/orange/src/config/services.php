@@ -41,8 +41,8 @@ use orange\framework\interfaces\DispatcherInterface;
  * $container->get('$test');
  */
 return [
-    'container' => function (): ContainerInterface {
-        return Container::getInstance();
+    'container' => function(array $services): ContainerInterface {
+        return Container::getInstance($services);
     },
     'config' => function (ContainerInterface $container): ConfigInterface {
         return Config::getInstance($container->get('$config'));

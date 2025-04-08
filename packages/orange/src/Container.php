@@ -37,10 +37,14 @@ class Container extends Singleton implements ContainerInterface
      *
      * Initializes the container and registers itself as a service.
      */
-    protected function __construct()
+    protected function __construct(array $services)
     {
-        // this will replace any previous "container" service with myself
-        $this->addValue('container', $this);
+        // container is now "this" instance
+        // not the closure that created this instance
+        $services['container'] = $this;
+
+        // send in our services
+        $this->setMany($services);
     }
 
     /**
@@ -125,23 +129,17 @@ class Container extends Singleton implements ContainerInterface
      * @param array|string $serviceName The service name or an array of service names.
      * @param mixed $arg The service value or closure.
      */
-    public function set(array|string $serviceName, mixed $arg = null): void
+    public function set(string $serviceName, mixed $arg = null): void
     {
-        if (is_array($serviceName)) {
-            foreach ($serviceName as $sn => $args) {
-                $this->set($sn, $args);
-            }
+        if (substr($serviceName, 0, 1) == '@') {
+            // If it starts with @, it is an alias
+            $this->addAlias(substr($serviceName, 1), $arg);
+        } elseif ($arg instanceof Closure) {
+            // If it is a closure
+            $this->addClosure($serviceName, $arg);
         } else {
-            if (substr($serviceName, 0, 1) == '@') {
-                // If it starts with @, it is an alias
-                $this->addAlias(substr($serviceName, 1), $arg);
-            } elseif ($arg instanceof Closure) {
-                // If it is a closure
-                $this->addClosure($serviceName, $arg);
-            } else {
-                // Otherwise, treat it as a value
-                $this->addValue($serviceName, $arg);
-            }
+            // Otherwise, treat it as a value
+            $this->addValue($serviceName, $arg);
         }
     }
 
@@ -350,5 +348,18 @@ class Container extends Singleton implements ContainerInterface
         }
 
         return $normalizedName;
+    }
+
+    /**
+     * Set multiple services at one time
+     * 
+     * @param array $many 
+     * @return void 
+     */
+    protected function setMany(array $many): void
+    {
+        foreach ($many as $serviceName => $args) {
+            $this->set($serviceName, $args);
+        }
     }
 }
