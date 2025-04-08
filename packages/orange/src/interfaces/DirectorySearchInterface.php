@@ -14,8 +14,8 @@ interface DirectorySearchInterface
     /**
      * add one or more directories
      */
-    public function addDirectory(string $directory, int $pend = null): self;
-    public function addDirectories(array $directories, int $pend = null): self;
+    public function addDirectory(string $directory, ?int $pend = null): self;
+    public function addDirectories(array $directories, ?int $pend = null): self;
 
     /**
      * remove one or more attached directories

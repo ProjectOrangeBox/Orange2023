@@ -43,7 +43,7 @@ interface InputInterface
     public function __get(string $name);
     public function __isset(string $name): bool;
 
-    public function has(string $name, string $key = null): bool;
+    public function has(string $name, ?string $key = null): bool;
 
     // get the most basic url based or body based input
     public function rawGet(): string;
