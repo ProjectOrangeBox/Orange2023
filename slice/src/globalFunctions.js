@@ -1,19 +1,3 @@
-export function getModelName() {
-    /*
-    convert:
-     /people to People
-     /people/foods to People_Foods
-
-    */
-    let modelname = window.location.pathname.replace(/^\/+|\/+$/g, '').replaceAll('/', ' ');
-
-    modelname.replace(/(?:^\w|[A-Z]|\b\w)/g, function (word, index) {
-        return index == 0 ? word.toLowerCase() : word.toUpperCase();
-    }).replace(/\s+/g, '_');
-
-    return modelname.charAt(0).toUpperCase() + modelname.slice(1);
-}
-
 export function searchArrayOfObjects(array, id2Match, idKey, nameKey) {
     let matched = undefined;
 
@@ -42,7 +26,3 @@ if (!String.format) {
     };
 }
 
-// module1.js
-export const greet = (name) => {
-    console.log(`Hello, ${name}!`);
-}

@@ -39,9 +39,11 @@ var People = {
     // rv-on-click="actions.go"
     // rv-on-click="actions.redirect | args '/go/here'"
     actions: {
+        // rv-on-click="actions.go"
         go() {
             window['@app'].go({ element: this, app: arguments[1], ...window['@app'].getAttr(this) });
         },
+        // rv-on-click="actions.update | args $index"
         update(index) {
             // save this for success
             People.currentIndex = index;
@@ -51,6 +53,7 @@ var People = {
             // do the other stuff on the DOM element
             window['@app'].onAttrs({ ...window['@app'].getAttr(this) });
         },
+        // on-success-action="actions.updatedSuccess"
         updatedSuccess(app, args) {
             // called from on-success-action
             People.actions.clearValidation();
@@ -63,6 +66,7 @@ var People = {
                 People.list[People.currentIndex][key] = People.updateRecord[key];
             }
         },
+        // rv-on-click="actions.create"
         create() {
             // defaults - this could also be retrieved from a rest call
             People.createRecord = {
@@ -73,6 +77,7 @@ var People = {
             // do the other stuff on the DOM element
             window['@app'].onAttrs({ ...window['@app'].getAttr(this) });
         },
+        // on-success-action="actions.createdSuccess"
         createdSuccess(app, args) {
             // called from on-success-action
             People.actions.clearValidation();
@@ -85,6 +90,7 @@ var People = {
             // push the record onto the list array and tinybind will update it
             People.list.push(People.createRecord);
         },
+        // rv-on-click="actions.delete | args $index"
         delete(index) {
             // save this for success
             People.currentIndex = index;
@@ -94,6 +100,7 @@ var People = {
             // do the other stuff on the DOM element
             window['@app'].onAttrs({ ...window['@app'].getAttr(this) });
         },
+        // on-success-action="actions.deletedSuccess"
         deletedSuccess() {
             // called from on-success-action
 
@@ -103,7 +110,6 @@ var People = {
         redirect(url) {
             window['@app'].redirect(url);
         },
-        // called by on-then
         clearValidation() {
             // clear out all validation
             People.validation.invalid = {};

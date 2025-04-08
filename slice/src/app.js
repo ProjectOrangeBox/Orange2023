@@ -1,5 +1,30 @@
 import tinybind from 'tinybind';
+import "./binders.js";
+import "./formatters.js";
 
+/*
+
+rv-on-click - click or any standard event DOM
+
+on-*-action - model action
+on-*-node - returned JSON node
+on-*-property - model property to use
+on-*-model - url to call
+on-*-refresh - does a "touch" on a model property
+on-*-toggle - toggle a boolean value
+on-*-hide - set to false
+on-*-false - set to false
+on-*-show - set to true
+on-*-true - set to true
+on-*-then - model action to run after the above are run
+on-*-rebind - force a rebind to the model
+on-*-redirect - redirect to a different url
+on-*-reload - reload the entire page 
+
+* - ok, success, created, accepted, not-acceptable, failure, error, unknown
+or none in which case it's simply the last segment
+
+*/
 export default class App {
     // DOM id to attach to
     id;
@@ -34,7 +59,6 @@ export default class App {
      * @param {object} model - Data model
      */
     constructor(id, model) {
-        console.log(id,model);
         this.id = id;
         this.appElement = document.getElementById(id);
         this.model = model;
@@ -78,7 +102,7 @@ export default class App {
      * @param {object} args 
      */
     go(args) {
-        this.onAttrs(args);
+        this.onAttrs(args, '');
     }
 
     /**
@@ -128,11 +152,13 @@ export default class App {
             // and it has a property to make the json from 
             if (args[`${prefix}property`]) {
                 const payload = this.getProperties(undefined, args[`${prefix}property`]);
-                console.log(payload);
                 args.jsonText = JSON.stringify(payload);
             }
             // now send the ajax request
-            this.send(args[`${prefix}model`], args[`${prefix}method`], args);
+            args.url = args[`${prefix}model`];
+            args.method = args[`${prefix}method`];
+
+            this.send(args);
         }
 
         if (args[`${prefix}refresh`]) {
@@ -185,9 +211,10 @@ export default class App {
      * @param {string} method 
      * @param {object} args 
      */
-    send(url, method = 'GET', args = {}) {
+    send(args) {
         const xhr = new XMLHttpRequest();
-
+        let method = args.method ?? 'GET';
+        let url = args.url ?? window.location.pathname;
         xhr.open(method.toUpperCase(), url);
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.responseType = 'json';
@@ -196,7 +223,7 @@ export default class App {
             args.xhr = xhr;
             args.json = xhr.response;
 
-            const mapping = this.sendMapping[xhr.status] || this.sendMapping.default;
+            const mapping = this.sendMapping[xhr.status] ?? this.sendMapping.default;
 
             // ie. on-created-*
             if (mapping.status) {
@@ -212,9 +239,7 @@ export default class App {
         xhr.onerror = () => {
             args.xhr = xhr;
             args.json = xhr.response;
-
             console.error('Network Error');
-
             this.onAttrs(args, 'on-error-');
         };
 
@@ -243,7 +268,7 @@ export default class App {
         }
 
         if (element) {
-            this.onAttrs({ element, app: this, ...this.getAttr(element) });
+            this.onAttrs({ element, app: this, ...this.getAttr(element) }, '');
         } else {
             console.error('Not a DOM element:', element);
         }
