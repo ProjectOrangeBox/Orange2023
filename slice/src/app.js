@@ -11,6 +11,7 @@ export default class App {
     storage = {};
     // ajax call mapping - action to call
     sendMapping = {
+        // HTTP status codes mapped to actions
         // ok
         200: { status: 'ok', prefix: 'success' },
         // 201 Created
@@ -19,7 +20,7 @@ export default class App {
         202: { status: 'accepted', prefix: 'success' },
         // 406 Not Acceptable
         406: { status: 'not-acceptable', prefix: 'failure' },
-        // ¯\_(ツ)_/¯
+        // ¯\_(ツ)_/¯ Default mapping for unknown status codes
         default: { status: 'unknown', prefix: undefined },
     };
 
@@ -38,10 +39,10 @@ export default class App {
         this.appElement = document.getElementById(id);
         this.model = model;
 
-        // Expose the instance globally for easy access
+        // Expose the instance globally for debugging or external access
         window['@app'] = this;
 
-        // If a start function is defined in the model, execute it
+        // Call the model's construct method if it exists
         if (model?.construct) {
             model.construct(this);
         }
