@@ -10,10 +10,9 @@ final class ConfigTest extends unitTestHelper
 
     protected function setUp(): void
     {
-        // ENVIRONMENT is already testing in the phpunit bootstrap
-
         $this->instance = Config::getInstance([
-            'config directory' => WORKINGDIR . '/config'
+            'config directory' => WORKINGDIR . '/config',
+            'environment' => 'testing',
         ]);
     }
 
