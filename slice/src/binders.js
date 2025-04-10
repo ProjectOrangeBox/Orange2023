@@ -32,23 +32,13 @@ tinybind.binders.height = function (el, value) {
     boolean T/F
 */
 tinybind.binders['theme-modal-show'] = function (el, value) {
-    if (!window.modalStorage) {
-        window.modalStorage = {};
-    }
+    window.modalStorage = window.modalStorage || {};
 
-    if (!el.id) {
-        el.id = uuidv4();
-    }
+    el.id = el.id || parseInt(Math.ceil(Math.random() * Date.now()).toPrecision(24).toString().replace(".", ""));
 
-    if (!window.modalStorage[el.id]) {
-        window.modalStorage[el.id] = new bootstrap.Modal('#' + el.id);
-    }
+    window.modalStorage[el.id] = window.modalStorage[el.id] || new bootstrap.Modal('#' + el.id);
 
-    if (value) {
-        window.modalStorage[el.id].show();
-    } else {
-        window.modalStorage[el.id].hide();
-    }
+    value ? window.modalStorage[el.id].show() : window.modalStorage[el.id].hide();
 };
 
 tinybind.binders['refresh'] = function (element) {
