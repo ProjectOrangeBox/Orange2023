@@ -1,4 +1,5 @@
 import tinybind from 'tinybind';
+import { shared } from './shared.js';
 
 /**
  * These are formatters attached directly to tinybind
@@ -970,8 +971,8 @@ tinybind.formatters.arrayValuesToString = function (target) {
     return target;
 };
 
-tinybind.formatters.replace = function (target) {
-    return String.format(target,...arguments);
+tinybind.formatters.replace = function () {
+    return shared.urlReplace(...arguments);
 }
 
 /* Formatter Aliases */

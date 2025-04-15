@@ -6,8 +6,10 @@ import '@fortawesome/fontawesome-free/js/solid'
 import '@fortawesome/fontawesome-free/js/regular'
 import '@fortawesome/fontawesome-free/js/brands'
 
-import App from "./App.js";
+// shared functions 
+import { shared } from './shared.js';
 
+import App from "./App.js";
 import People from "./models/People.js";
 
 // map pathname to models

@@ -1,4 +1,4 @@
-import { searchArrayOfObjects } from '../globalFunctions.js';
+import { shared } from '../shared.js';
 
 var People = {
     // single records
@@ -48,7 +48,7 @@ var People = {
             // save this for success
             People.currentIndex = index;
             // make a copy of this so we are not working on a reference to the original record
-            People.updateRecord = window['@app'].copy(People.list[People.currentIndex]);
+            People.updateRecord = shared.copy(People.list[People.currentIndex]);
             // do the other stuff on the DOM element
             People.actions.doAttrsOn(this);
         },
@@ -57,9 +57,9 @@ var People = {
             // called from on-success-action
             People.actions.clearValidation();
             // find the color name in People.colorDropDown based on the color id in People.updateRecord.color
-            People.updateRecord.colorname = searchArrayOfObjects(People.colorDropDown, People.updateRecord.color, 'id', 'name');
+            People.updateRecord.colorname = shared.searchArrayOfObjects(People.colorDropDown, People.updateRecord.color, 'id', 'name');
             // !important - copy each property 1 by 1 which triggers an update in tinybind
-            window['@app'].touch(People.updateRecord, People.list[People.currentIndex]);
+           shared.touch(People.updateRecord, People.list[People.currentIndex]);
         },
         // rv-on-click="actions.create"
         create() {
@@ -78,7 +78,7 @@ var People = {
             // put the returned primary id in the record for rests calls back to the server
             People.createRecord.id = args.json.id;
             // find the human readable version of the color id (which is a integer foreign key on the server)
-            People.createRecord.colorname = searchArrayOfObjects(People.colorDropDown, People.createRecord.color, 'id', 'name');
+            People.createRecord.colorname = shared.searchArrayOfObjects(People.colorDropDown, People.createRecord.color, 'id', 'name');
             // push the record onto the list array and tinybind will update it
             People.list.push(People.createRecord);
         },
