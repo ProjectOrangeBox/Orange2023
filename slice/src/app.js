@@ -207,8 +207,6 @@ export default class App {
     /**
      * Makes an AJAX call with JSON data.
      * 
-     * @param {string} url 
-     * @param {string} method 
      * @param {object} args 
      */
     send(args) {
@@ -351,16 +349,18 @@ export default class App {
      * 
      * @param {object} obj - The object to read from (defaults to this.model)
      * @param {string|Array} dotnotations 
-     * @returns 
+     * @returns {object}
      */
     getProperties(obj, dotnotations) {
         let newObject = {};
-        const dns = this.split(dotnotations)
+        const dn = this.split(dotnotations)
 
-        if (dns.length == 1) {
+        if (dn.length == 1) {
+            // if we only need to get 1 then the object is the property
             newObject = this.getProperty(obj, dotnotations);
         } else {
-            for (const dotnotation of dns) {
+            // if we need to grab more than 1 then then we return an object of objects.
+            for (const dotnotation of dn) {
                 newObject[dotnotation] = this.getProperty(obj, dotnotation);
             }
         }
@@ -376,7 +376,10 @@ export default class App {
      * @returns {*} The retrieved value, or undefined if not found
      */
     getProperty(obj, dotnotation) {
+        // if they didn't send anything in use the entire model
         let value = obj ?? this.model;
+        // if they are not requesting the entire object (ie. root) then we need to pluck out the values
+        // the default root interface is a single .
         if (dotnotation !== tinybind.rootInterface) {
             for (const prop of dotnotation.split('.')) {
                 if (value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, prop)) {

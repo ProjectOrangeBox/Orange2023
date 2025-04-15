@@ -13,7 +13,7 @@
     </div>
     <div class="mb-3">
         <label for="frm_color" class="form-label">Color</label>
-        <input type="text" readonly class="form-control" id="frm_age" name="colorname" rv-value="readRecord.colorname">
+        <input type="text" readonly class="form-control" id="frm_color" name="colorname" rv-value="readRecord.colorname">
     </div>
     <div class="mb-3 float-end">
         <a rv-on-click="actions.go" hide="show.read" show="show.grid" class="btn btn-primary">Done</a>
