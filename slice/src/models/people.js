@@ -58,7 +58,7 @@ var People = {
             People.actions.clearValidation();
             // find the color name in People.colorDropDown based on the color id in People.updateRecord.color
             People.updateRecord.colorname = searchArrayOfObjects(People.colorDropDown, People.updateRecord.color, 'id', 'name');
-            // !important - copy each property which triggers an update in tinybind
+            // !important - copy each property 1 by 1 which triggers an update in tinybind
             for (const key in People.updateRecord) {
                 People.list[People.currentIndex][key] = People.updateRecord[key];
             }
