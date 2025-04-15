@@ -22,6 +22,6 @@
     </div>
     <div class="mb-3 float-end">
         <a rv-on-click="actions.go" hide="show.update" class="btn btn-light">Cancel</a>
-        <a rv-on-click="actions.go" method="put" rv-model="'<?= getUrl('peopleUpdate', ['{1}'], true) ?>' | replace updateRecord.id" property="updateRecord" on-success-action="actions.updatedSuccess" on-success-hide="show.update" on-failure-property="." class="btn btn-primary">Submit</a>
+        <a rv-on-click="actions.go" method="put" rv-model="'<?= getUrl('peopleUpdate', ['{1}'], true) ?>' | replace updateRecord.id" property="updateRecord" on-success-action="actions.clearValidation,actions.updatedSuccess" on-success-hide="show.update" on-failure-property="." class="btn btn-primary">Submit</a>
     </div>
 </div>

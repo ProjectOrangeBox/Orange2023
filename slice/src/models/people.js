@@ -55,7 +55,7 @@ var People = {
         // on-success-action="actions.updatedSuccess"
         updatedSuccess(app, args) {
             // called from on-success-action
-            People.actions.clearValidation();
+            //People.actions.clearValidation();
             // find the color name in People.colorDropDown based on the color id in People.updateRecord.color
             People.updateRecord.colorname = shared.searchArrayOfObjects(People.colorDropDown, People.updateRecord.color, 'id', 'name');
             // !important - copy each property 1 by 1 which triggers an update in tinybind
@@ -74,7 +74,7 @@ var People = {
         // on-success-action="actions.createdSuccess"
         createdSuccess(app, args) {
             // called from on-success-action
-            People.actions.clearValidation();
+            //People.actions.clearValidation();
             // put the returned primary id in the record for rests calls back to the server
             People.createRecord.id = args.json.id;
             // find the human readable version of the color id (which is a integer foreign key on the server)
