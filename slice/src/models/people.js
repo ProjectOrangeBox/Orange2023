@@ -48,7 +48,7 @@ var People = {
             // save this for success
             People.currentIndex = index;
             // make a copy of this so we are not working on a reference to the original record
-            People.updateRecord = Object.assign({}, People.list[People.currentIndex]);
+            People.updateRecord = window['@app'].copy(People.list[People.currentIndex]);
             // do the other stuff on the DOM element
             People.actions.doAttrsOn(this);
         },
@@ -59,9 +59,7 @@ var People = {
             // find the color name in People.colorDropDown based on the color id in People.updateRecord.color
             People.updateRecord.colorname = searchArrayOfObjects(People.colorDropDown, People.updateRecord.color, 'id', 'name');
             // !important - copy each property 1 by 1 which triggers an update in tinybind
-            for (const key in People.updateRecord) {
-                People.list[People.currentIndex][key] = People.updateRecord[key];
-            }
+            window['@app'].touch(People.updateRecord, People.list[People.currentIndex]);
         },
         // rv-on-click="actions.create"
         create() {
@@ -96,7 +94,6 @@ var People = {
         // on-success-action="actions.deletedSuccess"
         deletedSuccess() {
             // called from on-success-action
-
             // pull the records from the list view array
             People.list.splice(People.currentIndex, 1);
         },

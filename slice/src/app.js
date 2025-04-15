@@ -421,4 +421,14 @@ export default class App {
     split(arg) {
         return Array.isArray(arg) ? arg : arg.split(',');
     }
+
+    copy(obj) {
+        return Object.assign({}, obj);
+    }
+
+    touch(src, dest) {
+        for (const key in src) {
+            dest[key] = src[key];
+        }
+    }
 };
