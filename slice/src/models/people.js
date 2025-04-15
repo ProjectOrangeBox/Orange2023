@@ -92,7 +92,7 @@ var People = {
             People.actions.doAttrsOn(this);
         },
         // on-success-action="actions.deletedSuccess"
-        deletedSuccess() {
+        deletedSuccess(app, args) {
             // called from on-success-action
             // pull the records from the list view array
             People.list.splice(People.currentIndex, 1);
