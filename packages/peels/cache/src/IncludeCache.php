@@ -17,9 +17,14 @@ class IncludeCache implements CacheInterface
     protected int $subDirectoryLength = 1;
     protected int $ttl = 0;
     protected int $ttlWindow = 0;
+    protected int $fallBackTTL = 600;
+    protected int $ttlWindowFallBack = 30;
+    protected int $subDirectoryLengthFallBack = 1;
+    protected string $parentDirectoryFallBack = 'include';
 
     public function __construct(array $config)
     {
+        // let's make sure they specify the directory we can store our cache files in
         if (!isset($config['directory'])) {
             throw new DirectoryNotFound();
         }
@@ -30,15 +35,18 @@ class IncludeCache implements CacheInterface
             throw new DirectoryNotFound($this->directory);
         }
 
-        $this->parentDirectory = $config['parentDirectory'] ?? 'include';
-        $this->subDirectoryLength = $config['sub directory length'] ?? 1;
+        // what directory inside the main directory do they want us to store our cache files in 
+        $this->parentDirectory = $config['parentDirectory'] ?? $this->parentDirectoryFallBack;
+
+        // what length of the cache key should we use to make sure the parent directory doesn't contain to main files?
+        $this->subDirectoryLength = $config['sub directory length'] ?? $this->subDirectoryLengthFallBack;
 
         // time to live in seconds
-        $this->ttl = $config['ttl'] ?? 600;
+        $this->ttl = $config['ttl'] ?? $this->fallBackTTL;
 
         // sliding window in seconds to try to stop a race condition
         // when they all expire at the same time
-        $this->ttlWindow = $config['ttl window'] ?? 30;
+        $this->ttlWindow = $config['ttl window'] ?? $this->ttlWindowFallBack;
     }
 
     public static function getInstance(array $config): self
@@ -67,7 +75,7 @@ class IncludeCache implements CacheInterface
         return $data;
     }
 
-    public function set(string $key, mixed $value, int $ttl = null): bool
+    public function set(string $key, mixed $value, ?int $ttl = null): bool
     {
         $time = time();
 
@@ -120,7 +128,7 @@ class IncludeCache implements CacheInterface
         return $set;
     }
 
-    public function setMulti(array $data, int $ttl = null): array
+    public function setMulti(array $data, ?int $ttl = null): array
     {
         $set = [];
 
@@ -142,13 +150,13 @@ class IncludeCache implements CacheInterface
         return $set;
     }
 
-    public function increment(string $key, int $offset = 1, int $ttl = null): int
+    public function increment(string $key, int $offset = 1, ?int $ttl = null): int
     {
         // unsupported
         return 0;
     }
 
-    public function decrement(string $key, int $offset = 1, int $ttl = null): int
+    public function decrement(string $key, int $offset = 1, ?int $ttl = null): int
     {
         // unsupported
         return 0;
@@ -169,6 +177,7 @@ class IncludeCache implements CacheInterface
 
     protected function var_export(array $array): string
     {
+        // use \Brick\VarExporter\VarExporter if installed - This is the best option!
         $string = (\Composer\InstalledVersions::isInstalled('brick/varexporter')) ? \Brick\VarExporter\VarExporter::export($array) : var_export($array, true);
 
         return $this->buildFile($string);
@@ -227,6 +236,7 @@ class IncludeCache implements CacheInterface
 
     protected function getTTL(): int
     {
+        // provide a bit of a window to try and stop a stampede
         return mt_rand($this->ttl - (int)($this->ttlWindow / 2), $this->ttl + (int)($this->ttlWindow / 2));
     }
 }
