@@ -106,6 +106,7 @@ class Router extends Singleton implements RouterInterface
             $this->loadRoutes();
         }
 
+        // setup the "empty" matched
         $this->matched = [
             'request method' => null,
             'request uri' => null,
@@ -138,27 +139,32 @@ class Router extends Singleton implements RouterInterface
     {
         logMsg('DEBUG', __METHOD__, $options);
 
-        // is this a http routable method?
-        if (isset($options['method'])) {
-            // is this the wildcard all an array or a single value
-            $methods = $options['method'] == '*' ? $this->matchAll : (array)$options['method'];
+        // can't do anything without a url
+        if (isset($options['url'])) {
+            // is this a http routable method?
+            if (isset($options['method'])) {
+                // is this the wildcard all an array or a single value
+                $methods = $options['method'] == '*' ? $this->matchAll : (array)$options['method'];
 
-            // for each method add it to the appropriate array for quicker access
-            foreach ($methods as $method) {
-                $methodUpper = mb_strtoupper($method);
+                // for each method add it to the appropriate array for quicker access
+                foreach ($methods as $method) {
+                    $methodUpper = mb_strtoupper($method);
 
-                // make the http method array if it doesn't already exist
-                $this->routes[$methodUpper] = $this->routes[$methodUpper] ?? [];
+                    // make the http method array if it doesn't already exist
+                    if (!isset($this->routes[$methodUpper])) {
+                        $this->routes[$methodUpper] = [];
+                    }
 
-                // FILO stack
-                array_unshift($this->routes[$methodUpper], $options);
+                    // FILO stack
+                    array_unshift($this->routes[$methodUpper], $options);
+                }
             }
-        }
 
-        // does this route have a name and url to use with get url?
-        if (isset($options['name'], $options['url'])) {
-            // add it to the array by name
-            $this->routesByName[mb_strtolower($options['name'])] = $options['url'];
+            // does this route have a name to use with get url?
+            if (isset($options['name'])) {
+                // add it to the array by name
+                $this->routesByName[mb_strtolower($options['name'])] = $options['url'];
+            }
         }
 
         return $this;
@@ -199,11 +205,6 @@ class Router extends Singleton implements RouterInterface
         $requestMethodUpper = mb_strtoupper($requestMethod);
 
         foreach ($this->routes[$requestMethodUpper] ?? [] as $route) {
-            // if the route doesn't have a method or url then just skip it
-            if (!isset($route['url'])) {
-                continue;
-            }
-
             if (preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
                 $url = array_shift($argv);
 

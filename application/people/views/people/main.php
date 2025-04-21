@@ -3,7 +3,6 @@
 <?php fig::block('body') ?>
 
 <?php fig::include('people/list') ?>
-
 <?php fig::include('people/create') ?>
 <?php fig::include('people/read') ?>
 
