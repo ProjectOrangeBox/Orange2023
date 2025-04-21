@@ -11,9 +11,9 @@ interface FlashMsgInterface
     public const INFO = 'blue';
     public const SUCCESS = 'green';
 
-    public function msg(string $msg, string $type = null): self;
-    public function msgs(array $array, string $type = null): self;
-    public function redirect(string $redirect): void;
+    public function msg(string $msg, ?string $type = null): self;
+    public function msgs(array $array, ?string $type = null): self;
+    public function redirect(?string $redirect = null): void;
     public function getMessages(bool $detailed = false): array;
     public function __debugInfo(): array;
 }
