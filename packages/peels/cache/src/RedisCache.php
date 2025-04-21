@@ -11,7 +11,7 @@ class RedisCache extends aplusRedisCache implements CacheInterface
 {
     private static CacheInterface $instance;
 
-    public function __construct(array $config)
+    protected function __construct(array $config)
     {
         parent::__construct($config);
     }

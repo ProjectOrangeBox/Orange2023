@@ -11,7 +11,7 @@ class DummyCache extends Cache implements CacheInterface
 {
     private static CacheInterface $instance;
 
-    public function __construct(array $config)
+    protected function __construct(array $config)
     {
     }
 

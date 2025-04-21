@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace peels\cache;
 
+use orange\framework\base\Singleton;
 use orange\framework\interfaces\CacheInterface;
 use orange\framework\exceptions\filesystem\DirectoryNotFound;
 use orange\framework\exceptions\filesystem\DirectoryNotWritable;
 
-class IncludeCache implements CacheInterface
+class IncludeCache extends Singleton implements CacheInterface
 {
-    private static CacheInterface $instance;
-
     protected string $directory;
     protected string $parentDirectory;
     protected int $subDirectoryLength = 1;
@@ -22,7 +21,7 @@ class IncludeCache implements CacheInterface
     protected int $subDirectoryLengthFallBack = 1;
     protected string $parentDirectoryFallBack = 'include';
 
-    public function __construct(array $config)
+    protected function __construct(array $config)
     {
         // let's make sure they specify the directory we can store our cache files in
         if (!isset($config['directory'])) {
@@ -47,15 +46,6 @@ class IncludeCache implements CacheInterface
         // sliding window in seconds to try to stop a race condition
         // when they all expire at the same time
         $this->ttlWindow = $config['ttl window'] ?? $this->ttlWindowFallBack;
-    }
-
-    public static function getInstance(array $config): self
-    {
-        if (!isset(self::$instance)) {
-            self::$instance = new self($config);
-        }
-
-        return self::$instance;
     }
 
     public function get(string $key): mixed
