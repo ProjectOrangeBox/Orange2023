@@ -48,10 +48,10 @@ class Application
      */
     public static function http(array $config): ContainerInterface
     {
-        self::$config = $config;
+        static::$config = $config;
 
         // call bootstrap function which returns a container
-        $container = self::bootstrap('http');
+        $container = static::bootstrap('http');
 
         // call event
         $container->events->trigger('before.router', $container->input);
@@ -93,10 +93,10 @@ class Application
      */
     public static function cli(array $config): ContainerInterface
     {
-        self::$config = $config;
+        static::$config = $config;
 
         // no events, routes, "default" output
-        return self::bootstrap('cli');
+        return static::bootstrap('cli');
     }
 
     /**
@@ -121,9 +121,9 @@ class Application
 
         // this is part of the orange framework so we know it's there and an array
         // we also can't assume this was included with the config sent in
-        $defaultConfig = self::include(__DIR__ . '/config/config.php');
+        $defaultConfig = static::include(__DIR__ . '/config/config.php');
 
-        self::$config = array_replace($defaultConfig, self::$config);
+        static::$config = array_replace($defaultConfig, static::$config);
 
         // let's make sure they setup __ROOT__
         if (!defined('__ROOT__')) {
@@ -132,7 +132,7 @@ class Application
 
         // is root a real directory?
         if (!is_dir(__ROOT__)) {
-            throw new DirectoryNotFound(self::$config['__ROOT__']);
+            throw new DirectoryNotFound(static::$config['__ROOT__']);
         }
 
         // switch to root
@@ -145,11 +145,11 @@ class Application
         define('ENVIRONMENT', strtolower($_ENV['ENVIRONMENT']) ?? 'production');
 
         // if this is NOT set then no environment directory will be added
-        self::$config['environment'] = ENVIRONMENT;
+        static::$config['environment'] = ENVIRONMENT;
 
         // get our error handling defaults for the different environment types
         // these can be overridden in the passed $config array
-        $envErrorsConfig = self::$config['environment errors config'][ENVIRONMENT] ?? self::$config['environment errors config']['default'];
+        $envErrorsConfig = static::$config['environment errors config'][ENVIRONMENT] ?? static::$config['environment errors config']['default'];
 
         // ok now set those values
         ini_set('display_errors', $envErrorsConfig['display errors']);
@@ -157,12 +157,12 @@ class Application
         error_reporting($envErrorsConfig['error reporting']);
 
         // set timezone
-        date_default_timezone_set(self::$config['timezone']);
+        date_default_timezone_set(static::$config['timezone']);
 
         // Set internal encoding.
-        ini_set('default_charset', self::$config['encoding']);
-        mb_internal_encoding(self::$config['encoding']);
-        define('CHARSET', self::$config['encoding']);
+        ini_set('default_charset', static::$config['encoding']);
+        mb_internal_encoding(static::$config['encoding']);
+        define('CHARSET', static::$config['encoding']);
 
         // set umask to a known state
         umask(0000);
@@ -177,19 +177,19 @@ class Application
 
         // the developer can extend this class and override these methods
         // just make sure they still do the default functionality
-        self::preContainer();
+        static::preContainer();
 
         // the developer can extend this class and override these methods
         // just make sure they still do the default functionality
-        self::bootstrapErrorHandling();
+        static::bootstrapErrorHandling();
 
         // ok now we can setup the container
         // the developer can extend this class and override these methods
         // just make sure they still do the default functionality
-        $container = self::bootstrapContainer();
+        $container = static::bootstrapContainer();
 
         // the developer can extend this class and override these methods
-        self::postContainer($container);
+        static::postContainer($container);
 
         return $container;
     }
@@ -204,7 +204,7 @@ class Application
     protected static function preContainer(): void
     {
         // load any helpers they might have loaded
-        foreach (self::$config['helpers'] as $helperFile) {
+        foreach (static::$config['helpers'] as $helperFile) {
             if (!file_exists($helperFile)) {
                 throw new FileNotFound($helperFile);
             }
@@ -251,14 +251,14 @@ class Application
      */
     protected static function bootstrapContainer(): ContainerInterface
     {
-        // orange default services
+        // orange default services (the filename is fixed since it is a orange file)
         $defaultServices = require __DIR__ . '/config/services.php';
 
         // user config services
-        $userServices = self::findServiceConfigFile(self::$config['config directory'] ?? '', true);
+        $userServices = static::findServiceConfigFile(static::$config['config directory'] ?? '');
 
         // user environment config services
-        $userEnvironmentServices = self::findServiceConfigFile(self::$config['config directory'] ?? '' . '/' . self::$config['environment'], false);
+        $userEnvironmentServices = static::findServiceConfigFile(static::$config['config directory'] ?? '' . '/' . static::$config['environment']);
 
         // final services array
         $services = array_replace($defaultServices, $userServices, $userEnvironmentServices);
@@ -280,27 +280,24 @@ class Application
         }
 
         // add our configuration
-        $container->set('$config', self::$config);
+        $container->set('$config', static::$config);
 
         return $container;
     }
 
     /**
      * Try and locate the services config file
-     * 
-     * @param string $directory 
-     * @param bool $required 
-     * @return array 
-     * @throws ConfigFileNotFound 
+     *
+     * @param string $directory
+     * @return array
+     * @throws ConfigFileNotFound
      */
-    protected static function findServiceConfigFile(string $directory, bool $required): array
+    protected static function findServiceConfigFile(string $directory): array
     {
         $return = [];
 
-        if (file_exists($directory . '/' . self::$servicesFileName)) {
-            $return = require $directory . '/' . self::$servicesFileName;
-        } elseif ($required) {
-            throw new ConfigFileNotFound($directory . '/' . self::$servicesFileName);
+        if (file_exists($directory . '/' . static::$servicesFileName)) {
+            $return = require $directory . '/' . static::$servicesFileName;
         }
 
         return $return;
@@ -308,7 +305,7 @@ class Application
 
     /**
      * Post-container setup. This is called after the container is set up.
-     * 
+     *
      * If you extend this class this is a good place to do any post container code :P
      *
      * @param ContainerInterface $container The container instance after it has been set up.
@@ -317,7 +314,7 @@ class Application
     {
 
         // set up constants local constants + any user supplied in the user config folder
-        $constants = self::include(__DIR__ . '/config/constants.php') + $container->config->constants;
+        $constants = static::include(__DIR__ . '/config/constants.php') + $container->config->constants;
 
         foreach ($constants as $name => $value) {
             // Constants should all be uppercase - not an option!
