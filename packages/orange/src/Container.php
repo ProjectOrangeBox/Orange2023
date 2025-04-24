@@ -41,7 +41,7 @@ class Container extends Singleton implements ContainerInterface
     {
         // container is now "this" instance
         // not the closure that created this instance
-        if (!isset($services['container'])) {
+        if (!$this->isset('container')) {
             $services['container'] = $this;
         }
 
