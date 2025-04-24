@@ -37,11 +37,13 @@ class Container extends Singleton implements ContainerInterface
      *
      * Initializes the container and registers itself as a service.
      */
-    protected function __construct(array $services)
+    protected function __construct(array $services = [])
     {
         // container is now "this" instance
         // not the closure that created this instance
-        $services['container'] = $this;
+        if (!isset($services['container'])) {
+            $services['container'] = $this;
+        }
 
         // send in our services
         $this->setMany($services);

@@ -21,9 +21,7 @@ final class ContainerTest extends unitTestHelper
             '@cat' => 'foo', // alias of foo
         ];
 
-        $this->instance = Container::getInstance();
-
-        $this->instance->set($this->services);
+        $this->instance = Container::getInstance($this->services);
     }
 
     public function test__get(): void
