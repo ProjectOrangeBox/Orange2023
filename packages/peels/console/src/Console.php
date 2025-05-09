@@ -16,7 +16,7 @@ class Console extends Singleton implements ConsoleInterface
 {
     use ConfigurationTrait;
 
-    protected $ANSICodes = [
+    protected $ansiCodes = [
         'off'               => 0,
 
         'bold'              => 1,
@@ -123,7 +123,7 @@ class Console extends Singleton implements ConsoleInterface
         $this->color = $this->config['color'] ?? $this->color;
 
         if (isset($this->config['ANSI Codes'])) {
-            $this->ANSICodes = array_replace($this->ANSICodes, $this->config['ANSI Codes']);
+            $this->ansiCodes = array_replace($this->ansiCodes, $this->config['ANSI Codes']);
         }
 
         $this->named = $this->config['named'] ?? $this->named;
@@ -154,6 +154,8 @@ class Console extends Singleton implements ConsoleInterface
 
     /**
      * auto detect the verbose level
+     * command.php -v
+     * command.php -vvvvvvvv
      */
     public function readVerboseLevel(bool $set = true): int
     {
@@ -238,7 +240,7 @@ class Console extends Singleton implements ConsoleInterface
         return $this;
     }
 
-    public function line(int $length = null, string $char = '-', int $level = self::BASIC): self
+    public function line(?int $length = null, string $char = '-', int $level = self::BASIC): self
     {
         if ($length == null && $this->simulate) {
             // fixed amount in simulate mode
@@ -342,7 +344,7 @@ class Console extends Singleton implements ConsoleInterface
 
     /* get input until return is pressed */
 
-    public function getLine(string $prompt = null): string
+    public function getLine(?string $prompt = null): string
     {
         if ($prompt) {
             $this->echo($prompt, self::ALL);
@@ -352,7 +354,7 @@ class Console extends Singleton implements ConsoleInterface
         return ($this->simulate) ? $this->stdin : rtrim(fgets(\STDIN), $this->lf);
     }
 
-    public function getLineOneOf(string $prompt = null, array $options = []): string
+    public function getLineOneOf(?string $prompt = null, array $options = []): string
     {
         do {
             $input = $this->getLine($prompt);
@@ -367,7 +369,7 @@ class Console extends Singleton implements ConsoleInterface
      *
      * This method has a extra exit for simulation mode
      */
-    public function get(string $prompt = null): string
+    public function get(?string $prompt = null): string
     {
         if ($prompt) {
             $this->echo($prompt, self::ALL);
@@ -390,7 +392,7 @@ class Console extends Singleton implements ConsoleInterface
         return '';
     }
 
-    public function getOneOf(string $prompt = null, array $options = []): string
+    public function getOneOf(?string $prompt = null, array $options = []): string
     {
         do {
             $input = $this->get($prompt);
@@ -404,7 +406,7 @@ class Console extends Singleton implements ConsoleInterface
 
     /* Arguments */
 
-    public function minimumArguments(int $num, string $error = null): self
+    public function minimumArguments(int $num, ?string $error = null): self
     {
         if ($this->argc < ($num + 1)) {
             if (!$error) {
@@ -432,7 +434,7 @@ class Console extends Singleton implements ConsoleInterface
         return $found;
     }
 
-    public function getArgument(int $num, string $error = null): string
+    public function getArgument(int $num, ?string $error = null): string
     {
         $argv = $this->argv;
 
@@ -460,7 +462,7 @@ class Console extends Singleton implements ConsoleInterface
         return $last;
     }
 
-    public function getArgumentByOption(string $match, string $error = null): string
+    public function getArgumentByOption(string $match, ?string $error = null): string
     {
         if (!$error) {
             $error = 'Could not locate a option for ' . $match;
@@ -498,17 +500,17 @@ class Console extends Singleton implements ConsoleInterface
             $colorsEscaped = '';
 
             // apply color escape codes
-            if (!isset($this->ANSICodes[$tag[1]])) {
+            if (!isset($this->ansiCodes[$tag[1]])) {
                 $this->stop('Could not find tag "' . $tag[1] . '"');
             }
 
-            foreach (explode(',', (string)$this->ANSICodes[$tag[1]]) as $colorEscapeCode) {
+            foreach (explode(',', (string)$this->ansiCodes[$tag[1]]) as $colorEscapeCode) {
                 $colorsEscaped .= "\033[" . $colorEscapeCode . "m";
             }
 
             $string = str_replace($tag[0], $colorsEscaped, $string);
 
-            $turnOff = "\033[" . $this->ANSICodes['off'] . "m";
+            $turnOff = "\033[" . $this->ansiCodes['off'] . "m";
         }
 
         $lf = ($linefeed) ? $this->lf : '';
@@ -535,7 +537,7 @@ class Console extends Singleton implements ConsoleInterface
         return $string;
     }
 
-    protected function oneOf(string $input, array $oneOf, string $error = null): bool
+    protected function oneOf(string $input, array $oneOf, ?string $error = null): bool
     {
         $success = true;
 
@@ -561,12 +563,12 @@ class Console extends Singleton implements ConsoleInterface
         }
 
         if ($stream == self::ERRORS) {
-            if ($level <= $this->verboseLevel && !$this->simulate) {
+            if ($level >= $this->verboseLevel && !$this->simulate) {
                 fwrite(\STDERR, $string);
             }
             $this->stderr .= $string;
         } else {
-            if ($level <= $this->verboseLevel && !$this->simulate) {
+            if ($level >= $this->verboseLevel && !$this->simulate) {
                 fwrite(\STDOUT, $string);
             }
             $this->stdout .= $string;
@@ -591,7 +593,7 @@ class Console extends Singleton implements ConsoleInterface
             $return = $default;
         } else {
             if (!$function($arguments[$index])) {
-                throw new Exception('Argument ' . ($index + 1) . ' must be ' . $type . '.');
+                throw new \Exception('Argument ' . ($index + 1) . ' must be ' . $type . '.');
             }
 
             $return = $arguments[$index];
@@ -607,7 +609,7 @@ class Console extends Singleton implements ConsoleInterface
         return [
             'simulate' => $this->simulate,
             'config' => $this->config,
-            'ansicolors' => $this->ANSICodes,
+            'ansicolors' => $this->ansiCodes,
             'list format' => $this->listFormat,
             'lf' => $this->lf,
             'color' => $this->color,

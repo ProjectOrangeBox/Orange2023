@@ -29,7 +29,7 @@ interface ConsoleInterface
     public function error(string $string, int $level = self::BASIC, bool $linefeed = true): self;
 
     public function bell(int $times = 1, int $level = self::BASIC): self;
-    public function line(int $length = null, string $char = '─', int $level = self::BASIC): self;
+    public function line(?int $length = null, string $char = '─', int $level = self::BASIC): self;
     public function clear(int $level = self::BASIC): self;
     public function linefeed(int $times = 1, int $level = self::BASIC): self;
 
@@ -38,17 +38,17 @@ interface ConsoleInterface
     public function list(array $list, int $level = self::BASIC): self;
 
     // read
-    public function getLine(string $prompt = null): string;
-    public function getLineOneOf(string $prompt = null, array $options = []): string;
+    public function getLine(?string $prompt = null): string;
+    public function getLineOneOf(?string $prompt = null, array $options = []): string;
 
-    public function get(string $prompt = null): string;
-    public function getOneOf(string $prompt = null, array $options = []): string;
+    public function get(?string $prompt = null): string;
+    public function getOneOf(?string $prompt = null, array $options = []): string;
 
     // test arguments
-    public function minimumArguments(int $num, string $error = null): self;
-    public function getArgument(int $num, string $error = null): string;
+    public function minimumArguments(int $num, ?string $error = null): self;
+    public function getArgument(int $num, ?string $error = null): string;
     public function getLastArgument(): string;
-    public function getArgumentByOption(string $match, string $error = null): string;
+    public function getArgumentByOption(string $match, ?string $error = null): string;
     public function getArgumentExists(string $match): bool;
 
     // get / set

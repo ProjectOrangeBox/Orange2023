@@ -3,28 +3,12 @@
 
 declare(strict_types=1);
 
-// setup the application ROOT
-// handy for mocking data instead of hardwired a directory location based on the file
-// you can just change __ROOT__ to something else then change it back for example
-define('__ROOT__', realpath(__DIR__ . '/../'));
-
-// merge our .env with the system env - these could be cli specific
-$_ENV = array_replace_recursive($_ENV, parse_ini_file(__ROOT__ . '/.env', true, INI_SCANNER_TYPED));
-
-// load our start up configuration
-$config = include __ROOT__ . '/config/config.php';
-
-// load any bootstrap file here
-
-// composer auto loader
-require_once __ROOT__ . '/vendor/autoload.php';
-
-/* send config into cli application and away we go! */
-$container = \orange\framework\Application::cli($config);
+require '../bootstrapCli.php';
 
 // start shellscript
 $console = $container->console;
 
+// turn on to level or all if nothing included
 $console->turnOnOutput();
 
 $console->line();
@@ -41,7 +25,7 @@ $console->warning('Warning! System Overload!');
 
 $console->line();
 
-$console->minimumArguments(1, 'Please provide the filename.');
+$console->minimumArguments(1, 'You have no provided a filename to open.');
 
 $filename = $console->getArgument(1);
 
