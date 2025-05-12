@@ -13,6 +13,8 @@ $_ENV = array_replace_recursive($_ENV, parse_ini_file(__ROOT__ . '/.env', true, 
 // load our start up configuration
 $config = include __ROOT__ . '/config/config.php';
 
+$config['services file'] = __ROOT__ . '/config/servicesCli.php';
+
 // Do any additional bootstrap here you have access to the config file contents
 
 // composer auto loader

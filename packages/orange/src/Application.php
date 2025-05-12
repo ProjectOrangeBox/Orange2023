@@ -255,6 +255,8 @@ class Application
         $defaultServices = require __DIR__ . '/config/services.php';
 
         // user config services
+
+        // if they provide a services config file this is the only one we will use
         if (isset(static::$config['services file'])) {
             if (!file_exists(static::$config['services file'])) {
                 throw new FileNotFound(static::$config['services file']);
@@ -262,7 +264,7 @@ class Application
             
             $userServices = require static::$config['services file'];
             
-            // we only use the services they provided
+            // we only use the services they provided with no fall back
             $userEnvironmentServices = [];
         } else {
             // dynamic user services
