@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use orange\framework\Application;
+
 // All directories are based off of this root path and
 // everything goes under this path for security and easier portability
 define('__ROOT__', realpath(__DIR__ . '/../'));
@@ -24,4 +26,4 @@ $config = include __ROOT__ . '/config/config.php';
 require_once __ROOT__ . '/bootstrap.php';
 
 // send the config into our http application and away we go!
-\orange\framework\Application::http($config);
+Application::http($config);

@@ -1,5 +1,7 @@
 <?php
 
+use orange\framework\Application;
+
 // setup the application ROOT
 // handy for mocking data instead of hardwired a directory location based on the file
 // you can just change __ROOT__ to something else then change it back for example
@@ -17,4 +19,4 @@ $config = include __ROOT__ . '/config/config.php';
 require_once __ROOT__ . '/vendor/autoload.php';
 
 /* send config into cli application and away we go! */
-$container = \orange\framework\Application::cli($config);
+$container = Application::cli($config);

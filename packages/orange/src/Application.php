@@ -255,10 +255,22 @@ class Application
         $defaultServices = require __DIR__ . '/config/services.php';
 
         // user config services
-        $userServices = static::findServiceConfigFile(static::$config['config directory'] ?? '');
+        if (isset(static::$config['services file'])) {
+            if (!file_exists(static::$config['services file'])) {
+                throw new FileNotFound(static::$config['services file']);
+            }
+            
+            $userServices = require static::$config['services file'];
+            
+            // we only use the services they provided
+            $userEnvironmentServices = [];
+        } else {
+            // dynamic user services
+            $userServices = static::findServiceConfigFile(static::$config['config directory'] ?? '');
 
-        // user environment config services
-        $userEnvironmentServices = static::findServiceConfigFile(static::$config['config directory'] ?? '' . '/' . static::$config['environment']);
+            // user environment config services
+            $userEnvironmentServices = static::findServiceConfigFile(static::$config['config directory'] ?? '' . '/' . static::$config['environment']);
+        }
 
         // final services array
         $services = array_replace($defaultServices, $userServices, $userEnvironmentServices);
