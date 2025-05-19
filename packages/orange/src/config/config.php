@@ -5,6 +5,11 @@ declare(strict_types=1);
 return [
     // the end user should provide these but the defaults are below
     'config directory' => __ROOT__ . '/config',
+    // search and merge a directory matching ENVIRONMENT
+    // if a boolean of true is provided ENVIRONMENT will be used
+    // if a boolean of falise is provied NO ENVIRONMENT is used
+    // if a string is provided that is used instead of ENVIRONMENT
+    'environment' => true,
 
     // additional configuration the end user can change
     'environment errors config' => [
