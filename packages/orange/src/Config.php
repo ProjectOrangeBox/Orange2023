@@ -52,7 +52,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
 
         $this->config = $config;
 
-        $configDirectory = $this->config['config directory'] ?? null;
+        $configDirectory = $this->config['config directory'] ?? chr(0);
 
         // Setup the default configuration directory
         if (!$configDirectory = realpath($configDirectory)) {
@@ -179,7 +179,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
         logMsg('INFO', __METHOD__);
 
         if (!isset($this->foundConfigFiles[$absolutePath])) {
-            logMsg('INFO', 'INCLUDE FILE "' . $absolutePath . '"');
+            logMsg('INFO', 'Include File: "' . $absolutePath . '"');
 
             $this->foundConfigFiles[$absolutePath] = include $absolutePath;
 

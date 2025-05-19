@@ -22,8 +22,17 @@ use orange\framework\exceptions\filesystem\DirectoryNotFound;
  */
 class Application
 {
-    protected static string $servicesFileName = 'services.php';
-    protected static string $configFileName = 'config.php';
+    const SERVICESFILENAME = 'services.php';
+    const CONFIGFILENAME = 'config.php';
+    const HELPERS = [
+        __DIR__ . '/helpers/errors.php',
+        __DIR__ . '/helpers/helpers.php',
+        __DIR__ . '/helpers/wrappers.php',
+    ];
+    const CONFIGARRAYSERIVICE = '$config';
+    const ORANGECONSTANTSFILE = __DIR__ . '/config/constants.php';
+    const ORANGESERVICESFILE = __DIR__ . '/config/services.php';
+    const ORANGECONFIGFILE = __DIR__ . '/config/config.php';
 
     /**
      * Bootstraps the application for HTTP requests.
@@ -102,6 +111,8 @@ class Application
      * @throws InvalidValue If the __ROOT__ constant is not defined.
      * @throws DirectoryNotFound If the root directory (__ROOT__) is not valid.
      * @throws MissingRequired If the required 'mbstring' extension is not loaded.
+     * @throws ConfigFileNotFound
+     * @throws InvalidValue
      */
     protected static function bootstrap(string $mode, array $config): ContainerInterface
     {
@@ -132,9 +143,7 @@ class Application
 
         // this is part of the orange framework so we know it's there and an array
         // we also can't assume this was included with the config sent in
-        $orangeConfig = static::include(__DIR__ . '/config/' . static::$configFileName, true);
-
-        $config = array_replace($orangeConfig, $config);
+        $config = array_replace(static::include(self::ORANGECONFIGFILE, true), $config);
 
         // get our error handling defaults for the different environment types
         // these can be overridden in the passed $config array
@@ -173,17 +182,16 @@ class Application
      *
      * This method is responsible for loading any helper files specified in the configuration.
      *
+     * @param array $config
+     * @return array
      * @throws FileNotFound If any of the helper files do not exist.
+     * @throws ConfigFileNotFound
+     * @throws InvalidValue
      */
     protected static function preContainer(array $config): array
     {
-        // add our helpers to the end
-        $config['helpers'][] = __DIR__ . '/helpers/errors.php';
-        $config['helpers'][] = __DIR__ . '/helpers/helpers.php';
-        $config['helpers'][] = __DIR__ . '/helpers/wrappers.php';
-
         // load any helpers they might have loaded
-        foreach ($config['helpers'] as $helperFile) {
+        foreach (array_replace($config['helpers'] ?? [], self::HELPERS) as $helperFile) {
             if (!file_exists($helperFile)) {
                 throw new FileNotFound($helperFile);
             }
@@ -192,11 +200,11 @@ class Application
         }
 
         // now errorHandler() & errorHandler() should be setup
+        // try to attach the exception and error handler
         if (function_exists('errorHandler')) {
             set_error_handler('errorHandler');
         }
 
-        // now try to attach the exception and error handler
         if (function_exists('errorHandler')) {
             set_exception_handler('exceptionHandler');
         }
@@ -210,6 +218,7 @@ class Application
      * This method loads the services configuration file, sets up the container, and ensures
      * the correct configuration and services are available in the container.
      *
+     * @param array $config
      * @return ContainerInterface Returns the container instance.
      * @throws ConfigFileNotFound If the services configuration file is not found.
      * @throws InvalidValue If the services configuration file does not return an array.
@@ -221,27 +230,22 @@ class Application
         if (isset($config['services file'])) {
             $services = static::include($config['services file'], true);
         } else {
-            // orange default services (the filename is fixed since it is a orange file)
-            $orangeDefaultServices = static::include(__DIR__ . '/config/' . static::$servicesFileName, true);
-
             // user config directory
             $configDirectory = $config['config directory'] ?? '';
 
-            // dynamic user services
-            $userServices = static::include($configDirectory . DIRECTORY_SEPARATOR . static::$servicesFileName, false);
-
-            $userEnvironmentServices = [];
             $environment = $config['environment'] ?? false;
 
             if ($environment !== false) {
                 $environmentDirectory = ($environment === true) ? ENVIRONMENT : $environment;
 
                 // user environment config services
-                $userEnvironmentServices = static::include($configDirectory . DIRECTORY_SEPARATOR . $environmentDirectory . DIRECTORY_SEPARATOR . static::$servicesFileName, false);
+                $userEnvironmentServices = static::include($configDirectory . DIRECTORY_SEPARATOR . $environmentDirectory . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, false);
+            } else {
+                $userEnvironmentServices = [];
             }
 
             // final services array
-            $services = array_replace($orangeDefaultServices, $userServices, $userEnvironmentServices);
+            $services = array_replace(static::include(self::ORANGESERVICESFILE, true), static::include($configDirectory . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, false), $userEnvironmentServices);
         }
 
         if (!isset($services['container'])) {
@@ -261,7 +265,7 @@ class Application
         }
 
         // add our configuration
-        $container->set('$config', $config);
+        $container->set(self::CONFIGARRAYSERIVICE, $config);
 
         return $container;
     }
@@ -272,14 +276,14 @@ class Application
      * If you extend this class this is a good place to do any post container code :P
      *
      * @param ContainerInterface $container The container instance after it has been set up.
+     * @return ContainerInterface
+     * @throws ConfigFileNotFound
+     * @throws InvalidValue
      */
     protected static function postContainer(ContainerInterface $container): ContainerInterface
     {
-
         // set up constants local constants + any user supplied in the user config folder
-        $constants = static::include(__DIR__ . '/config/constants.php') + $container->config->constants;
-
-        foreach ($constants as $name => $value) {
+        foreach (array_replace(static::include(self::ORANGECONSTANTSFILE, true), $container->config->constants) as $name => $value) {
             // Constants should all be uppercase - not an option!
             $name = strtoupper($name);
 
@@ -297,10 +301,11 @@ class Application
      * it will always return and array even if empty
      *
      * @param string $configFilePath
-     * @return array
+     * @return array|null
+     * @throws ConfigFileNotFound
      * @throws InvalidValue
      */
-    protected static function include(string $configFilePath, bool $required = false, bool $isArray = true): mixed
+    protected static function include(string $configFilePath, bool $required = false, bool $isArray = true): array|null
     {
         $config = [];
 
@@ -318,6 +323,6 @@ class Application
             }
         }
 
-        return $config;
+        return $isArray ? $config : null;
     }
 }
