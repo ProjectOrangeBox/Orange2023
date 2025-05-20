@@ -101,11 +101,12 @@ class Methods
     public function verifyPath(): void
     {
         // if path isn't found abs Path is false
-        $this->fullPath = realpath(__ROOT__ . '/' . $this->path);
+        $fullPathTest = realpath(__ROOT__ . '/' . $this->path);
 
-        if ($this->fullPath && !is_dir($this->fullPath)) {
-            $this->console->stop('Unable to locate "' . $this->fullPath . '".');
+        if ($fullPathTest === false || !is_dir($fullPathTest)) {
+            $this->console->stop('Unable to locate "' . $this->path . '".');
         } else {
+            $this->fullPath = $fullPathTest;
             $this->console->echo('<primary>Using directory "' . $this->fullPath . '".');
         }
     }
