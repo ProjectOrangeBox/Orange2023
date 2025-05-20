@@ -16,7 +16,6 @@ class Application
 {
     // Dependency Injection Container
     public ContainerInterface $container;
-
     protected array $config;
 
     // Constants for file names and helper paths
@@ -32,6 +31,11 @@ class Application
     const ORANGESERVICESFILE = __DIR__ . '/config/services.php';
     const ORANGECONFIGFILE = __DIR__ . '/config/config.php';
 
+    public static function __callStatic($name, $arguments): ContainerInterface
+    {
+        return (new static($arguments[0], $name))->container;
+    }
+
     /**
      *
      * @param array $config
@@ -44,7 +48,7 @@ class Application
      * @throws FileNotFound
      * @throws IncorrectInterface
      */
-    public function __construct(array $config, string $mode)
+    protected function __construct(array $config, string $mode)
     {
         $this->config = $config;
 

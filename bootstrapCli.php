@@ -1,6 +1,8 @@
 <?php
 
-use orange\framework\Start;
+declare(strict_types=1);
+
+use orange\framework\Application;
 
 // setup the application ROOT
 // handy for mocking data instead of hardwired a directory location based on the file
@@ -23,6 +25,4 @@ $config = include __ROOT__ . '/config/config.php';
 require_once __ROOT__ . '/vendor/autoload.php';
 
 /* send config into cli application and away we go! */
-$app = Start::cli($config);
-
-$container = $app->container;
+$container = Application::cli($config);

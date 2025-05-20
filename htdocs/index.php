@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use orange\framework\Start;
+use orange\framework\Application;
 
 // All directories are based off of this root path and
 // everything goes under this path for security and easier portability
@@ -29,4 +29,4 @@ $config = include __ROOT__ . '/config/config.php';
 require_once __ROOT__ . '/bootstrap.php';
 
 // send the config into our http application and away we go!
-Start::http($config);
+Application::http($config);
