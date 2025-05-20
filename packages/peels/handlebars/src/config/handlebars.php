@@ -6,7 +6,7 @@ return [
     'cache directory' => __ROOT__ . '/var/handlebars',
     'templates' => [],
     'partials' => [],
-    'forceCompile' => $_ENV['DEBUG'],
+    'forceCompile' => DEBUG,
     'hbCachePrefix' => 'hbs.',
     'extension' => '.hbs',
     'delimiters' => ['{{', '}}'],

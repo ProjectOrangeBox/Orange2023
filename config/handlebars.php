@@ -9,7 +9,7 @@
 
 return [
     'cache directory' => __ROOT__ . '/var/handlebars',
-    'forceCompile' => $_ENV['DEBUG'],
+    'forceCompile' => DEBUG,
     'helpers' => [
         __ROOT__ . '/packages/peels/handlebars/src/hbsPlugins/exp:block.hbs.php',
         __ROOT__ . '/packages/peels/handlebars/src/hbsPlugins/exp:channel:entries.hbs.php',
