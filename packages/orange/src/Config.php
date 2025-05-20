@@ -52,29 +52,9 @@ class Config extends SingletonArrayObject implements ConfigInterface
 
         $this->config = $config;
 
-        $configDirectory = $this->config['config directory'] ?? chr(0);
+        $configDirectory = $this->config['config directory'] ?? UNDEFINED;
 
-        // Setup the default configuration directory
-        if (!$configDirectory = realpath($configDirectory)) {
-            throw new DirectoryNotFound($configDirectory);
-        }
-
-        // first searched
-        $this->searchPaths[] = $configDirectory;
-
-        // Setup environment-specific configuration directory
-        if (isset($this->config['environment']) && $this->config['environment'] !== false) {
-            $environmentDirectory = ($this->config['environment'] === true) ? ENVIRONMENT : $this->config['environment'];
-
-            $envConfigDirectory = $configDirectory . DIRECTORY_SEPARATOR . $environmentDirectory;
-
-            if (!$absoluteEnvConfigDirectory = realpath($envConfigDirectory)) {
-                throw new DirectoryNotFound($envConfigDirectory);
-            }
-
-            // second searched
-            $this->searchPaths[] = $absoluteEnvConfigDirectory;
-        }
+        $this->searchPaths = [$configDirectory, $configDirectory . DIRECTORY_SEPARATOR . ENVIRONMENT];
 
         if ($cache) {
             $this->loadCache($cache);

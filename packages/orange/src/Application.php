@@ -12,16 +12,14 @@ use orange\framework\exceptions\filesystem\FileNotFound;
 use orange\framework\exceptions\config\ConfigFileNotFound;
 use orange\framework\exceptions\filesystem\DirectoryNotFound;
 
-/**
- * Application class responsible for bootstrapping the application in either HTTP or CLI mode.
- *
- * This class is a wrapper for the static "standalone" functions that help configure and initialize the application,
- * load required services, handle environment configurations, set up error handling, and set up the container.
- *
- * The framework allows for overrides of certain methods if extended, while still maintaining the default functionality.
- */
 class Application
 {
+    // Dependency Injection Container
+    public ContainerInterface $container;
+
+    protected array $config;
+
+    // Constants for file names and helper paths
     const SERVICESFILENAME = 'services.php';
     const CONFIGFILENAME = 'config.php';
     const HELPERS = [
@@ -35,86 +33,68 @@ class Application
     const ORANGECONFIGFILE = __DIR__ . '/config/config.php';
 
     /**
-     * Bootstraps the application for HTTP requests.
      *
-     * This method performs the entire HTTP request lifecycle, from routing the request to dispatching the controller
-     * and sending the output. It triggers various events during the process to allow for hooks and further customization.
-     *
-     * @param array $config The configuration array, including required and optional settings for the application.
-     *                       - 'services': Path to the services configuration file (required).
-     *                       - 'config directory': Path to the directory where the configuration files are stored (required).
-     *                       - 'environment': Current environment (optional).
-     *                       - 'debug': Debug mode (optional).
-     *                       - 'timezone': Timezone identifier (optional).
-     * @return ContainerInterface Returns the container instance after bootstrapping.
-     * @throws ConfigFileNotFound If the services configuration file is not found.
-     * @throws DirectoryNotFound If the root directory (__ROOT__) is not valid.
-     * @throws InvalidValue If the configuration or services file is invalid.
-     */
-    public static function http(array $config): ContainerInterface
-    {
-        // call bootstrap function which returns a container
-        $container = static::bootstrap('http', $config);
-
-        // call event
-        $container->events->trigger('before.router', $container->input);
-
-        // match uri & method to route
-        $container->router->match($container->input->requestUri(), $container->input->requestMethod());
-
-        // call event
-        $container->events->trigger('before.controller', $container->router, $container->input);
-
-        // dispatch route
-        $container->output->write($container->dispatcher->call($container->router->getMatched()));
-
-        // call event
-        $container->events->trigger('before.output', $container->router, $container->input, $container->output);
-
-        // send header, status code and output
-        $container->output->send();
-
-        // call event
-        $container->events->trigger('before.shutdown', $container->router, $container->input, $container->output);
-
-        return $container;
-    }
-
-    /**
-     * Bootstraps the application for CLI execution.
-     *
-     * This method performs the initial setup required for running the application in CLI mode, without routing or outputting.
-     *
-     * @param array $config The configuration array, including required and optional settings for the application.
-     *                       - 'config directory': Path to the directory where the configuration files are stored (required).
-     *                       - 'environment': Current environment (optional).
-     *                       - 'debug': Debug mode (optional).
-     *                       - 'timezone': Timezone identifier (optional).
-     * @return ContainerInterface Returns the container instance after bootstrapping.
-     * @throws ConfigFileNotFound If the services configuration file is not found.
-     * @throws InvalidValue If the configuration or services file is invalid.
-     */
-    public static function cli(array $config): ContainerInterface
-    {
-        // no events, routes, "default" output
-        return static::bootstrap('cli', $config);
-    }
-
-    /**
-     * Protected method for shared bootstrapping functionality.
-     *
-     * This method is responsible for setting up the environment, loading configuration files,
-     * defining constants, checking extensions, and initializing the container.
-     *
-     * @param string $mode The mode in which the application is running: either 'http' or 'cli'.
-     * @return ContainerInterface Returns the container instance after bootstrapping.
-     * @throws InvalidValue If the __ROOT__ constant is not defined.
-     * @throws DirectoryNotFound If the root directory (__ROOT__) is not valid.
-     * @throws MissingRequired If the required 'mbstring' extension is not loaded.
-     * @throws ConfigFileNotFound
+     * @param array $config
+     * @param string $mode
+     * @return void
      * @throws InvalidValue
+     * @throws DirectoryNotFound
+     * @throws ConfigFileNotFound
+     * @throws MissingRequired
+     * @throws FileNotFound
+     * @throws IncorrectInterface
      */
-    protected static function bootstrap(string $mode, array $config): ContainerInterface
+    public function __construct(array $config, string $mode)
+    {
+        $this->config = $config;
+
+        switch ($mode) {
+            case 'cli':
+                $this->bootstrap('cli');
+                break;
+            case 'http':
+                // call bootstrap function which returns a container
+                $this->bootstrap('http');
+
+                // call event
+                $this->container->events->trigger('before.router', $this->container->input);
+
+                // match uri & method to route
+                $this->container->router->match($this->container->input->requestUri(), $this->container->input->requestMethod());
+
+                // call event
+                $this->container->events->trigger('before.controller', $this->container->router, $this->container->input);
+
+                // dispatch route
+                $this->container->output->write($this->container->dispatcher->call($this->container->router->getMatched()));
+
+                // call event
+                $this->container->events->trigger('before.output', $this->container->router, $this->container->input, $this->container->output);
+
+                // send header, status code and output
+                $this->container->output->send();
+
+                // call event
+                $this->container->events->trigger('before.shutdown', $this->container->router, $this->container->input, $this->container->output);
+                break;
+            default:
+                throw new InvalidValue('Unknown Run Mode "' . $mode . '".');
+        }
+    }
+
+    /**
+     * Bootstraps the application environment
+     *
+     * @param string $mode
+     * @return void
+     * @throws InvalidValue
+     * @throws DirectoryNotFound
+     * @throws ConfigFileNotFound
+     * @throws MissingRequired
+     * @throws FileNotFound
+     * @throws IncorrectInterface
+     */
+    protected function bootstrap(string $mode): void
     {
         // set a undefined value which is not NULL
         define('UNDEFINED', chr(0));
@@ -138,16 +118,16 @@ class Application
         // set DEBUG default to false (production)
         define('DEBUG', $_ENV['DEBUG'] ?? false);
 
-        // set ENVIRONMENT default to production
-        define('ENVIRONMENT', strtolower($_ENV['ENVIRONMENT']) ?? 'production');
-
         // this is part of the orange framework so we know it's there and an array
         // we also can't assume this was included with the config sent in
-        $config = array_replace(static::include(self::ORANGECONFIGFILE, true), $config);
+        $this->config = array_replace($this->include(self::ORANGECONFIGFILE, true), $this->config);
+
+        // set ENVIRONMENT defaults to production
+        define('ENVIRONMENT', strtolower($_ENV['ENVIRONMENT']) ?? 'production');
 
         // get our error handling defaults for the different environment types
         // these can be overridden in the passed $config array
-        $envErrorsConfig = $config['environment errors config'][ENVIRONMENT] ?? $config['environment errors config']['default'];
+        $envErrorsConfig = $this->config['environment errors config'][ENVIRONMENT] ?? $this->config['environment errors config']['default'];
 
         // ok now set those values
         ini_set('display_errors', $envErrorsConfig['display errors']);
@@ -155,12 +135,12 @@ class Application
         error_reporting($envErrorsConfig['error reporting']);
 
         // set timezone
-        date_default_timezone_set($config['timezone']);
+        date_default_timezone_set($this->config['timezone']);
 
         // Set internal encoding.
-        ini_set('default_charset', $config['encoding']);
-        mb_internal_encoding($config['encoding']);
-        define('CHARSET', $config['encoding']);
+        ini_set('default_charset', $this->config['encoding']);
+        mb_internal_encoding($this->config['encoding']);
+        define('CHARSET', $this->config['encoding']);
 
         // set umask to a known state
         umask(0000);
@@ -174,29 +154,26 @@ class Application
         mb_substitute_character('none');
 
         // the developer can extend this class and override these methods
-        return static::postContainer(static::bootstrapContainer(static::preContainer($config)));
+        $this->postContainer($this->bootstrapContainer($this->preContainer()));
     }
 
     /**
-     * Pre-container setup. This is called before the container is set up.
+     * Load helper functions and setup error handlers
      *
-     * This method is responsible for loading any helper files specified in the configuration.
-     *
-     * @param array $config
-     * @return array
-     * @throws FileNotFound If any of the helper files do not exist.
+     * @return void
+     * @throws FileNotFound
      * @throws ConfigFileNotFound
      * @throws InvalidValue
      */
-    protected static function preContainer(array $config): array
+    protected function preContainer(): void
     {
         // load any helpers they might have loaded
-        foreach (array_replace($config['helpers'] ?? [], self::HELPERS) as $helperFile) {
+        foreach (array_replace($this->config['helpers'] ?? [], self::HELPERS) as $helperFile) {
             if (!file_exists($helperFile)) {
                 throw new FileNotFound($helperFile);
             }
 
-            static::include($helperFile, true, false);
+            $this->include($helperFile, true, false);
         }
 
         // now errorHandler() & errorHandler() should be setup
@@ -208,45 +185,26 @@ class Application
         if (function_exists('errorHandler')) {
             set_exception_handler('exceptionHandler');
         }
-
-        return $config;
     }
 
     /**
-     * Bootstraps the container with services and configuration.
+     * Initializes the DI container using service configuration
      *
-     * This method loads the services configuration file, sets up the container, and ensures
-     * the correct configuration and services are available in the container.
-     *
-     * @param array $config
-     * @return ContainerInterface Returns the container instance.
-     * @throws ConfigFileNotFound If the services configuration file is not found.
-     * @throws InvalidValue If the services configuration file does not return an array.
-     * @throws IncorrectInterface If the container service is not a valid closure or container instance.
+     * @return void
+     * @throws ConfigFileNotFound
+     * @throws InvalidValue
+     * @throws IncorrectInterface
      */
-    protected static function bootstrapContainer(array $config): ContainerInterface
+    protected function bootstrapContainer(): void
     {
-        // if they provide a services config file this overrides ALL others
-        if (isset($config['services file'])) {
-            $services = static::include($config['services file'], true);
-        } else {
-            // user config directory
-            $configDirectory = $config['config directory'] ?? '';
+        $configDirectory = $this->config['config directory'] ?? UNDEFINED;
 
-            $environment = $config['environment'] ?? false;
-
-            if ($environment !== false) {
-                $environmentDirectory = ($environment === true) ? ENVIRONMENT : $environment;
-
-                // user environment config services
-                $userEnvironmentServices = static::include($configDirectory . DIRECTORY_SEPARATOR . $environmentDirectory . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, false);
-            } else {
-                $userEnvironmentServices = [];
-            }
-
-            // final services array
-            $services = array_replace(static::include(self::ORANGESERVICESFILE, true), static::include($configDirectory . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, false), $userEnvironmentServices);
-        }
+        // final services array
+        $services = array_replace(
+            $this->include(self::ORANGESERVICESFILE, true),
+            $this->include($configDirectory . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, false),
+            $this->include($configDirectory . DIRECTORY_SEPARATOR . ENVIRONMENT . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, false)
+        );
 
         if (!isset($services['container'])) {
             throw new InvalidValue('Container Service not found.');
@@ -258,32 +216,26 @@ class Application
         }
 
         // now get the empty container and save a copy in our object
-        $container = $services['container']($services);
+        $this->container = $services['container']($services);
 
-        if (!$container instanceof ContainerInterface) {
+        if (!$this->container instanceof ContainerInterface) {
             throw new IncorrectInterface('The service "container" did not return an object using the container interface.');
         }
 
         // add our configuration
-        $container->set(self::CONFIGARRAYSERIVICE, $config);
-
-        return $container;
+        $this->container->set(self::CONFIGARRAYSERIVICE, $this->config);
     }
 
     /**
-     * Post-container setup. This is called after the container is set up.
+     * Defines application constants from configuration
      *
-     * If you extend this class this is a good place to do any post container code :P
-     *
-     * @param ContainerInterface $container The container instance after it has been set up.
-     * @return ContainerInterface
+     * @return void
      * @throws ConfigFileNotFound
      * @throws InvalidValue
      */
-    protected static function postContainer(ContainerInterface $container): ContainerInterface
+    protected function postContainer(): void
     {
-        // set up constants local constants + any user supplied in the user config folder
-        foreach (array_replace(static::include(self::ORANGECONSTANTSFILE, true), $container->config->constants) as $name => $value) {
+        foreach (array_replace($this->include(self::ORANGECONSTANTSFILE, true), $this->container->config->constants) as $name => $value) {
             // Constants should all be uppercase - not an option!
             $name = strtoupper($name);
 
@@ -291,23 +243,21 @@ class Application
                 define($name, $value);
             }
         }
-
-        return $container;
     }
 
     /**
-     * include a config file which must return an array
-     * this only throws an exception if the file does not return an array
-     * it will always return and array even if empty
+     * Includes and optionally validates a config file
      *
      * @param string $configFilePath
+     * @param bool $required
+     * @param bool $isArray
      * @return array|null
      * @throws ConfigFileNotFound
      * @throws InvalidValue
      */
-    protected static function include(string $configFilePath, bool $required = false, bool $isArray = true): array|null
+    protected function include(string $configFilePath, bool $required = false, bool $isArray = true): array|null
     {
-        $config = [];
+        $loadedConfig = [];
 
         $absoluteConfigFile = realpath($configFilePath);
 
@@ -316,13 +266,13 @@ class Application
         }
 
         if (is_string($absoluteConfigFile)) {
-            $config = require $absoluteConfigFile;
+            $loadedConfig = require $absoluteConfigFile;
 
-            if ($isArray && !is_array($config)) {
+            if ($isArray && !is_array($loadedConfig)) {
                 throw new InvalidValue('File "' . $configFilePath . '" did not return an array.');
             }
         }
 
-        return $isArray ? $config : null;
+        return $isArray ? $loadedConfig : null;
     }
 }

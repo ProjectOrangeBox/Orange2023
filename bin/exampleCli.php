@@ -13,6 +13,11 @@ $console->turnOnOutput();
 
 $console->line();
 
+$appConfig = $container->config->app;
+
+$console->primary('h1 is '.$appConfig['h1']);
+$console->primary('file is '.$appConfig['file']);
+
 $console->primary('This is a primary test');
 $console->secondary('This is a secondary test');
 
