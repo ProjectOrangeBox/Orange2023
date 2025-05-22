@@ -17,6 +17,7 @@ class Application
     // Dependency Injection Container
     public ContainerInterface $container;
     protected array $config;
+    protected string $configDirectory;
 
     // Constants for file names and helper paths
     // the location of the constants file
@@ -38,12 +39,14 @@ class Application
     const CONFIGARRAYSERIVICE = '$config';
 
     // this is used to setup the different static run modes
+    // Application::http(['config directory' => __ROOT__ . '/config']);
     public static function __callStatic($name, $arguments): ContainerInterface
     {
         return (new static($arguments[0], $name))->container;
     }
 
     /**
+     * You can extend this class and add more modes
      *
      * @param array $config
      * @param string $mode
@@ -119,31 +122,32 @@ class Application
         }
 
         // is root a real directory?
-        if (!is_dir(__ROOT__)) {
+        if (!realpath(__ROOT__) || !is_dir(__ROOT__)) {
             throw new DirectoryNotFound(__ROOT__);
         }
 
         // switch to root
         chdir(__ROOT__);
 
+        // let's make sure we have a ENV array in our config
+        $this->config['ENV'] = $this->config['ENV'] ?? [];
+
         // set DEBUG default to false (production)
         define('DEBUG', $this->config['ENV']['DEBUG'] ?? false);
-
-        // this is part of the orange framework so we know it's there and an array
-        // we also can't assume this was included with the config sent in
-        $this->config = array_replace($this->include(self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . self::CONFIGFILENAME, true), $this->config);
 
         // set ENVIRONMENT defaults to production
         define('ENVIRONMENT', strtolower($this->config['ENV']['ENVIRONMENT']) ?? 'production');
 
-        // get our error handling defaults for the different environment types
-        // these can be overridden in the passed $config array
-        $envErrorsConfig = $this->config['environment errors config'][ENVIRONMENT] ?? $this->config['environment errors config']['default'];
+        $this->configDirectory = $this->config['config directory'] ?? null;
+
+        // this is part of the orange framework so we know it's there and an array
+        // we also can't assume this was included with the config sent in
+        $this->config = $this->loadCascadingConfig(self::CONFIGFILENAME);
 
         // ok now set those values
-        ini_set('display_errors', $envErrorsConfig['display errors']);
-        ini_set('display_startup_errors', $envErrorsConfig['display startup errors']);
-        error_reporting($envErrorsConfig['error reporting']);
+        ini_set('display_errors', $this->config['display_errors']);
+        ini_set('display_startup_errors', $this->config['display_startup_errors']);
+        error_reporting($this->config['error_reporting']);
 
         // set timezone
         date_default_timezone_set($this->config['timezone']);
@@ -186,7 +190,7 @@ class Application
                 throw new FileNotFound($helperFile);
             }
 
-            $this->include($helperFile, true, false);
+            include $helperFile;
         }
 
         // now errorHandler() & errorHandler() should be setup
@@ -210,14 +214,7 @@ class Application
      */
     protected function bootstrapContainer(): void
     {
-        $configDirectory = $this->config['config directory'] ?? UNDEFINED;
-
-        // final services array
-        $services = array_replace(
-            $this->include(self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, true),
-            $this->include($configDirectory . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, false),
-            $this->include($configDirectory . DIRECTORY_SEPARATOR . ENVIRONMENT . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, false)
-        );
+        $services = $this->loadCascadingConfig(self::SERVICESFILENAME);
 
         if (!isset($services['container'])) {
             throw new InvalidValue('Container Service not found.');
@@ -248,7 +245,7 @@ class Application
      */
     protected function postContainer(): void
     {
-        foreach (array_replace($this->include(self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . self::CONSTANTFILENAME, true), $this->container->config->constants) as $name => $value) {
+        foreach (array_replace(include self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . self::CONSTANTFILENAME, $this->container->config->constants) as $name => $value) {
             // Constants should all be uppercase - not an option!
             $name = strtoupper($name);
 
@@ -258,34 +255,26 @@ class Application
         }
     }
 
-    /**
-     * Includes and optionally validates a config file
-     *
-     * @param string $configFilePath
-     * @param bool $required
-     * @param bool $isArray
-     * @return array|null
-     * @throws ConfigFileNotFound
-     * @throws InvalidValue
-     */
-    protected function include(string $configFilePath, bool $required, bool $isArray = true): array|null
+    protected function loadCascadingConfig(string $filename): array
     {
-        $loadedConfig = [];
+        $orangeConfigFile = self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . $filename;
 
-        $absoluteConfigFile = realpath($configFilePath);
+        $finalArray = file_exists($orangeConfigFile) ? include $orangeConfigFile : [];
 
-        if ($absoluteConfigFile === false && $required) {
-            throw new ConfigFileNotFound($configFilePath);
-        }
-
-        if (is_string($absoluteConfigFile)) {
-            $loadedConfig = require_once $absoluteConfigFile;
-
-            if ($isArray && !is_array($loadedConfig)) {
-                throw new InvalidValue('File "' . $configFilePath . '" did not return an array.');
+        if ($this->configDirectory) {
+            if (!realpath($this->configDirectory) || !is_dir($this->configDirectory)) {
+                throw new DirectoryNotFound($this->configDirectory);
             }
+
+            $userConfigFile = $this->configDirectory . DIRECTORY_SEPARATOR . $filename;
+            $userArray = file_exists($userConfigFile) ? include $userConfigFile : [];
+
+            $userConfigEnvFile = $this->configDirectory . DIRECTORY_SEPARATOR . ENVIRONMENT . DIRECTORY_SEPARATOR . $filename;
+            $userEnvArray = file_exists($userConfigEnvFile) ? include $userConfigEnvFile : [];
+
+            $finalArray = array_replace($finalArray, $userArray, $userEnvArray);
         }
 
-        return $isArray ? $loadedConfig : null;
+        return $finalArray;
     }
 }
