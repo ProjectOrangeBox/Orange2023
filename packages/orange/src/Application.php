@@ -19,18 +19,25 @@ class Application
     protected array $config;
 
     // Constants for file names and helper paths
+    // the location of the constants file
+    const ORANGECONFIGDIRECTORY = __DIR__ . '/config';
+    // the name of the services php file
     const SERVICESFILENAME = 'services.php';
+    // the name of the config php file
     const CONFIGFILENAME = 'config.php';
+    // the name of the constant php file
+    const CONSTANTFILENAME = 'constants.php';
+
+    // load these helpers by default
     const HELPERS = [
         __DIR__ . '/helpers/errors.php',
         __DIR__ . '/helpers/helpers.php',
         __DIR__ . '/helpers/wrappers.php',
     ];
+    // the service name for the start up config values
     const CONFIGARRAYSERIVICE = '$config';
-    const ORANGECONSTANTSFILE = __DIR__ . '/config/constants.php';
-    const ORANGESERVICESFILE = __DIR__ . '/config/services.php';
-    const ORANGECONFIGFILE = __DIR__ . '/config/config.php';
 
+    // this is used to setup the different static run modes
     public static function __callStatic($name, $arguments): ContainerInterface
     {
         return (new static($arguments[0], $name))->container;
@@ -124,7 +131,7 @@ class Application
 
         // this is part of the orange framework so we know it's there and an array
         // we also can't assume this was included with the config sent in
-        $this->config = array_replace($this->include(self::ORANGECONFIGFILE, true), $this->config);
+        $this->config = array_replace($this->include(self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . self::CONFIGFILENAME, true), $this->config);
 
         // set ENVIRONMENT defaults to production
         define('ENVIRONMENT', strtolower($_ENV['ENVIRONMENT']) ?? 'production');
@@ -205,7 +212,7 @@ class Application
 
         // final services array
         $services = array_replace(
-            $this->include(self::ORANGESERVICESFILE, true),
+            $this->include(self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, true),
             $this->include($configDirectory . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, false),
             $this->include($configDirectory . DIRECTORY_SEPARATOR . ENVIRONMENT . DIRECTORY_SEPARATOR . self::SERVICESFILENAME, false)
         );
@@ -239,7 +246,7 @@ class Application
      */
     protected function postContainer(): void
     {
-        foreach (array_replace($this->include(self::ORANGECONSTANTSFILE, true), $this->container->config->constants) as $name => $value) {
+        foreach (array_replace($this->include(self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . self::CONSTANTFILENAME, true), $this->container->config->constants) as $name => $value) {
             // Constants should all be uppercase - not an option!
             $name = strtoupper($name);
 
