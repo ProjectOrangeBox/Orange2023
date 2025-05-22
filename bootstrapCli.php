@@ -25,4 +25,4 @@ $config = include __ROOT__ . '/config/config.php';
 require_once __ROOT__ . '/vendor/autoload.php';
 
 /* send config into cli application and away we go! */
-$container = Application::cli($config);
+$container = Application::cli($config + ['ENV' => $_ENV]);

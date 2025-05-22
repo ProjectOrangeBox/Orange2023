@@ -71,7 +71,7 @@ return [
     },
     '@databaseConfigPDO' => 'pdo', // alias of pdo
     'pdo' => function (ContainerInterface $container) {
-        $db = $_ENV['db'];
+        $db = $container->{'$config'}['ENV']['db'];
 
         // stored in the .env file specific to each server (not committed to GIT)
         return new PDO('mysql:host=' . $db['host'] . ';dbname=' . $db['database'], $db['username'], $db['password'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
@@ -97,7 +97,7 @@ return [
             'ttl' => 600,
             'ttl window' => 30,
         ];
-        
+
         return IncludeCache::getInstance($config);
     },
     'fcache' => function (ContainerInterface $container): CacheInterface {

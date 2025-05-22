@@ -13,6 +13,64 @@ trait ConfigurationTrait
     private static array $alreadyIncludedFiles = [];
 
     /**
+     * This allows us to call $object->changeOption('fooBar', 123) on the class which will
+     * set the value $this->fooBar = 123; with type checking
+     *
+     * $this->changeableTypeCheck['fooBar'=>'is_integer'];
+     *
+     * @param string $name
+     * @param mixed $value
+     * @return ConfigurationTrait
+     * @throws MissingRequired
+     * @throws InvalidValue
+     */
+    public function changeOption(string $name, mixed $value): self
+    {
+        logMsg('INFO', __METHOD__ . ' ' . $name);
+        logMsg('DEBUG', __METHOD__, ['name' => $name, 'value' => $value]);
+
+        if (!property_exists($this, 'changeableTypeCheck')) {
+            throw new MissingRequired('Change not supported');
+        }
+
+        if (!is_array($this->changeableTypeCheck)) {
+            throw new InvalidValue('changeableTypeCheck is not an array.');
+        }
+
+        // convert a human readable name to a variable name
+        // convert 'Shipping Carrier' to 'shippingCarrier'
+        $name = $this->camelize($name, false);
+
+        if (!isset($this->changeableTypeCheck[$name])) {
+            throw new InvalidValue('Cannot set ' . $name);
+        }
+
+        $typeCheck = $this->changeableTypeCheck[$name];
+
+        if (function_exists($typeCheck)) {
+            if (!$typeCheck($value)) {
+                throw new InvalidValue($value . ' is not ' . $typeCheck);
+            }
+        } elseif (!$value instanceof $typeCheck) {
+            throw new InvalidValue($value . ' is not ' . $typeCheck);
+        }
+
+        $method = 'set' . $this->camelize($name, true);
+
+        // only call if the method exists
+        if (method_exists($this, $method)) {
+            $this->$method($value);
+        } elseif (property_exists($this, $name)) {
+            // set value
+            $this->$name = $value;
+        } else {
+            throw new InvalidValue('property or set method not found ' . $name);
+        }
+
+        return $this;
+    }
+
+    /**
      * Merge the passed config array with the default configuration in the file provided by absolute path
      * if the absolute path to the file does not exsist try to auto detect based on the file location + /config/{name}.php
      * optionally doing a recursive merge
@@ -75,64 +133,6 @@ trait ConfigurationTrait
         }
 
         return $path;
-    }
-
-    /**
-     * This allows us to call $object->change('fooBar', 123) on the class which will
-     * set the value $this->fooBar = 123; with type checking
-     *
-     * $this->changeableTypeCheck['fooBar'=>'is_integer'];
-     *
-     * @param string $name
-     * @param mixed $value
-     * @return ConfigurationTrait
-     * @throws MissingRequired
-     * @throws InvalidValue
-     */
-    public function change(string $name, mixed $value): self
-    {
-        logMsg('INFO', __METHOD__ . ' ' . $name);
-        logMsg('DEBUG', __METHOD__, ['name' => $name, 'value' => $value]);
-
-        if (!property_exists($this, 'changeableTypeCheck')) {
-            throw new MissingRequired('Change not supported');
-        }
-
-        if (!is_array($this->changeableTypeCheck)) {
-            throw new InvalidValue('changeableTypeCheck is not an array.');
-        }
-
-        // convert a human readable name to a variable name
-        // convert 'Shipping Carrier' to 'shippingCarrier'
-        $name = $this->camelize($name, false);
-
-        if (!isset($this->changeableTypeCheck[$name])) {
-            throw new InvalidValue('Cannot set ' . $name);
-        }
-
-        $typeCheck = $this->changeableTypeCheck[$name];
-
-        if (function_exists($typeCheck)) {
-            if (!$typeCheck($value)) {
-                throw new InvalidValue($value . ' is not ' . $typeCheck);
-            }
-        } elseif (!$value instanceof $typeCheck) {
-            throw new InvalidValue($value . ' is not ' . $typeCheck);
-        }
-
-        $method = 'set' . $this->camelize($name, true);
-
-        // only call if the method exists
-        if (method_exists($this, $method)) {
-            $this->$method($value);
-        } elseif (property_exists($this, $name)) {
-            // set value
-            $this->$name = $value;
-        } else {
-            throw new InvalidValue('property or set method not found ' . $name);
-        }
-
-        return $this;
     }
 
     /**

@@ -244,9 +244,13 @@ if (!function_exists('isAssociative')) {
 }
 
 if (!function_exists('env')) {
-    function env(string $key, mixed $default): mixed
+    function env(string $key, mixed $default = null): mixed
     {
-        $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+        // get ENV from the setup config
+        $ENV = container()->{'$config'}['ENV'] ?? [];
+
+        // try to get the value
+        $value = $ENV[$key] ?? false;
 
         // Not found? Return the default value
         if ($value === false) {
@@ -304,6 +308,6 @@ if (!function_exists('forceDownload')) {
             readfile($dataOrPath);
         }
 
-        exit();
+        exit(0);
     }
 }

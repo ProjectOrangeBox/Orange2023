@@ -70,10 +70,10 @@ final class ViewerTest extends unitTestHelper
 
     public function testChangeOption(): void
     {
-        $this->instance->change('debug', false);
+        $this->instance->changeOption('debug', false);
         $this->assertFalse($this->getPrivatePublic('debug'));
 
-        $this->instance->change('debug', true);
+        $this->instance->changeOption('debug', true);
         $this->assertTrue($this->getPrivatePublic('debug'));
     }
 

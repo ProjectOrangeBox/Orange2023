@@ -30,9 +30,9 @@ class Application
 
     // load these helpers by default
     const HELPERS = [
+        __DIR__ . '/helpers/wrappers.php',
         __DIR__ . '/helpers/errors.php',
         __DIR__ . '/helpers/helpers.php',
-        __DIR__ . '/helpers/wrappers.php',
     ];
     // the service name for the start up config values
     const CONFIGARRAYSERIVICE = '$config';
@@ -127,14 +127,14 @@ class Application
         chdir(__ROOT__);
 
         // set DEBUG default to false (production)
-        define('DEBUG', $_ENV['DEBUG'] ?? false);
+        define('DEBUG', $this->config['ENV']['DEBUG'] ?? false);
 
         // this is part of the orange framework so we know it's there and an array
         // we also can't assume this was included with the config sent in
         $this->config = array_replace($this->include(self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . self::CONFIGFILENAME, true), $this->config);
 
         // set ENVIRONMENT defaults to production
-        define('ENVIRONMENT', strtolower($_ENV['ENVIRONMENT']) ?? 'production');
+        define('ENVIRONMENT', strtolower($this->config['ENV']['ENVIRONMENT']) ?? 'production');
 
         // get our error handling defaults for the different environment types
         // these can be overridden in the passed $config array
@@ -165,7 +165,9 @@ class Application
         mb_substitute_character('none');
 
         // the developer can extend this class and override these methods
-        $this->postContainer($this->bootstrapContainer($this->preContainer()));
+        $this->preContainer();
+        $this->bootstrapContainer();
+        $this->postContainer();
     }
 
     /**
@@ -266,7 +268,7 @@ class Application
      * @throws ConfigFileNotFound
      * @throws InvalidValue
      */
-    protected function include(string $configFilePath, bool $required = false, bool $isArray = true): array|null
+    protected function include(string $configFilePath, bool $required, bool $isArray = true): array|null
     {
         $loadedConfig = [];
 
@@ -277,7 +279,7 @@ class Application
         }
 
         if (is_string($absoluteConfigFile)) {
-            $loadedConfig = require $absoluteConfigFile;
+            $loadedConfig = require_once $absoluteConfigFile;
 
             if ($isArray && !is_array($loadedConfig)) {
                 throw new InvalidValue('File "' . $configFilePath . '" did not return an array.');

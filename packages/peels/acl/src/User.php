@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace peels\acl;
 
-use orange\framework\Base;
-use orange\framework\Application;
 use orange\framework\traits\ConfigurationTrait;
 use peels\session\SessionInterface;
 use peels\acl\interfaces\AclInterface;

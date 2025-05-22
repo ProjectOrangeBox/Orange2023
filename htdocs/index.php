@@ -29,4 +29,4 @@ $config = include __ROOT__ . '/config/config.php';
 require_once __ROOT__ . '/bootstrap.php';
 
 // send the config into our http application and away we go!
-Application::http($config);
+Application::http($config + ['ENV' => $_ENV]);
