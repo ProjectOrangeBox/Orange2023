@@ -89,7 +89,7 @@ class Application
                 $this->container->events->trigger('before.shutdown', $this->container->router, $this->container->input, $this->container->output);
                 break;
             default:
-                throw new InvalidValue('Unknown Run Mode "' . $mode . '".');
+                throw new InvalidValue('Unknown Application Run Mode "' . $mode . '".');
         }
     }
 
