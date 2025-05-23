@@ -9,6 +9,8 @@ return [
 
     'timezone' => @date_default_timezone_get(),
     'encoding' => 'UTF-8',
+    'umask' => 0000,
+    'mb_substitute_character' => 'none',
     'helpers' => [
         __DIR__ . '/../helpers/wrappers.php',
         __DIR__ . '/../helpers/errors.php',

@@ -18,4 +18,4 @@ require_once __ROOT__ . '/vendor/autoload.php';
 Application::load(__ROOT__ . '/.env');
 
 // let the application know where the config files are and away we go!
-Application::http(__ROOT__ . '/config');
+Application::http();

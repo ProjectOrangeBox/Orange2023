@@ -9,20 +9,10 @@ use orange\framework\Application;
 // you can just change __ROOT__ to something else then change it back for example
 define('__ROOT__', realpath(__DIR__));
 
-// merge our .env with the system env - these could be cli specific
-$_ENV = array_replace_recursive(
-    $_ENV,
-    parse_ini_file(__ROOT__ . '/.env', true, INI_SCANNER_TYPED),
-    parse_ini_file(__ROOT__ . '/.env-cli', true, INI_SCANNER_TYPED)
-);
-
-// load our start up configuration
-$config = include __ROOT__ . '/config/config.php';
-
-// Do any additional bootstrap here you have access to the config file contents
-
 // composer auto loader
 require_once __ROOT__ . '/vendor/autoload.php';
 
+Application::load(__ROOT__ . '/.env', __ROOT__ . '/.env-cli');
+
 /* send config into cli application and away we go! */
-$container = Application::cli($config + ['ENV' => $_ENV]);
+$container = Application::cli();

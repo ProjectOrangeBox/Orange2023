@@ -72,7 +72,9 @@ final class HelpersTest extends unitTestHelper
     public function testConfig(): void
     {
         // setup config
-        $config = Config::getInstance(['config directory' => WORKINGDIR . '/env']);
+        $config = Config::getInstance(['directories' => [
+            WORKINGDIR . '/env',
+        ]]);
 
         // get an instance of container
         $container = Container::getInstance();

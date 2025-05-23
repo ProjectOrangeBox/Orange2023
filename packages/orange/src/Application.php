@@ -16,7 +16,7 @@ class Application
 {
     // Dependency Injection Container
     public ContainerInterface $container;
-    // config array passed in
+    // config directory passed in
     protected static string $configDirectory;
     // the application configuration array
     protected static array $app = [];
@@ -41,14 +41,14 @@ class Application
     // Application::http(['config directory' => __ROOT__ . '/config']);
     public static function __callStatic($name, $arguments): ContainerInterface
     {
-        return (new static($arguments[0], $name))->container;
+        return (new static($name, $arguments[0] ?? null))->container;
     }
 
     /**
      * You can extend this class and add more modes
      *
-     * @param array $config
      * @param string $mode
+     * @param array $config
      * @return void
      * @throws InvalidValue
      * @throws DirectoryNotFound
@@ -57,9 +57,11 @@ class Application
      * @throws FileNotFound
      * @throws IncorrectInterface
      */
-    protected function __construct(string $configDirectory, string $mode)
+    protected function __construct(string $mode, ?string $configDirectory = null)
     {
-        // all you need to send in is the config directory
+        // if nothing sent in then guess
+        $configDirectory = $configDirectory ?? __ROOT__ . DIRECTORY_SEPARATOR . 'config';
+
         if (!realpath($configDirectory)) {
             throw new DirectoryNotFound($configDirectory);
         }
@@ -106,12 +108,20 @@ class Application
      * @param string $path
      * @return void
      */
-    public static function load(string $path): void
+    public static function load(): void
     {
-        static::$env = realpath($path) ? array_replace_recursive($_ENV, parse_ini_file($path, true, INI_SCANNER_TYPED)) : $_ENV;
+        static::$env = $_ENV;
 
         // clear this out so we don't try to read from it
         unset($_ENV);
+
+        foreach (func_get_args() as $path) {
+            if (!file_exists($path)) {
+                throw new FileNotFound($path);
+            }
+
+            static::$env = array_replace_recursive(static::$env, parse_ini_file($path, true, INI_SCANNER_TYPED));
+        }
     }
 
     /**
@@ -136,6 +146,11 @@ class Application
         }
 
         return $value;
+    }
+
+    public static function configDirectory(): string
+    {
+        return static::$configDirectory;
     }
 
     /**
@@ -195,7 +210,7 @@ class Application
         define('CHARSET', static::$app['encoding']);
 
         // set umask to a known state
-        umask(0000);
+        umask(static::$app['umask']);
 
         // this extension is required and now part of php 8+
         if (!extension_loaded('mbstring')) {
@@ -203,7 +218,7 @@ class Application
         }
 
         // default to NO character on substitute
-        mb_substitute_character('none');
+        mb_substitute_character(static::$app['mb_substitute_character']);
 
         // the developer can extend this class and override these methods
         $this->preContainer();
@@ -271,7 +286,7 @@ class Application
             throw new IncorrectInterface('The service "container" did not return an object using the container interface.');
         }
 
-        // add our configuration
+        // Setup the config classes configuration 
         $this->container->set(self::CONFIGARRAYSERIVICE, $this->loadCascadingConfig(static::CONFIGFILENAME));
     }
 
