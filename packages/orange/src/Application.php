@@ -286,7 +286,7 @@ class Application
             throw new IncorrectInterface('The service "container" did not return an object using the container interface.');
         }
 
-        // Setup the config classes configuration 
+        // Setup the config classes configuration
         $this->container->set(self::CONFIGARRAYSERIVICE, $this->loadCascadingConfig(static::CONFIGFILENAME));
     }
 

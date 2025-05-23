@@ -354,9 +354,9 @@ class Container extends Singleton implements ContainerInterface
 
     /**
      * Set multiple services at one time
-     * 
-     * @param array $many 
-     * @return void 
+     *
+     * @param array $many
+     * @return void
      */
     protected function setMany(array $many): void
     {
