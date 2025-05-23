@@ -17,5 +17,6 @@ require_once __ROOT__ . '/vendor/autoload.php';
 // Load the application environment
 Application::load(__ROOT__ . '/.env');
 
-// let the application know where the config files are and away we go!
+// The you can either send in the "base" config folder or it will guess
+// and away we go!
 Application::http();
