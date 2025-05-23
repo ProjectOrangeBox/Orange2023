@@ -46,15 +46,17 @@ class Config extends SingletonArrayObject implements ConfigInterface
      * @param array $config Initial configuration array.
      * @throws DirectoryNotFound If the default configuration directory is invalid.
      */
-    protected function __construct(array $config, ?CacheInterface $cache = null)
+    protected function __construct(array|string $config, ?CacheInterface $cache = null)
     {
         logMsg('INFO', __METHOD__);
 
+        if (is_string($config)) {
+            $this->config['config directory search'] = [$config];
+        }
+
         $this->config = $config;
 
-        $configDirectory = $this->config['config directory'] ?? UNDEFINED;
-
-        $this->searchPaths = [$configDirectory, $configDirectory . DIRECTORY_SEPARATOR . ENVIRONMENT];
+        $this->searchPaths = $this->config['config directory search'] ?? [];
 
         if ($cache) {
             $this->loadCache($cache);

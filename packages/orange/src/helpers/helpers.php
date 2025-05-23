@@ -243,32 +243,6 @@ if (!function_exists('isAssociative')) {
     }
 }
 
-if (!function_exists('env')) {
-    function env(string $key, mixed $default = null): mixed
-    {
-        // get ENV from the setup config
-        $ENV = container()->{'$config'}['ENV'] ?? [];
-
-        // try to get the value
-        $value = $ENV[$key] ?? false;
-
-        // Not found? Return the default value
-        if ($value === false) {
-            $value = $default;
-        } else {
-            $value = match (strtolower($value)) {
-                'true'  => true,
-                'false' => false,
-                'empty' => '',
-                'null'  => null,
-                default => $value,
-            };
-        }
-
-        return $value;
-    }
-}
-
 if (!function_exists('forceDownload')) {
     function forceDownload(string $filename = '', string $dataOrPath = '', string $contentType = null): never
     {

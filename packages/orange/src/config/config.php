@@ -2,15 +2,12 @@
 
 declare(strict_types=1);
 
-return [
-    // the end user should provide these but the defaults are below
-    'config directory' => __ROOT__ . '/config',
+use orange\framework\Application;
 
-    'display_errors'=> 0,
-    'display_startup_errors'=> 0,
-    'error_reporting'=> 0,
-   
-    'timezone' => @date_default_timezone_get(),
-    'encoding' => 'UTF-8',
-    'helpers' => [], // default none
+return [
+    // default unless overridden
+    'config directory search' => [
+        __ROOT__ . '/config',
+        __ROOT__ . '/config/' . Application::env('ENVIRONMENT'),
+    ],
 ];

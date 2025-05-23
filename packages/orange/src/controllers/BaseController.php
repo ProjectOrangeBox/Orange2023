@@ -28,9 +28,7 @@ abstract class BaseController
         $this->attachedServices['input'] = $input;
         $this->attachedServices['output'] = $output;
 
-        $appServices = $config->get('app', 'default services', []);
-
-        $this->loadServices($appServices);
+        $this->loadServices($config->get('services', '#default', []));
 
         // path to the parent directory of the parent class
         $parentPath = dirname(dirname((new \ReflectionClass(get_class($this)))->getFileName()));

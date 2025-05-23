@@ -16,8 +16,12 @@ class Application
 {
     // Dependency Injection Container
     public ContainerInterface $container;
-    protected array $config;
-    protected string $configDirectory;
+    // config array passed in
+    protected static string $configDirectory;
+    // the application configuration array
+    protected static array $app = [];
+    // application environmental values
+    protected static array $env = [];
 
     // Constants for file names and helper paths
     // the location of the constants file
@@ -28,13 +32,8 @@ class Application
     const CONFIGFILENAME = 'config.php';
     // the name of the constant php file
     const CONSTANTFILENAME = 'constants.php';
-
-    // load these helpers by default
-    const HELPERS = [
-        __DIR__ . '/helpers/wrappers.php',
-        __DIR__ . '/helpers/errors.php',
-        __DIR__ . '/helpers/helpers.php',
-    ];
+    // the name of the application configuration file
+    const APPLICATIONCONFIGFILENAME = 'application.php';
     // the service name for the start up config values
     const CONFIGARRAYSERIVICE = '$config';
 
@@ -58,9 +57,14 @@ class Application
      * @throws FileNotFound
      * @throws IncorrectInterface
      */
-    protected function __construct(array $config, string $mode)
+    protected function __construct(string $configDirectory, string $mode)
     {
-        $this->config = $config;
+        // all you need to send in is the config directory
+        if (!realpath($configDirectory)) {
+            throw new DirectoryNotFound($configDirectory);
+        }
+
+        static::$configDirectory = $configDirectory;
 
         switch ($mode) {
             case 'cli':
@@ -97,6 +101,44 @@ class Application
     }
 
     /**
+     * Load the application environment
+     *
+     * @param string $path
+     * @return void
+     */
+    public static function load(string $path): void
+    {
+        static::$env = realpath($path) ? array_replace_recursive($_ENV, parse_ini_file($path, true, INI_SCANNER_TYPED)) : $_ENV;
+
+        // clear this out so we don't try to read from it
+        unset($_ENV);
+    }
+
+    /**
+     * The only place $_ENV should be and accessed
+     *
+     * @param string $key
+     * @param mixed|null $default
+     * @return mixed
+     */
+    public static function env(string $key, mixed $default = null): mixed
+    {
+        $value = static::$env[$key] ?? $default;
+
+        if (is_string($value)) {
+            $value = match (strtolower($value)) {
+                'true'  => true,
+                'false' => false,
+                'empty' => '',
+                'null'  => null,
+                default => $value,
+            };
+        }
+
+        return $value;
+    }
+
+    /**
      * Bootstraps the application environment
      *
      * @param string $mode
@@ -129,33 +171,28 @@ class Application
         // switch to root
         chdir(__ROOT__);
 
-        // let's make sure we have a ENV array in our config
-        $this->config['ENV'] = $this->config['ENV'] ?? [];
-
         // set DEBUG default to false (production)
-        define('DEBUG', $this->config['ENV']['DEBUG'] ?? false);
+        define('DEBUG', static::env('DEBUG', false));
 
         // set ENVIRONMENT defaults to production
-        define('ENVIRONMENT', strtolower($this->config['ENV']['ENVIRONMENT']) ?? 'production');
+        define('ENVIRONMENT', strtolower(static::env('ENVIRONMENT', 'production')));
 
-        $this->configDirectory = $this->config['config directory'] ?? null;
+        // Since Config can't load it's own config array we need to do it manually
+        // and later attach it as a service that can be injected in when the config service is created
+        static::$app = $this->loadCascadingConfig(static::APPLICATIONCONFIGFILENAME);
 
-        // this is part of the orange framework so we know it's there and an array
-        // we also can't assume this was included with the config sent in
-        $this->config = $this->loadCascadingConfig(self::CONFIGFILENAME);
-
-        // ok now set those values
-        ini_set('display_errors', $this->config['display_errors']);
-        ini_set('display_startup_errors', $this->config['display_startup_errors']);
-        error_reporting($this->config['error_reporting']);
+        // config also has some additional application setup variables
+        ini_set('display_errors', static::$app['display_errors']);
+        ini_set('display_startup_errors', static::$app['display_startup_errors']);
+        error_reporting(static::$app['error_reporting']);
 
         // set timezone
-        date_default_timezone_set($this->config['timezone']);
+        date_default_timezone_set(static::$app['timezone']);
 
         // Set internal encoding.
-        ini_set('default_charset', $this->config['encoding']);
-        mb_internal_encoding($this->config['encoding']);
-        define('CHARSET', $this->config['encoding']);
+        ini_set('default_charset', static::$app['encoding']);
+        mb_internal_encoding(static::$app['encoding']);
+        define('CHARSET', static::$app['encoding']);
 
         // set umask to a known state
         umask(0000);
@@ -185,7 +222,9 @@ class Application
     protected function preContainer(): void
     {
         // load any helpers they might have loaded
-        foreach (array_replace($this->config['helpers'] ?? [], self::HELPERS) as $helperFile) {
+        $helperFiles = static::$app['helpers'] ?? [];
+
+        foreach ($helperFiles as $helperFile) {
             if (!file_exists($helperFile)) {
                 throw new FileNotFound($helperFile);
             }
@@ -233,7 +272,7 @@ class Application
         }
 
         // add our configuration
-        $this->container->set(self::CONFIGARRAYSERIVICE, $this->config);
+        $this->container->set(self::CONFIGARRAYSERIVICE, $this->loadCascadingConfig(static::CONFIGFILENAME));
     }
 
     /**
@@ -245,7 +284,7 @@ class Application
      */
     protected function postContainer(): void
     {
-        foreach (array_replace(include self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . self::CONSTANTFILENAME, $this->container->config->constants) as $name => $value) {
+        foreach ($this->loadCascadingConfig(self::CONSTANTFILENAME) as $name => $value) {
             // Constants should all be uppercase - not an option!
             $name = strtoupper($name);
 
@@ -255,26 +294,28 @@ class Application
         }
     }
 
-    protected function loadCascadingConfig(string $filename): array
+    /**
+     * Load the config files in a cascading fashion
+     *
+     * @param string $filename
+     * @param array $baseArray
+     * @return array
+     */
+    protected function loadCascadingConfig(string $filename, array $baseArray = []): array
     {
+        // we already know this is there
         $orangeConfigFile = self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . $filename;
+        $orangeConfigArray = include $orangeConfigFile;
 
-        $finalArray = file_exists($orangeConfigFile) ? include $orangeConfigFile : [];
+        // do we have a matching user config file?
+        $userConfigFile = static::$configDirectory . DIRECTORY_SEPARATOR . $filename;
+        $userConfigArray = file_exists($userConfigFile) ? include $userConfigFile : [];
 
-        if ($this->configDirectory) {
-            if (!realpath($this->configDirectory) || !is_dir($this->configDirectory)) {
-                throw new DirectoryNotFound($this->configDirectory);
-            }
+        // do we have a matching user environmental config file
+        $userEnvConfigFile = static::$configDirectory . DIRECTORY_SEPARATOR . ENVIRONMENT . DIRECTORY_SEPARATOR . $filename;
+        $userEnvConfigArray = file_exists($userEnvConfigFile) ? include $userEnvConfigFile : [];
 
-            $userConfigFile = $this->configDirectory . DIRECTORY_SEPARATOR . $filename;
-            $userArray = file_exists($userConfigFile) ? include $userConfigFile : [];
-
-            $userConfigEnvFile = $this->configDirectory . DIRECTORY_SEPARATOR . ENVIRONMENT . DIRECTORY_SEPARATOR . $filename;
-            $userEnvArray = file_exists($userConfigEnvFile) ? include $userConfigEnvFile : [];
-
-            $finalArray = array_replace($finalArray, $userArray, $userEnvArray);
-        }
-
-        return $finalArray;
+        // build our final cascading config array
+        return array_replace($baseArray, $orangeConfigArray, $userConfigArray, $userEnvConfigArray);
     }
 }
