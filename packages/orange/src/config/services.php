@@ -47,6 +47,7 @@ return [
         return Container::getInstance($services);
     },
     'config' => function (ContainerInterface $container): ConfigInterface {
+        // we can't load this from config be this IS config
         return Config::getInstance(['search directories' => [
             $container->get('$configDirectory'),
             $container->get('$configDirectory') . DIRECTORY_SEPARATOR . ENVIRONMENT,

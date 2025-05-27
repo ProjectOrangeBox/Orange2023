@@ -26,6 +26,9 @@ class Factory
     {
     }
 
+    /**
+     * Wakeup is not permitted by default
+     */
     public function __wakeup()
     {
     }
