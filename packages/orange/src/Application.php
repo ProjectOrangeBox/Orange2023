@@ -172,14 +172,12 @@ class Application
         // switch to root
         chdir(__ROOT__);
 
-        // if nothing sent in then guess
-        $configDirectory = $configDirectory ?? __ROOT__ . DIRECTORY_SEPARATOR . 'config';
+        // if nothing sent in then guess?
+        static::$configDirectory = realpath($configDirectory ?? __ROOT__ . DIRECTORY_SEPARATOR . 'config');
 
-        if (!realpath($configDirectory)) {
+        if (!static::$configDirectory) {
             throw new DirectoryNotFound($configDirectory);
         }
-
-        static::$configDirectory = $configDirectory;
 
         // let's make sure they don't read from this if they didn't use load();
         unset($_ENV);
