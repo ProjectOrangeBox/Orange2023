@@ -15,7 +15,7 @@ use orange\framework\exceptions\filesystem\DirectoryNotFound;
 class Application
 {
     // Dependency Injection Container
-    public ContainerInterface $container;
+    public static ContainerInterface $container;
     // config directory passed in
     protected static string $configDirectory;
     // the application configuration array
@@ -28,8 +28,6 @@ class Application
     const ORANGECONFIGDIRECTORY = __DIR__ . '/config';
     // the name of the services php file
     const SERVICESFILENAME = 'services.php';
-    // the name of the config php file
-    const CONFIGFILENAME = 'config.php';
     // the name of the constant php file
     const CONSTANTFILENAME = 'constants.php';
     // the name of the application configuration file
@@ -37,76 +35,11 @@ class Application
     // the service name for the start up config values
     const CONFIGDIRECTORYSERVICE = '$configDirectory';
 
-    // this is used to setup the different static run modes
-    // Application::http(['config directory' => __ROOT__ . '/config']);
-    public static function __callStatic($name, $arguments): ContainerInterface
-    {
-        return (new static($name, $arguments[0] ?? null))->container;
-    }
-
-    /**
-     * You can extend this class and add more modes
-     *
-     * @param string $mode
-     * @param array $config
-     * @return void
-     * @throws InvalidValue
-     * @throws DirectoryNotFound
-     * @throws ConfigFileNotFound
-     * @throws MissingRequired
-     * @throws FileNotFound
-     * @throws IncorrectInterface
-     */
-    protected function __construct(string $mode, ?string $configDirectory = null)
-    {
-        // if nothing sent in then guess
-        $configDirectory = $configDirectory ?? __ROOT__ . DIRECTORY_SEPARATOR . 'config';
-
-        if (!realpath($configDirectory)) {
-            throw new DirectoryNotFound($configDirectory);
-        }
-
-        static::$configDirectory = $configDirectory;
-
-        switch ($mode) {
-            case 'cli':
-                $this->bootstrap('cli');
-                break;
-            case 'http':
-                // call bootstrap function which returns a container
-                $this->bootstrap('http');
-
-                // call event
-                $this->container->events->trigger('before.router', $this->container->input);
-
-                // match uri & method to route
-                $this->container->router->match($this->container->input->requestUri(), $this->container->input->requestMethod());
-
-                // call event
-                $this->container->events->trigger('before.controller', $this->container->router, $this->container->input);
-
-                // dispatch route
-                $this->container->output->write($this->container->dispatcher->call($this->container->router->getMatched()));
-
-                // call event
-                $this->container->events->trigger('before.output', $this->container->router, $this->container->input, $this->container->output);
-
-                // send header, status code and output
-                $this->container->output->send();
-
-                // call event
-                $this->container->events->trigger('before.shutdown', $this->container->router, $this->container->input, $this->container->output);
-                break;
-            default:
-                throw new InvalidValue('Unknown Application Run Mode "' . $mode . '".');
-        }
-    }
-
     /**
      * Load the application environment
      *
-     * @param string $path
      * @return void
+     * @throws FileNotFound
      */
     public static function load(): void
     {
@@ -149,6 +82,64 @@ class Application
     }
 
     /**
+     *
+     * @param null|string $configDirectory
+     * @return ContainerInterface
+     * @throws InvalidValue
+     * @throws DirectoryNotFound
+     * @throws ConfigFileNotFound
+     * @throws MissingRequired
+     * @throws FileNotFound
+     * @throws IncorrectInterface
+     */
+    public static function http(?string $configDirectory = null): ContainerInterface
+    {
+        // call bootstrap function which returns a container
+        static::bootstrap('http', $configDirectory);
+
+        // call event
+        static::$container->events->trigger('before.router', static::$container->input);
+
+        // match uri & method to route
+        static::$container->router->match(static::$container->input->requestUri(), static::$container->input->requestMethod());
+
+        // call event
+        static::$container->events->trigger('before.controller', static::$container->router, static::$container->input);
+
+        // dispatch route
+        static::$container->output->write(static::$container->dispatcher->call(static::$container->router->getMatched()));
+
+        // call event
+        static::$container->events->trigger('before.output', static::$container->router, static::$container->input, static::$container->output);
+
+        // send header, status code and output
+        static::$container->output->send();
+
+        // call event
+        static::$container->events->trigger('before.shutdown', static::$container->router, static::$container->input, static::$container->output);
+
+        return static::$container;
+    }
+
+    /**
+     *
+     * @param null|string $configDirectory
+     * @return ContainerInterface
+     * @throws InvalidValue
+     * @throws DirectoryNotFound
+     * @throws ConfigFileNotFound
+     * @throws MissingRequired
+     * @throws FileNotFound
+     * @throws IncorrectInterface
+     */
+    public static function cli(?string $configDirectory = null): ContainerInterface
+    {
+        static::bootstrap('cli', $configDirectory);
+
+        return static::$container;
+    }
+
+    /**
      * Bootstraps the application environment
      *
      * @param string $mode
@@ -160,7 +151,7 @@ class Application
      * @throws FileNotFound
      * @throws IncorrectInterface
      */
-    protected function bootstrap(string $mode): void
+    protected static function bootstrap(string $mode, ?string $configDirectory): void
     {
         // set a undefined value which is not NULL
         define('UNDEFINED', chr(0));
@@ -181,6 +172,15 @@ class Application
         // switch to root
         chdir(__ROOT__);
 
+        // if nothing sent in then guess
+        $configDirectory = $configDirectory ?? __ROOT__ . DIRECTORY_SEPARATOR . 'config';
+
+        if (!realpath($configDirectory)) {
+            throw new DirectoryNotFound($configDirectory);
+        }
+
+        static::$configDirectory = $configDirectory;
+
         // let's make sure they don't read from this if they didn't use load();
         unset($_ENV);
 
@@ -192,7 +192,7 @@ class Application
 
         // Since Config can't load it's own config array we need to do it manually
         // and later attach it as a service that can be injected in when the config service is created
-        static::$app = $this->loadCascadingConfig(static::APPLICATIONCONFIGFILENAME);
+        static::$app = static::loadCascadingConfig(static::APPLICATIONCONFIGFILENAME);
 
         // config also has some additional application setup variables
         ini_set('display_errors', static::$app['display_errors']);
@@ -219,9 +219,9 @@ class Application
         mb_substitute_character(static::$app['mb_substitute_character']);
 
         // the developer can extend this class and override these methods
-        $this->preContainer();
-        $this->bootstrapContainer();
-        $this->postContainer();
+        static::preContainer();
+        static::bootstrapContainer();
+        static::postContainer();
     }
 
     /**
@@ -232,7 +232,7 @@ class Application
      * @throws ConfigFileNotFound
      * @throws InvalidValue
      */
-    protected function preContainer(): void
+    protected static function preContainer(): void
     {
         // load any helpers they might have loaded
         $helperFiles = static::$app['helpers'] ?? [];
@@ -264,9 +264,9 @@ class Application
      * @throws InvalidValue
      * @throws IncorrectInterface
      */
-    protected function bootstrapContainer(): void
+    protected static function bootstrapContainer(): void
     {
-        $services = $this->loadCascadingConfig(self::SERVICESFILENAME);
+        $services = static::loadCascadingConfig(self::SERVICESFILENAME);
 
         if (!isset($services['container'])) {
             throw new InvalidValue('Container Service not found.');
@@ -278,14 +278,14 @@ class Application
         }
 
         // now get the empty container and save a copy in our object
-        $this->container = $services['container']($services);
+        static::$container = $services['container']($services);
 
-        if (!$this->container instanceof ContainerInterface) {
+        if (!static::$container instanceof ContainerInterface) {
             throw new IncorrectInterface('The service "container" did not return an object using the container interface.');
         }
 
         // Setup the config classes configuration
-        $this->container->set(self::CONFIGDIRECTORYSERVICE, static::$configDirectory);
+        static::$container->set(self::CONFIGDIRECTORYSERVICE, static::$configDirectory);
     }
 
     /**
@@ -295,9 +295,9 @@ class Application
      * @throws ConfigFileNotFound
      * @throws InvalidValue
      */
-    protected function postContainer(): void
+    protected static function postContainer(): void
     {
-        foreach ($this->loadCascadingConfig(self::CONSTANTFILENAME) as $name => $value) {
+        foreach (static::loadCascadingConfig(self::CONSTANTFILENAME) as $name => $value) {
             // Constants should all be uppercase - not an option!
             $name = strtoupper($name);
 
@@ -314,7 +314,7 @@ class Application
      * @param array $baseArray
      * @return array
      */
-    protected function loadCascadingConfig(string $filename, array $baseArray = []): array
+    protected static function loadCascadingConfig(string $filename, array $baseArray = []): array
     {
         // we already know this is there
         $orangeConfigFile = self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . $filename;
