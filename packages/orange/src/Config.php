@@ -33,7 +33,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
     /**
      * Array of directories to search for configuration files, in order of priority.
      */
-    protected array $searchPaths = [];
+    protected array $searchDirectories = [];
 
     /**
      * Maps configuration filenames to their absolute file paths.
@@ -50,9 +50,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
     {
         logMsg('INFO', __METHOD__);
 
-        $this->config = $config;
-
-        $this->searchPaths = $this->config['directories'] ?? [];
+        $this->searchDirectories = $config['search directories'] ?? [];
 
         if ($cache) {
             $this->loadCache($cache);
@@ -182,8 +180,8 @@ class Config extends SingletonArrayObject implements ConfigInterface
             $this->foundConfigFiles[$filename] = [];
 
             // Search through each directory for the configuration file
-            foreach ($this->searchPaths as $searchPath) {
-                $absolutePath = $searchPath . DIRECTORY_SEPARATOR . $filename . '.php';
+            foreach ($this->searchDirectories as $searchDirectory) {
+                $absolutePath = $searchDirectory . DIRECTORY_SEPARATOR . $filename . '.php';
 
                 if (file_exists($absolutePath)) {
                     $this->foundConfigFiles[$filename][] = $absolutePath;
@@ -194,16 +192,21 @@ class Config extends SingletonArrayObject implements ConfigInterface
 
     protected function loadCache(CacheInterface $cache): void
     {
-        $key = $this->config['environment'] . '\\' . __CLASS__;
+        logMsg('INFO', __METHOD__);
+
+        // cache key
+        $key = hash('sha256', var_export($this->searchDirectories, true) . '::' . __METHOD__);
+
+        $cached = $cache->get($key);
 
         // has anything already been cached?
-        if (!$payload = $cache->get($key)) {
+        if (!$cached) {
             // no
             // find all of the cache file names by reading all of the searchDirectories
-            foreach ($this->searchPaths as $sp) {
-                foreach (glob($sp . '/*.php') as $f) {
+            foreach ($this->searchDirectories as $searchDirectory) {
+                foreach (glob($searchDirectory . '/*.php') as $file) {
                     // trigger a read on all of them
-                    $this->__get(basename($f, '.php'));
+                    $this->__get(basename($file, '.php'));
 
                     // cache the results
                     $cache->set($key, ['configuration' => $this->configuration, 'foundConfigFiles' => $this->foundConfigFiles]);
@@ -212,8 +215,8 @@ class Config extends SingletonArrayObject implements ConfigInterface
         } else {
             // yes
             // load it and setup the correct properties
-            $this->configuration = $payload['configuration'];
-            $this->foundConfigFiles = $payload['foundConfigFiles'];
+            $this->configuration = $cached['configuration'];
+            $this->foundConfigFiles = $cached['foundConfigFiles'];
         }
     }
 }

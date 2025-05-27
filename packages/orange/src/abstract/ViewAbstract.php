@@ -127,6 +127,9 @@ abstract class ViewAbstract extends Singleton implements ViewInterface
             'resource key style' => 'view',
             'pend' => DirectorySearchInterface::PREPEND,
         ]);
+        if (isset($this->config['resources'])) {
+            $this->search->addResources($this->config['resources']);
+        }
     }
 
     /**

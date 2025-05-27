@@ -3,18 +3,7 @@
 
 declare(strict_types=1);
 
-define('__ROOT__', realpath(__DIR__ . '/../../../../'));
-
-$_ENV = array_replace_recursive($_ENV, parse_ini_file(__ROOT__ . '/.env', true, INI_SCANNER_TYPED));
-
-$mergeAbove = '/* merge above this line */';
-
-$config = include __ROOT__ . '/config/config.php';
-
-require_once __ROOT__ . '/vendor/autoload.php';
-
-/* send config into application */
-$container = \orange\framework\Application::cli($config);
+require '../../../../bootstrapCli.php';
 
 $argc = $_SERVER['argc'];
 $argv = $_SERVER['argv'];
@@ -22,324 +11,341 @@ $argv = $_SERVER['argv'];
 echo PHP_EOL;
 
 if ($argc != 2) {
-    die('Please provide view directory relative to ' . __ROOT__ . PHP_EOL . PHP_EOL);
+    echo 'Please provide controllers directory relative to ' . __ROOT__ . PHP_EOL . PHP_EOL;
+    exit(1);
 }
 
 $path = __ROOT__ . DIRECTORY_SEPARATOR . trim(trim($argv[1]), '/');
 
-$found = tokenize($path);
+$main = new Main();
+$main->run($path);
 
-extract(process($found));
+class Main
+{
+    protected string $mergeAbove = '/* merge above this line */';
 
-// ok now let's create some output
-echo PHP_EOL . 'Found Files: ' . count($found) . PHP_EOL;
-echo PHP_EOL . 'Found Routes:' . PHP_EOL;
-echo PHP_EOL . '*** copy & paste as needed ***' . PHP_EOL . PHP_EOL;
+    public function run(string $path): void
+    {
+        $found = $this->tokenize($path);
 
-echo implode(PHP_EOL, $entries);
+        extract($this->process($found));
 
-echo PHP_EOL . PHP_EOL;
+        // ok now let's create some output
+        echo PHP_EOL . 'Found Files: ' . count($found) . PHP_EOL;
+        echo PHP_EOL . 'Found Routes:' . PHP_EOL;
+        echo PHP_EOL . '*** copy & paste as needed ***' . PHP_EOL . PHP_EOL;
 
-echo PHP_EOL . 'Conflicts: ' . count($conflicts) . PHP_EOL;
-foreach ($conflicts as $string => $count) {
-    echo $string . ' used ' . $count . ' times' . PHP_EOL;
-}
-echo PHP_EOL . PHP_EOL;
+        echo implode(PHP_EOL, $entries);
 
-$routesFile = __ROOT__ . '/config/routes.php';
+        echo PHP_EOL . PHP_EOL;
 
-if (!file_exists($routesFile)) {
-    echo 'Could not find routes.php file at ' . $routesFile . PHP_EOL;
-    exit;
-}
-
-$c = readchar('Merge with Live at ' . $routesFile . '? Y/(N)');
-
-if (strtolower($c) == 'y') {
-    if (!file_exists($routesFile)) {
-        die('Can not find ' . $routesFile . PHP_EOL);
-    }
-
-    $routerContents = file_get_contents($routesFile);
-
-    $find = $mergeAbove;
-
-    if (strpos($routerContents, $find) === false) {
-        die('Could not find "' . $find . '"' . PHP_EOL);
-    }
-
-    $newFile = [];
-
-    foreach (explode(PHP_EOL, $routerContents) as $line) {
-        $normalize = [chr(9), ' '];
-
-        $findNoSpace = str_replace($normalize, '', trim($find));
-        $lineNoSpace = str_replace($normalize, '', trim($line));
-
-        if (strpos($lineNoSpace, $findNoSpace) !== false) {
-            // found the end contents line start merge
-            $identSize = strlen(rtrim($line)) - strlen(ltrim($line));
-
-            doMerge($entries, $routerContents, $newFile, str_repeat(' ', $identSize));
+        echo PHP_EOL . 'Conflicts: ' . count($conflicts) . PHP_EOL;
+        foreach ($conflicts as $string => $count) {
+            echo $string . ' used ' . $count . ' times' . PHP_EOL;
         }
-        $newFile[] = $line;
-    }
+        echo PHP_EOL . PHP_EOL;
 
-    $text = implode(PHP_EOL, $newFile) . PHP_EOL;
+        $routesFile = __ROOT__ . '/config/routes.php';
 
-    echo $text;
+        if (!file_exists($routesFile)) {
+            $this->error('Could not find routes.php file at ' . $routesFile);
+        }
 
-    $c = readchar('Write to ' . $routesFile . '? Y/(N)');
+        $c = $this->readchar('Merge with Live at ' . $routesFile . '? Y/(N)');
 
-    if (strtolower($c) == 'y') {
-        file_put_contents($routesFile, $text);
-    }
-}
+        if (strtolower($c) == 'y') {
+            if (!file_exists($routesFile)) {
+                $this->error('Can not find ' . $routesFile);
+            }
 
-/* functions */
+            $routerContents = file_get_contents($routesFile);
 
-function doMerge(array $entries, string $routerContents, array &$newFile, string $indent): void
-{
-    foreach ($entries as $entry) {
-        if (strpos($routerContents, $entry) === false) {
-            $newFile[] = $indent . $entry;
+            $find = $this->mergeAbove;
+
+            if (strpos($routerContents, $find) === false) {
+                $this->error('Could not find "' . $find . '"');
+            }
+
+            $newFile = [];
+
+            foreach (explode(PHP_EOL, $routerContents) as $line) {
+                $normalize = [chr(9), ' '];
+
+                $findNoSpace = str_replace($normalize, '', trim($find));
+                $lineNoSpace = str_replace($normalize, '', trim($line));
+
+                if (strpos($lineNoSpace, $findNoSpace) !== false) {
+                    // found the end contents line start merge
+                    $identSize = strlen(rtrim($line)) - strlen(ltrim($line));
+
+                    $this->doMerge($entries, $routerContents, $newFile, str_repeat(' ', $identSize));
+                }
+                $newFile[] = $line;
+            }
+
+            $text = implode(PHP_EOL, $newFile) . PHP_EOL;
+
+            echo $text;
+
+            $c = $this->readchar('Write to ' . $routesFile . '? Y/(N)');
+
+            if (strtolower($c) == 'y') {
+                file_put_contents($routesFile, $text);
+            }
         }
     }
-}
 
-function rglob($path = '', $pattern = '*', $flags = 0)
-{
-    $paths = glob($path . '*', GLOB_MARK | GLOB_ONLYDIR | GLOB_NOSORT);
-    $files = glob($path . $pattern, $flags);
-
-    foreach ($paths as $path) {
-        $files = array_merge($files, rglob($path, $pattern, $flags));
+    protected function doMerge(array $entries, string $routerContents, array &$newFile, string $indent): void
+    {
+        foreach ($entries as $entry) {
+            if (strpos($routerContents, $entry) === false) {
+                $newFile[] = $indent . $entry;
+            }
+        }
     }
 
-    return $files;
-}
+    protected function rglob($path = '', $pattern = '*', $flags = 0)
+    {
+        $paths = glob($path . '*', GLOB_MARK | GLOB_ONLYDIR | GLOB_NOSORT);
+        $files = glob($path . $pattern, $flags);
 
-function token(string $source): array|false
-{
-    $collected = [];
-    $tokens = null;
-    $namespace = '';
-    $classname = '';
-    $comment = '';
-    $function = '';
+        foreach ($paths as $path) {
+            $files = array_merge($files, $this->rglob($path, $pattern, $flags));
+        }
 
-    try {
-        $tokens = token_get_all($source, TOKEN_PARSE);
-    } catch (Throwable $e) {
+        return $files;
     }
 
-    if ($tokens) {
-        /*
-        single character
-         - or -
-        the token index in element 0
-        the string content of the original token in element 1
-        the line number in element 2
-        */
+    protected function token(string $source): array|false
+    {
+        $collected = [];
+        $tokens = null;
+        $namespace = '';
+        $classname = '';
+        $comment = '';
+        $function = '';
 
-        foreach ($tokens as $index => $token) {
-            if (is_array($token)) {
-                switch (token_name($token[0])) {
-                    case 'T_NAMESPACE':
-                        $namespace = $tokens[$index + 2][1];
-                        break;
-                    case 'T_CLASS':
-                        $classname = $tokens[$index + 2][1];
-                        break;
-                    case 'T_COMMENT':
-                        // these ARE NOT real PHP 8 attrubutes they only "look" like them
-                        // comment must start with "# [route("
-                        if (substr(strtolower(trim($token[1])), 0, 9) == '# [route(') {
-                            if (token_name($tokens[$index + 2][0]) == 'T_PUBLIC') {
-                                if (token_name($tokens[$index + 4][0]) == 'T_FUNCTION') {
-                                    $comment = $token[1];
-                                    $function = $tokens[$index + 6][1];
-                                    $fullclass = chr(92) . $namespace . chr(92) . $classname;
-                                    $attr = splitAttr($comment, compact(['namespace', 'classname', 'fullclass', 'comment', 'function']));
+        try {
+            $tokens = token_get_all($source, TOKEN_PARSE);
+        } catch (Throwable $e) {
+            return false;
+        }
 
-                                    $collected[] = [
-                                        'namespace' => $namespace,
-                                        'classname' => $classname,
-                                        'fullclass' => $fullclass,
-                                        'comment' => $comment,
-                                        'function' => $function,
-                                        'attr' => $attr,
-                                    ];
+        if ($tokens) {
+            /*
+            single character
+            - or -
+            the token index in element 0
+            the string content of the original token in element 1
+            the line number in element 2
+            */
+
+            foreach ($tokens as $index => $token) {
+                if (is_array($token)) {
+                    switch (token_name($token[0])) {
+                        case 'T_NAMESPACE':
+                            $namespace = $tokens[$index + 2][1];
+                            break;
+                        case 'T_CLASS':
+                            $classname = $tokens[$index + 2][1];
+                            break;
+                        case 'T_COMMENT':
+                            // these ARE NOT real PHP 8 attrubutes they only "look" like them
+                            // comment must start with "# [route("
+                            if (substr(strtolower(trim($token[1])), 0, 9) == '# [route(') {
+                                if (token_name($tokens[$index + 2][0]) == 'T_PUBLIC') {
+                                    if (token_name($tokens[$index + 4][0]) == 'T_FUNCTION') {
+                                        $comment = $token[1];
+                                        $function = $tokens[$index + 6][1];
+                                        $fullclass = chr(92) . $namespace . chr(92) . $classname;
+                                        $attr = $this->splitAttr($comment, compact(['namespace', 'classname', 'fullclass', 'comment', 'function']));
+
+                                        $collected[] = [
+                                            'namespace' => $namespace,
+                                            'classname' => $classname,
+                                            'fullclass' => $fullclass,
+                                            'comment' => $comment,
+                                            'function' => $function,
+                                            'attr' => $attr,
+                                        ];
+                                    }
                                 }
                             }
-                        }
-                        break;
-                    default:
-                        // line number, token name, token id, contents
-                        //echo $token[2] . ' ' . token_name($token[0]) . ' [' . $token[0] . '] "' . $token[1] . '"' . PHP_EOL;
+                            break;
+                        default:
+                            // line number, token name, token id, contents
+                            //echo $token[2] . ' ' . token_name($token[0]) . ' [' . $token[0] . '] "' . $token[1] . '"' . PHP_EOL;
+                    }
+                } else {
+                    //echo $token . PHP_EOL;
                 }
+            }
+        }
+
+        return count($collected) ? $collected : false;
+    }
+
+    protected function splitAttr(string $comment): array
+    {
+        $comment = trim($comment);
+
+        $x = strpos($comment, '(');
+
+        if ($x) {
+            $comment = substr($comment, $x  + 1);
+        }
+
+        $x = strrpos($comment, ')');
+
+        if ($x) {
+            $comment = substr($comment, 0, $x);
+        }
+
+        $args = str_getcsv($comment);
+
+        $return = [];
+
+        if (isset($args[0]) && !empty($args[0])) {
+            $method = trim($args[0]);
+
+            if (strpos($method, '|')) {
+                $methods = explode('|', $method);
+
+                $return['method'] = "['" . implode("','", $methods) . "']";
             } else {
-                //echo $token . PHP_EOL;
+                $return['method'] = "'" . $method . "'";
             }
         }
+        if (isset($args[1])) {
+            $return['url'] = "'" . trim($args[1]) . "'";
+        }
+        if (isset($args[2])) {
+            $return['name'] = "'" . trim($args[2]) . "'";
+        }
+
+        return $return;
     }
 
-    return count($collected) ? $collected : false;
-}
-
-function splitAttr(string $comment, array $options): array
-{
-    $comment = trim($comment);
-
-    $x = strpos($comment, '(');
-
-    if ($x) {
-        $comment = substr($comment, $x  + 1);
+    protected function readchar($prompt)
+    {
+        readline_callback_handler_install($prompt, function () {/* n/a */});
+        $char = stream_get_contents(STDIN, 1);
+        readline_callback_handler_remove();
+        return $char;
     }
 
-    $x = strrpos($comment, ')');
+    protected function tokenize(string $path): array
+    {
+        $found = [];
+        $path = realpath($path);
 
-    if ($x) {
-        $comment = substr($comment, 0, $x);
-    }
+        if (!$path) {
+            $this->error('Can not locate "' . $path . '"');
+        }
 
-    $args = str_getcsv($comment);
+        if (is_dir($path)) {
+            foreach ($this->rglob($path, '*.php') as $filepath) {
+                $source = file_get_contents($filepath);
 
-    $return = [];
+                if ($f = $this->token($source)) {
+                    $found[$filepath] = $f;
+                }
+            }
+        } elseif (is_file($path)) {
+            $source = file_get_contents($path);
+            $lines = $this->token($source);
 
-    if (isset($args[0])) {
-        $method = trim($args[0]);
+            if (!$lines) {
+                $this->error('error trying to tokenize "' . $path . '".');
+            }
 
-        if (strpos($method, '|')) {
-            $methods = explode('|', $method);
-
-            $return['method'] = "['" . implode("','", $methods) . "']";
+            $found[$path] = $lines;
         } else {
-            $return['method'] = "'" . $method . "'";
-        }
-    }
-    if (isset($args[1])) {
-        $return['url'] = "'" . trim($args[1]) . "'";
-    }
-    if (isset($args[2])) {
-        $return['name'] = "'" . trim($args[2]) . "'";
-    }
-
-    return $return;
-}
-
-function readchar($prompt)
-{
-    readline_callback_handler_install($prompt, function () {});
-    $char = stream_get_contents(STDIN, 1);
-    readline_callback_handler_remove();
-    return $char;
-}
-
-function tokenize(string $path): array
-{
-    $found = [];
-
-    if (!$path = realpath($path)) {
-        die('Can not locate "' . $path . '"' . PHP_EOL);
-    }
-
-    if (is_dir($path)) {
-        foreach (rglob($path, '*.php') as $filepath) {
-            $source = file_get_contents($filepath);
-
-            if ($f = token($source)) {
-                $found[$filepath] = $f;
-            }
-        }
-    } elseif (is_file($path)) {
-        $source = file_get_contents($path);
-        $lines = token($source);
-
-        if (!$lines) {
-            die('error trying to tokenize "' . $path . '".' . PHP_EOL);
+            $this->error($path . ' is not a Directory or File.');
         }
 
-        $found[$path] = $lines;
-    } else {
-        die($path . ' is not a Directory or File.');
+        return $found;
     }
 
-    return $found;
-}
+    protected function process(array $found): array
+    {
+        $entries = [];
+        $conflicts = [];
+        $urlConflicts = [];
+        $nameConflicts = [];
 
-function process(array $found): array
-{
-    $entries = [];
-    $conflicts = [];
-    $urlConflicts = [];
-    $nameConflicts = [];
+        /**
+         * Convert
+         * # [route(get,/peopledropdown,peopledropdown)]
+         *
+         * method(s), url, name (optional)
+         * callback auto detected
+         *
+         * to
+         *
+         * ['method' => 'get', 'url' => '/peopledropdown', 'callback' => [\application\people\controllers\MainController::class, 'dropdown'], 'name' => 'peopledropdown'],
+         */
 
-    /**
-     * Convert
-     * # [route(get,/peopledropdown,peopledropdown)]
-     *
-     * method(s), url, name (optional)
-     * callback auto detected
-     *
-     * to
-     *
-     * ['method' => 'get', 'url' => '/peopledropdown', 'callback' => [\application\people\controllers\MainController::class, 'dropdown'], 'name' => 'peopledropdown'],
-     */
+        foreach ($found as $filepath => $lines) {
+            $controller = substr($filepath, strlen(__ROOT__) + 1, -4);
+            $entries[] = '// ' . $controller;
 
-    foreach ($found as $filepath => $lines) {
-        $controller = substr($filepath, strlen(__ROOT__) + 1, -4);
-        $entries[] = '// ' . $controller;
+            foreach ($lines as $line) {
+                $entry = [];
 
-        foreach ($lines as $line) {
-            $entry = [];
+                $nameKey = 'name: ' . ($line['attr']['name'] ?? hrtime(true));
+                $urlKey = ($line['attr']['method'] ?? '') . '->' . ($line['attr']['url'] ?? '');
 
-            $nameKey = 'name: ' . ($line['attr']['name'] ?? hrtime(true));
-            $urlKey = ($line['attr']['method'] ?? '') . '->' . ($line['attr']['url'] ?? '');
+                if (in_array($urlKey, $urlConflicts)) {
+                    $conflicts[$urlKey] = $conflicts[$urlKey] ?? 1;
+                    $conflicts[$urlKey] = $conflicts[$urlKey] + 1;
+                }
 
-            if (in_array($urlKey, $urlConflicts)) {
-                $conflicts[$urlKey] = $conflicts[$urlKey] ?? 1;
-                $conflicts[$urlKey] = $conflicts[$urlKey] + 1;
+                $urlConflicts[$urlKey] = $urlKey;
+
+                if (in_array($nameKey, $nameConflicts)) {
+                    $conflicts[$nameKey] = $conflicts[$nameKey] ?? 1;
+                    $conflicts[$nameKey] = $conflicts[$nameKey] + 1;
+                }
+
+                $nameConflicts[$nameKey] = $nameKey;
+
+                if (isset($line['attr']['method'])) {
+                    $entry[] = "'method' => " . $line['attr']['method'];
+                }
+
+                if (isset($line['attr']['url'])) {
+                    $entry[] = "'url' => " . $line['attr']['url'];
+                }
+
+                if (isset($line['fullclass']) && isset($line['attr']['method'])) {
+                    $entry[] = "'callback' => [" . $line['fullclass'] . "::class, '" . $line['function'] . "']";
+                }
+
+                if (isset($line['attr']['name'])) {
+                    $entry[] = "'name' => " . $line['attr']['name'];
+                }
+
+                // now build PHP
+                // ['method' => 'get', 'url' => '/people', 'callback' => [\application\people\controllers\MainController::class, 'readList'], 'name' => 'people'],
+
+                $entries[] = '[' . implode(', ', $entry) . '],';
             }
 
-            $urlConflicts[$urlKey] = $urlKey;
-
-            if (in_array($nameKey, $nameConflicts)) {
-                $conflicts[$nameKey] = $conflicts[$nameKey] ?? 1;
-                $conflicts[$nameKey] = $conflicts[$nameKey] + 1;
-            }
-
-            $nameConflicts[$nameKey] = $nameKey;
-
-            if (isset($line['attr']['method'])) {
-                $entry[] = "'method' => " . $line['attr']['method'];
-            }
-
-            if (isset($line['attr']['url'])) {
-                $entry[] = "'url' => " . $line['attr']['url'];
-            }
-
-            if (isset($line['fullclass'])) {
-                $entry[] = "'callback' => [" . $line['fullclass'] . "::class, '" . $line['function'] . "']";
-            }
-
-            if (isset($line['attr']['name'])) {
-                $entry[] = "'name' => " . $line['attr']['name'];
-            }
-
-            // now build PHP
-            // ['method' => 'get', 'url' => '/people', 'callback' => [\application\people\controllers\MainController::class, 'readList'], 'name' => 'people'],
-
-            $entries[] = '[' . implode(', ', $entry) . '],';
+            $entries[] = '// ' . str_repeat('-', strlen($controller)) . PHP_EOL;
         }
 
-        $entries[] = '// ' . str_repeat('-', strlen($controller)) . PHP_EOL;
+        return [
+            'entries' => $entries,
+            'conflicts' => $conflicts,
+            'urlConflicts' => $urlConflicts,
+            'nameConflicts' => $nameConflicts,
+        ];
     }
 
-    return [
-        'entries' => $entries,
-        'conflicts' => $conflicts,
-        'urlConflicts' => $urlConflicts,
-        'nameConflicts' => $nameConflicts,
-    ];
+    protected function error(string $msg): void
+    {
+        echo $msg . PHP_EOL;
+        exit(1);
+    }
 }

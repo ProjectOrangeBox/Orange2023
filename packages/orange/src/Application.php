@@ -35,7 +35,7 @@ class Application
     // the name of the application configuration file
     const APPLICATIONCONFIGFILENAME = 'application.php';
     // the service name for the start up config values
-    const CONFIGARRAYSERIVICE = '$config';
+    const CONFIGDIRECTORYSERVICE = '$configDirectory';
 
     // this is used to setup the different static run modes
     // Application::http(['config directory' => __ROOT__ . '/config']);
@@ -148,11 +148,6 @@ class Application
         return $value;
     }
 
-    public static function configDirectory(): string
-    {
-        return static::$configDirectory;
-    }
-
     /**
      * Bootstraps the application environment
      *
@@ -185,6 +180,9 @@ class Application
 
         // switch to root
         chdir(__ROOT__);
+
+        // let's make sure they don't read from this if they didn't use load();
+        unset($_ENV);
 
         // set DEBUG default to false (production)
         define('DEBUG', static::env('DEBUG', false));
@@ -287,7 +285,7 @@ class Application
         }
 
         // Setup the config classes configuration
-        $this->container->set(self::CONFIGARRAYSERIVICE, $this->loadCascadingConfig(static::CONFIGFILENAME));
+        $this->container->set(self::CONFIGDIRECTORYSERVICE, static::$configDirectory);
     }
 
     /**

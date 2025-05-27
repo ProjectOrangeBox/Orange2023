@@ -12,6 +12,7 @@ use orange\framework\Output;
 use orange\framework\Router;
 use orange\framework\Container;
 use orange\framework\Dispatcher;
+use orange\framework\Application;
 use orange\framework\interfaces\LogInterface;
 use orange\framework\interfaces\ViewInterface;
 use orange\framework\interfaces\EventInterface;
@@ -40,12 +41,16 @@ use orange\framework\interfaces\DispatcherInterface;
  * $container->{'$test'}
  * $container->get('$test');
  */
+
 return [
     'container' => function (array $services): ContainerInterface {
         return Container::getInstance($services);
     },
     'config' => function (ContainerInterface $container): ConfigInterface {
-        return Config::getInstance($container->get('$config'));
+        return Config::getInstance(['search directories' => [
+            $container->get('$configDirectory'),
+            $container->get('$configDirectory') . DIRECTORY_SEPARATOR . ENVIRONMENT,
+        ]]);
     },
     'log' => function (ContainerInterface $container): LogInterface {
         return Log::getInstance($container->config->log);
