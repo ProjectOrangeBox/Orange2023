@@ -21,9 +21,9 @@ class MainController extends BaseController
             'address' => '123 South Main Street<br />Somewhere, AZ 12345',
             'about' => $this->language->line('main.about', 'Default Msg'),
             'aboutText' => $this->language->line('main.about text'),
-            'position' => $this->config['app']['position'],
-            'h1' => $this->config['app']['h1'],
-            'file' => $this->config['app']['file'],
+            'position' => $this->config['application']['position'],
+            'h1' => $this->config['application']['h1'],
+            'file' => $this->config['application']['file'],
             'cash' => '19.95',
         ]);
 
