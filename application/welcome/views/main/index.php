@@ -138,7 +138,16 @@
 </footer>
 <!-- Copyright Section-->
 <div class="copyright py-4 text-center text-white">
-    <div class="container"><small>Copyright &copy; Your Website <?= fig::date('now', 'Y') ?> Config: <?=$file ?> <?=ENVIRONMENT ?></small></div>
+    <div class="container"><small>Copyright &copy; Your Website <?= fig::date('now', 'Y') ?><br>Config: <?=$file ?> <?=ENVIRONMENT ?> <?php
+            function humanBytes(int $bytes): string
+            {
+                $i = floor(log($bytes, 1024));
+
+                return round($bytes / pow(1024, $i), [0, 1, 2, 2, 3][$i]) . ['B', 'kB', 'MB', 'GB', 'TB'][$i];
+            }
+
+            echo humanBytes(memory_get_usage(true)) . ' / ' . humanBytes(memory_get_peak_usage(true))
+        ?></small></div>
 </div>
 <!-- Portfolio Modals-->
 <!-- Portfolio Modal 1-->
