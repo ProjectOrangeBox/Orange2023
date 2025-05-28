@@ -12,7 +12,7 @@ define('__ROOT__', realpath(__DIR__));
 // composer auto loader
 require_once __ROOT__ . '/vendor/autoload.php';
 
-Application::load(__ROOT__ . '/.env', __ROOT__ . '/.env-cli');
+Application::loadEnvironment(__ROOT__ . '/.env', __ROOT__ . '/.env-cli');
 
 /* send config into cli application and away we go! */
 $container = Application::cli();

@@ -15,7 +15,7 @@ define('__WWW__', __ROOT__ . '/htdocs');
 require_once __ROOT__ . '/vendor/autoload.php';
 
 // Load the application environment
-Application::load(__ROOT__ . '/.env');
+Application::loadEnvironment(__ROOT__ . '/.env');
 
 // The you can either send in the "base" config folder or it will guess
 // and away we go!

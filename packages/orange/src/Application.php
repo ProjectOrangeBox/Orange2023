@@ -21,7 +21,7 @@ class Application
     // the application configuration array
     protected static array $app = [];
     // application environmental values
-    protected static array $env = [];
+    protected static array $env;
 
     // Constants for file names and helper paths
     // the location of the constants file
@@ -41,12 +41,9 @@ class Application
      * @return void
      * @throws FileNotFound
      */
-    public static function load(): void
+    public static function loadEnvironment(): void
     {
-        static::$env = $_ENV;
-
-        // clear this out so we don't try to read from it
-        unset($_ENV);
+        static::setEnv();
 
         foreach (func_get_args() as $path) {
             if (!file_exists($path)) {
@@ -82,6 +79,9 @@ class Application
     }
 
     /**
+     * start a http application
+     *
+     * either pass in the config directory OR let it guess (__ROOT__ . '/config')
      *
      * @param null|string $configDirectory
      * @return ContainerInterface
@@ -122,6 +122,9 @@ class Application
     }
 
     /**
+     * start a cli application
+     *
+     * either pass in the config directory OR let it guess (__ROOT__ . '/config')
      *
      * @param null|string $configDirectory
      * @return ContainerInterface
@@ -143,6 +146,7 @@ class Application
      * Bootstraps the application environment
      *
      * @param string $mode
+     * @param null|string $configDirectory
      * @return void
      * @throws InvalidValue
      * @throws DirectoryNotFound
@@ -179,8 +183,7 @@ class Application
             throw new DirectoryNotFound($configDirectory);
         }
 
-        // let's make sure they don't read from this if they didn't use load();
-        unset($_ENV);
+        static::setEnv();
 
         // set DEBUG default to false (production)
         define('DEBUG', static::env('DEBUG', false));
@@ -188,8 +191,7 @@ class Application
         // set ENVIRONMENT defaults to production
         define('ENVIRONMENT', strtolower(static::env('ENVIRONMENT', 'production')));
 
-        // Since Config can't load it's own config array we need to do it manually
-        // and later attach it as a service that can be injected in when the config service is created
+        // load the application configuration
         static::$app = static::loadCascadingConfig(static::APPLICATIONCONFIGFILENAME);
 
         // config also has some additional application setup variables
@@ -233,14 +235,8 @@ class Application
     protected static function preContainer(): void
     {
         // load any helpers they might have loaded
-        $helperFiles = static::$app['helpers'] ?? [];
-
-        foreach ($helperFiles as $helperFile) {
-            if (!file_exists($helperFile)) {
-                throw new FileNotFound($helperFile);
-            }
-
-            include $helperFile;
+        foreach (static::$app['helpers'] ?? [] as $helperFile) {
+            static::include($helperFile, true);
         }
 
         // now errorHandler() & errorHandler() should be setup
@@ -264,6 +260,7 @@ class Application
      */
     protected static function bootstrapContainer(): void
     {
+        // load the services
         $services = static::loadCascadingConfig(self::SERVICESFILENAME);
 
         if (!isset($services['container'])) {
@@ -295,6 +292,7 @@ class Application
      */
     protected static function postContainer(): void
     {
+        // load the constants and apply them
         foreach (static::loadCascadingConfig(self::CONSTANTFILENAME) as $name => $value) {
             // Constants should all be uppercase - not an option!
             $name = strtoupper($name);
@@ -314,19 +312,40 @@ class Application
      */
     protected static function loadCascadingConfig(string $filename, array $baseArray = []): array
     {
-        // we already know this is there
-        $orangeConfigFile = self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . $filename;
-        $orangeConfigArray = include $orangeConfigFile;
-
-        // do we have a matching user config file?
-        $userConfigFile = static::$configDirectory . DIRECTORY_SEPARATOR . $filename;
-        $userConfigArray = file_exists($userConfigFile) ? include $userConfigFile : [];
-
-        // do we have a matching user environmental config file
-        $userEnvConfigFile = static::$configDirectory . DIRECTORY_SEPARATOR . ENVIRONMENT . DIRECTORY_SEPARATOR . $filename;
-        $userEnvConfigArray = file_exists($userEnvConfigFile) ? include $userEnvConfigFile : [];
-
         // build our final cascading config array
-        return array_replace($baseArray, $orangeConfigArray, $userConfigArray, $userEnvConfigArray);
+        return array_replace(
+            $baseArray,
+            static::include(self::ORANGECONFIGDIRECTORY . DIRECTORY_SEPARATOR . $filename),
+            static::include(static::$configDirectory . DIRECTORY_SEPARATOR . $filename),
+            static::include(static::$configDirectory . DIRECTORY_SEPARATOR . ENVIRONMENT . DIRECTORY_SEPARATOR . $filename)
+        );
+    }
+
+    /**
+     * either load a config file into an array or
+     * return an empty array if it doesn't exist
+     *
+     * @param string $file
+     * @return array
+     */
+    protected static function include(string $file, bool $required = false): mixed
+    {
+        $absolutePath = realpath($file);
+
+        if (!$absolutePath && $required) {
+            throw new FileNotFound($file);
+        }
+
+        return $absolutePath ? include $absolutePath : [];
+    }
+
+    protected static function setEnv(): void
+    {
+        if (!isset(static::$env)) {
+            static::$env = $_ENV;
+        }
+
+        // clear this out so we don't try to read from it
+        unset($_ENV);
     }
 }
