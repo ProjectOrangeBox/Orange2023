@@ -15,13 +15,15 @@ use orange\framework\exceptions\filesystem\DirectoryNotFound;
 class Application
 {
     // Dependency Injection Container
-    public static ContainerInterface $container;
+    protected static ContainerInterface $container;
     // config directory passed in
     protected static string $configDirectory;
     // the application configuration array
     protected static array $app = [];
     // application environmental values
     protected static array $env;
+    // save these to lazy load it when needed
+    protected static array $environmentalFiles = [];
 
     // Constants for file names and helper paths
     // the location of the constants file
@@ -43,15 +45,8 @@ class Application
      */
     public static function loadEnvironment(): void
     {
-        static::setEnv();
-
-        foreach (func_get_args() as $path) {
-            if (!file_exists($path)) {
-                throw new FileNotFound($path);
-            }
-
-            static::$env = array_replace_recursive(static::$env, parse_ini_file($path, true, INI_SCANNER_TYPED));
-        }
+        // save these to lazy load it when needed
+        static::$environmentalFiles = func_get_args();
     }
 
     /**
@@ -63,6 +58,9 @@ class Application
      */
     public static function env(string $key, mixed $default = null): mixed
     {
+        // lazy load if necessary
+        static::setEnv();
+
         $value = static::$env[$key] ?? $default;
 
         if (is_string($value)) {
@@ -183,6 +181,7 @@ class Application
             throw new DirectoryNotFound($configDirectory);
         }
 
+        // lazy load if necessary
         static::setEnv();
 
         // set DEBUG default to false (production)
@@ -341,11 +340,23 @@ class Application
 
     protected static function setEnv(): void
     {
+        // lazy load if undefined
         if (!isset(static::$env)) {
+            // load from the system
             static::$env = $_ENV;
-        }
+            // clear this out so we don't try to read from it
+            unset($_ENV);
 
-        // clear this out so we don't try to read from it
-        unset($_ENV);
+            // replace any new values over the old
+            foreach (static::$environmentalFiles as $environmentalFile) {
+                if (!file_exists($environmentalFile)) {
+                    throw new FileNotFound($environmentalFile);
+                }
+
+                static::$env = array_replace_recursive(static::$env, parse_ini_file($environmentalFile, true, INI_SCANNER_TYPED));
+            }
+            // clear this out as well
+            static::$environmentalFiles = [];
+        }
     }
 }

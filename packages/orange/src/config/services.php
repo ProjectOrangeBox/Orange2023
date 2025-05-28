@@ -12,7 +12,6 @@ use orange\framework\Output;
 use orange\framework\Router;
 use orange\framework\Container;
 use orange\framework\Dispatcher;
-use orange\framework\Application;
 use orange\framework\interfaces\LogInterface;
 use orange\framework\interfaces\ViewInterface;
 use orange\framework\interfaces\EventInterface;
@@ -48,6 +47,7 @@ return [
     },
     'config' => function (ContainerInterface $container): ConfigInterface {
         // we can't load this from config be this IS config
+        // therefore the bootstrap process places the config directory in the service container $configDirectory
         return Config::getInstance(['search directories' => [
             $container->get('$configDirectory'),
             $container->get('$configDirectory') . DIRECTORY_SEPARATOR . ENVIRONMENT,
@@ -59,7 +59,7 @@ return [
     'events' => function (ContainerInterface $container): EventInterface {
         return Event::getInstance($container->config->events);
     },
-    '@event' => 'events',
+    '@event' => 'events', // alias of event
     '@request' => 'input', // alias of input
     'input' => function (ContainerInterface $container): InputInterface {
         return Input::getInstance($container->config->input);
