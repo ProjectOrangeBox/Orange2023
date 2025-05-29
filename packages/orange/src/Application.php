@@ -321,13 +321,15 @@ class Application
     }
 
     /**
-     * either load a config file into an array or
-     * return an empty array if it doesn't exist
+     * include a file and if it returns something return it
+     * if it doesn't return anything then return an empty array
      *
      * @param string $file
-     * @return array
+     * @param bool $required
+     * @return array|void
+     * @throws FileNotFound
      */
-    protected static function include(string $file, bool $required = false): mixed
+    protected static function include(string $file, bool $required = false): array
     {
         $absolutePath = realpath($file);
 
@@ -335,7 +337,17 @@ class Application
             throw new FileNotFound($file);
         }
 
-        return $absolutePath ? include $absolutePath : [];
+        $return = [];
+
+        if ($absolutePath) {
+            $array = include $absolutePath;
+
+            if (is_array($array)) {
+                $return = $array;
+            }
+        }
+
+        return $return;
     }
 
     protected static function setEnv(): void
@@ -352,8 +364,10 @@ class Application
                 if (!file_exists($environmentalFile)) {
                     throw new FileNotFound($environmentalFile);
                 }
-
-                static::$env = array_replace_recursive(static::$env, parse_ini_file($environmentalFile, true, INI_SCANNER_TYPED));
+                // parse the ini file and merge it into the env array
+                if ($iniArray = parse_ini_file($environmentalFile, true, INI_SCANNER_TYPED)) {
+                    static::$env = array_replace_recursive(static::$env, $iniArray);
+                }
             }
             // clear this out as well
             static::$environmentalFiles = [];
