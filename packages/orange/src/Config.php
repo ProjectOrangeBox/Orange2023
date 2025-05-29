@@ -174,6 +174,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
      * Search for configuration files across all defined paths.
      *
      * @param string $filename Name of the configuration file.
+      * @return void 
      */
     protected function findConfigFiles(string $filename): void
     {
@@ -193,6 +194,13 @@ class Config extends SingletonArrayObject implements ConfigInterface
         }
     }
 
+    /**
+     * Load configuration & configuration arrays from the arrays
+     * 
+     * @param CacheInterface $cache 
+     * @return void 
+     * @throws InvalidConfigurationValue 
+     */
     protected function loadCache(CacheInterface $cache): void
     {
         logMsg('INFO', __METHOD__);
@@ -219,7 +227,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
             // yes
             // load it and setup the correct properties
             $this->configuration = $cached['configuration'];
-            $this->foundConfigFiles = $cached['foundConfigFiles'];
+            $this->configuration = $cached['foundConfigFiles'];
         }
     }
 }
