@@ -127,11 +127,13 @@ class Config extends SingletonArrayObject implements ConfigInterface
     {
         // Check if configuration has already been loaded
         if (!isset($this->configuration[$filename])) {
+            // it has not so let's start with an empty configuration array
             $this->configuration[$filename] = [];
 
+            // find all the config files matching this filename
             $this->findConfigFiles($filename);
 
-            // Merge configurations from multiple found files
+            // merge configurations from multiple found files
             foreach ($this->foundConfigFiles[$filename] as $absolutePath) {
                 $this->configuration[$filename] = array_replace_recursive(
                     $this->configuration[$filename],
@@ -140,6 +142,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
             }
         }
 
+        // and now configuration has the configuration array
         return $this->configuration[$filename];
     }
 
@@ -176,14 +179,14 @@ class Config extends SingletonArrayObject implements ConfigInterface
     {
         logMsg('INFO', __METHOD__ . ' ' . $filename);
 
+        // did we do a search for this config filename
         if (!isset($this->foundConfigFiles[$filename])) {
+            // nope so we need to start with an empty configuration array
             $this->foundConfigFiles[$filename] = [];
 
             // Search through each directory for the configuration file
             foreach ($this->searchDirectories as $searchDirectory) {
-                $absolutePath = $searchDirectory . DIRECTORY_SEPARATOR . $filename . '.php';
-
-                if (file_exists($absolutePath)) {
+                if ($absolutePath = realpath($searchDirectory . DIRECTORY_SEPARATOR . $filename . '.php')) {
                     $this->foundConfigFiles[$filename][] = $absolutePath;
                 }
             }

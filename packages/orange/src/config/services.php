@@ -59,12 +59,15 @@ return [
     'events' => function (ContainerInterface $container): EventInterface {
         return Event::getInstance($container->config->events);
     },
-    '@event' => 'events', // alias of event
-    '@request' => 'input', // alias of input
+    // alias of event
+    '@event' => 'events',
+    // alias of input
+    '@request' => 'input',
     'input' => function (ContainerInterface $container): InputInterface {
         return Input::getInstance($container->config->input);
     },
-    '@response' => 'output', // alias of output
+    // alias of output
+    '@response' => 'output',
     'output' => function (ContainerInterface $container): OutputInterface {
         return Output::getInstance($container->config->output, $container->input);
     },
