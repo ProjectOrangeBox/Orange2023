@@ -11,6 +11,7 @@ use orange\framework\interfaces\ContainerInterface;
 use orange\framework\exceptions\filesystem\FileNotFound;
 use orange\framework\exceptions\config\ConfigFileNotFound;
 use orange\framework\exceptions\filesystem\DirectoryNotFound;
+use orange\framework\exceptions\config\InvalidConfigurationValue;
 
 class Application
 {
@@ -365,9 +366,13 @@ class Application
                     throw new FileNotFound($environmentalFile);
                 }
                 // parse the ini file and merge it into the env array
-                if ($iniArray = parse_ini_file($environmentalFile, true, INI_SCANNER_TYPED)) {
-                    static::$env = array_replace_recursive(static::$env, $iniArray);
+                $iniArray = parse_ini_file($environmentalFile, true, INI_SCANNER_TYPED);
+
+                if (!is_array($iniArray)) {
+                    throw new InvalidConfigurationValue($environmentalFile . ' Invalid INI file format or empty file.');
                 }
+
+                static::$env = array_replace_recursive(static::$env, $iniArray);
             }
             // clear this out as well
             static::$environmentalFiles = [];
