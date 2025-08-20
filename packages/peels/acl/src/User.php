@@ -27,7 +27,7 @@ class User implements UserInterface
 
     public function __construct(array $config, AclInterface $acl, SessionInterface $sessionService)
     {
-        $this->config = $this->mergeWith($config);
+        $this->config = $this->mergeConfigWith($config);
 
         $this->acl = $acl;
         $this->sessionService = $sessionService;

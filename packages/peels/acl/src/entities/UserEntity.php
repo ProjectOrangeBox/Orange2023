@@ -15,12 +15,16 @@ class UserEntity implements UserEntityInterface
     protected array $config = [];
 
     public readonly int $id;
+    // users name
     public string $username;
+    // users email
     public string $email;
+    // if the permission is active or not
     public readonly int $is_active;
+    // soft delete user
     public readonly int $is_deleted;
-
-    private string $password;
+    // users password
+    private readonly string $password;
 
     protected array $permissions = [];
     protected array $roles = [];
@@ -34,23 +38,10 @@ class UserEntity implements UserEntityInterface
         $this->userModel = $userModel;
     }
 
-    public function lazyLoad(): void
-    {
-        if (!$this->lazyLoaded) {
-            $access = $this->userModel->getRolesPermissions($this->id);
-
-            $this->permissions = $access['permissions'] ?? [];
-            $this->roles = $access['roles'] ?? [];
-
-            $this->meta = $this->userModel->getMeta($this->id);
-
-            $this->lazyLoaded = true;
-        }
-    }
-
     public function update(): bool
     {
         // combined meta & local properties
+        // get the public columns from the entity
         $columns = get_object_vars(...)->__invoke($this) + $this->meta;
 
         return $this->userModel->update($columns);
@@ -157,7 +148,7 @@ class UserEntity implements UserEntityInterface
 
     public function loggedIn(): bool
     {
-        return ($this->id != $this->config['guest user']);
+        return $this->id != $this->config['guest user'];
     }
 
     public function isAdmin(): bool
@@ -167,7 +158,7 @@ class UserEntity implements UserEntityInterface
 
     public function isGuest(): bool
     {
-        return ($this->id == $this->config['guest user']);
+        return $this->id == $this->config['guest user'];
     }
 
     // meta
@@ -207,5 +198,20 @@ class UserEntity implements UserEntityInterface
         }
 
         return $return;
+    }
+
+    // internal use
+    protected function lazyLoad(): void
+    {
+        if (!$this->lazyLoaded) {
+            $access = $this->userModel->getRolesPermissions($this->id);
+
+            $this->permissions = $access['permissions'] ?? [];
+            $this->roles = $access['roles'] ?? [];
+
+            $this->meta = $this->userModel->getMeta($this->id);
+
+            $this->lazyLoaded = true;
+        }
     }
 }

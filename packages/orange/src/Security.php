@@ -45,6 +45,7 @@ class Security extends Singleton implements SecurityInterface
     protected function __construct(array $config)
     {
         logMsg('INFO', __METHOD__);
+
         $this->config = $config;
     }
 

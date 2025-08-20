@@ -12,6 +12,7 @@ interface ContainerInterface
     public const OBJECT = 4;
     public const TYPE = 5;
     public const REFERENCE = 6;
+    public const AUTOWIRECLASS = 7;
 
     public function __get(string $serviceName): mixed;
     public function get(string $serviceName): mixed;

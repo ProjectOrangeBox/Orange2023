@@ -25,7 +25,7 @@ final class RouterTest extends unitTestHelper
                 ['method' => 'post', 'name' => 'productp', 'url' => '/poster', 'callback' => $this->callback],
                 ['method' => 'put', 'url' => '/putter/([a-z]+)/(\d+)', 'callback' => $this->callback],
                 ['method' => 'delete', 'name' => 'productd', 'url' => '/remove/([a-z]+)', 'callback' => $this->callback],
-                ['method' => 'header', 'name' => 'producth', 'url' => '/view/([a-z]+)', 'callback' => $this->callback],
+                ['method' => 'head', 'name' => 'producth', 'url' => '/view/([a-z]+)', 'callback' => $this->callback],
             ],
             // remove the defaults!!
             '404' => [],

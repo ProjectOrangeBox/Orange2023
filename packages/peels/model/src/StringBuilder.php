@@ -7,11 +7,10 @@ namespace peels\model;
 class StringBuilder
 {
     protected array $append;
-    protected string $separator;
 
-    public function __construct(string $separator = ' ')
+    public function __construct(protected string $separator = ' ', protected bool $autoTrim = true)
     {
-        $this->separator($separator);
+        $this->clear();
     }
 
     public function clear(): self
@@ -34,19 +33,19 @@ class StringBuilder
             $append = (string)$append;
 
             if (!empty($append)) {
-                $this->append[] = $append;
+                $this->append[] = $this->autoTrim ? trim($append) : $append;
             }
         }
 
         return $this;
     }
 
-    public function get(string $prefix = '', string $suffix = '', string $separator = null): string
+    public function get(string $prefix = '', string $suffix = '', ?string $separator = null): string
     {
         return $prefix . implode($separator ?? $this->separator, $this->append) . $suffix;
     }
 
-    public function getIfHas(string $prefix = '', string $suffix = '', string $separator = null): string
+    public function getIfHas(string $prefix = '', string $suffix = '', ?string $separator = null): string
     {
         return $this->has() ? $this->get($prefix, $suffix, $separator) : '';
     }

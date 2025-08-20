@@ -36,7 +36,7 @@ interface InputInterface
     public function isCliRequest(): bool;
     public function isHttpsRequest(bool $asString = false): bool|string;
 
-    // handle get, post, server, files, cookies, request, foo, bar
+    // handle get, post, server, files, cookie, request, foo, bar
     // as long as it matches a config value sent in and is in 'valid input keys'
     // $value = $input->request('keyname', true);
     public function __call(string $name, array $arguments): mixed;

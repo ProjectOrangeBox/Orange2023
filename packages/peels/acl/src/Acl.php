@@ -28,7 +28,7 @@ class Acl extends Singleton implements AclInterface
 
     protected function __construct(array $config, PDO $pdo, ValidateInterface $validateService)
     {
-        $this->mergeWith($config);
+        $config = $this->mergeConfigWith($config);
 
         $this->userModel = new $config['userModel']($config, $pdo, $validateService);
         $this->roleModel = new $config['roleModel']($config, $pdo, $validateService);

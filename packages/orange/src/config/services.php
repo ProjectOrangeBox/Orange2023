@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use orange\framework\Application;
 use orange\framework\Log;
 use orange\framework\Data;
 use orange\framework\View;
@@ -13,6 +14,7 @@ use orange\framework\Router;
 use orange\framework\Container;
 use orange\framework\Dispatcher;
 use orange\framework\interfaces\LogInterface;
+use orange\framework\interfaces\DataInterface;
 use orange\framework\interfaces\ViewInterface;
 use orange\framework\interfaces\EventInterface;
 use orange\framework\interfaces\InputInterface;
@@ -39,54 +41,24 @@ use orange\framework\interfaces\DispatcherInterface;
  * you can "get" those in 1 of 2 ways
  * $container->{'$test'}
  * $container->get('$test');
+ *
+ * 'uuid' => fn() => bin2hex(random_bytes(16)),
  */
 
 return [
-    'container' => function (array $services): ContainerInterface {
-        return Container::getInstance($services);
-    },
-    'config' => function (ContainerInterface $container): ConfigInterface {
-        // we can't load this from config be this IS config
-        // therefore the bootstrap process places the config directory in the service container $configDirectory
-        return Config::getInstance(['search directories' => [
-            $container->get('$configDirectory'),
-            $container->get('$configDirectory') . DIRECTORY_SEPARATOR . ENVIRONMENT,
-        ]]);
-    },
-    'log' => function (ContainerInterface $container): LogInterface {
-        return Log::getInstance($container->config->log);
-    },
-    'events' => function (ContainerInterface $container): EventInterface {
-        return Event::getInstance($container->config->events);
-    },
-    // alias of event
+    // alias's
     '@event' => 'events',
-    // alias of input
     '@request' => 'input',
-    'input' => function (ContainerInterface $container): InputInterface {
-        return Input::getInstance($container->config->input);
-    },
-    // alias of output
     '@response' => 'output',
-    'output' => function (ContainerInterface $container): OutputInterface {
-        return Output::getInstance($container->config->output, $container->input);
-    },
-    'router' => function (ContainerInterface $container): RouterInterface {
-        return Router::getInstance($container->config->routes, $container->input);
-    },
-    'dispatcher' => function (ContainerInterface $container): DispatcherInterface {
-        return Dispatcher::getInstance($container);
-    },
-    'view' => function (ContainerInterface $container): ViewInterface {
-        $config = $container->config->view;
 
-        // add the router if you want to use auto view detection
-        $config['router'] = $container->router;
-
-        return View::getInstance($config, $container->data);
-    },
-    'data' => function (ContainerInterface $container) {
-        // main array (object) which contains data for the array
-        return Data::getInstance($container->config->data);
-    },
+    'container' => fn(array $services): ContainerInterface => Container::getInstance($services),
+    'config' => fn(ContainerInterface $container): ConfigInterface => Config::getInstance(Application::getConfigDirectories()),
+    'log' => fn(ContainerInterface $container): LogInterface => Log::getInstance($container->config->log),
+    'events' => fn(ContainerInterface $container): EventInterface => Event::getInstance($container->config->events),
+    'input' => fn(ContainerInterface $container): InputInterface => Input::getInstance($container->config->input),
+    'output' => fn(ContainerInterface $container): OutputInterface => Output::getInstance($container->config->output, $container->input),
+    'router' => fn(ContainerInterface $container): RouterInterface => Router::getInstance($container->config->routes, $container->input),
+    'dispatcher' => fn(ContainerInterface $container): DispatcherInterface => Dispatcher::getInstance($container),
+    'view' => fn(ContainerInterface $container): ViewInterface => View::getInstance($container->config->view, $container->data, $container->router),
+    'data' => fn(ContainerInterface $container): DataInterface => Data::getInstance($container->config->data),
 ];

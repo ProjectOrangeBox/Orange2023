@@ -3,7 +3,7 @@
 
 declare(strict_types=1);
 
-require '../../../../bootstrapCli.php';
+$container = require __DIR__ . '/../../../../bootstrapCli.php';
 
 $argc = $_SERVER['argc'];
 $argv = $_SERVER['argv'];

@@ -22,7 +22,7 @@ final class SqlTest extends unitTestHelper
             'primaryColumn' => 'id',
             'throwException' => false,
             'defaultFetchType' => PDO::FETCH_ASSOC,
-            'fetchClass' => '',
+            'fetchClass' => null,
             'errorFormat' => '[%1$s] %2$s',
         ], $this->pdo);
     }
@@ -40,7 +40,7 @@ final class SqlTest extends unitTestHelper
 
         $this->assertTrue($this->instance->hasError());
 
-        $error = '[42S22] SQLSTATE[42S22]: Column not found: 1054 Unknown column \'foobar\' in \'field list\'';
+        $error = '[42] SQLSTATE[42S22]: Column not found: 1054 Unknown column \'foobar\' in \'field list\'';
 
         $this->assertEquals([$error], $this->instance->errors());
         $this->assertEquals($error, $this->instance->error());
@@ -52,7 +52,7 @@ final class SqlTest extends unitTestHelper
 
         $this->assertInstanceOf(Sql::class, $this->instance->select('foobar')->from()->execute());
 
-        $this->assertEquals('{42S22}::SQLSTATE[42S22]: Column not found: 1054 Unknown column \'foobar\' in \'field list\'', $this->instance->errorFormat());
+        $this->assertEquals('{42}::SQLSTATE[42S22]: Column not found: 1054 Unknown column \'foobar\' in \'field list\'', $this->instance->errorFormat());
     }
 
     public function testGetLast(): void

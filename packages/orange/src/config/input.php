@@ -2,21 +2,22 @@
 
 declare(strict_types=1);
 
-// lowercase all keys to normalize everything
+use orange\framework\Application;
+
 return [
-    'get' => $_GET,
-    'server' => $_SERVER,
-    'files' => $_FILES,
-    'cookie' => $_COOKIE,
-    'post' => $_POST,
-    'request' => $_REQUEST,
-    'body' => file_get_contents('php://input'),
+    'get' => Application::fromGlobals('get'),
+    'server' => Application::fromGlobals('server'),
+    'files' => Application::fromGlobals('files'),
+    'cookie' => Application::fromGlobals('cookie'),
+    'post' => Application::fromGlobals('post'),
+    'request' => Application::fromGlobals('request'),
+    'body' => Application::fromGlobals('body'),
 
     // for cli detection
     // override in your config if needed
     // only 1 is actually needed because both are checked
-    'php_sapi' => PHP_SAPI, // string
-    'stdin' => defined('STDIN'), // boolean
+    'php_sapi' =>  Application::fromGlobals('php_sapi'), // string
+    'stdin' =>  Application::fromGlobals('stdin'), // boolean
 
     // try to auto detect if the body is json or not
     'auto detect body' => true,

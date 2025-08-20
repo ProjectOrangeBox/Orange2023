@@ -53,7 +53,7 @@ class Validate extends Factory implements ValidateInterface
 
     protected function __construct(array $config)
     {
-        $this->config = $this->mergeWith($config);
+        $this->config = $this->mergeConfigWith($config);
 
         // default error message if one isn't given
         $this->defaultErrorMsg = $this->config['defaultErrorMsg'] ?? $this->defaultErrorMsg;

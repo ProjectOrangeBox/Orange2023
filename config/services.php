@@ -58,10 +58,6 @@ use orange\framework\interfaces\ContainerInterface;
  */
 
 return [
-    '#default' => [
-        'view',
-        'data',
-    ],
     'console' => function (ContainerInterface $container): ConsoleInterface {
         return Console::getInstance($container->config->console, $container->input);
     },

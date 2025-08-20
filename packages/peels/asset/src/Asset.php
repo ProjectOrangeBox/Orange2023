@@ -25,7 +25,7 @@ class Asset implements AssetInterface
     public function __construct(array $config, ?DataInterface $data = null)
     {
         // orange provided function
-        $this->config = $this->mergeWith($config);
+        $this->config = $this->mergeConfigWith($config);
 
         $this->priority = new Priority();
 

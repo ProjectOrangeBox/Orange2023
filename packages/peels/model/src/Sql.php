@@ -39,11 +39,11 @@ class Sql
     public string $primaryColumn = '';
     public string $errorFormat = '[%1$s] %2$s';
     public bool $throwException = false;
-    public string $fetchClass = '';
+    public ?string $fetchClass = null;
 
     protected array $config = [];
 
-    protected string $errorCode = '';
+    protected int $errorCode = 0;
     protected string $errorMsg = '';
 
     protected string $lastSQL = '';
@@ -80,7 +80,7 @@ class Sql
 
     public function hasError(): bool
     {
-        return !empty($this->errorCode);
+        return $this->errorCode != 0;
     }
 
     public function error(): string
@@ -93,11 +93,11 @@ class Sql
         return [$this->errorFormat()];
     }
 
-    public function errorFormat(string $format = null): string
+    public function errorFormat(?string $format = null): string
     {
         $format = $format ?? $this->errorFormat;
 
-        return sprintf($format, $this->errorCode, $this->errorMsg);
+        return sprintf($format, (string)$this->errorCode, $this->errorMsg);
     }
 
     public function getLast(): array
@@ -112,7 +112,7 @@ class Sql
     {
         $this->pdoStatement = new PDOStatement();
 
-        $this->errorCode = '';
+        $this->errorCode = 0;
         $this->errorMsg = '';
 
         $this->where = [];
@@ -152,6 +152,7 @@ class Sql
             default:
                 throw new InvalidValue('Unknown SQL statement "' . $this->sqlStatement . '".');
         }
+
         return trim($builder->get());
     }
 
@@ -336,14 +337,12 @@ class Sql
 
     public function wherePrimary($value): self
     {
-        $tablename = substr($this->tablename, strrpos(' ' . $this->tablename, ' '));
-
-        $this->whereEqual($tablename . '.' . $this->primaryColumn, $value);
+        $this->whereEqual(substr($this->tablename, strrpos(' ' . $this->tablename, ' ')) . '.' . $this->primaryColumn, $value);
 
         return $this;
     }
 
-    public function and(string $column = null, mixed $value = null): self
+    public function and(?string $column = null, mixed $value = null): self
     {
         // if column and value are set it's a join "and"
         if ($column !== null && $value !== null) {
@@ -356,7 +355,7 @@ class Sql
         return $this;
     }
 
-    public function or(string $column = null, mixed $value = null): self
+    public function or(?string $column = null, mixed $value = null): self
     {
         // if column and value are set it's a join "or"
         if ($column !== null && $value !== null) {
@@ -417,7 +416,7 @@ class Sql
         return $this->whereRaw($this->escapeTableColumn($column) . ' ' . $append, $value);
     }
 
-    public function whereRaw(string $raw, array $value = null): self
+    public function whereRaw(string $raw, ?array $value = null): self
     {
         $where['raw'] = $raw;
 
@@ -687,11 +686,9 @@ class Sql
 
                 if ($isAssociative) {
                     foreach ($args as $identifier => $value) {
-                        if (is_int($value)) {
-                            $this->pdoStatement->bindValue(':' . $identifier, $value, PDO::PARAM_INT);
-                        } else {
-                            $this->pdoStatement->bindValue(':' . $identifier, $value);
-                        }
+                        $arg3 = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+
+                        $this->pdoStatement->bindValue(':' . $identifier, $value, $arg3);
                     }
 
                     $this->pdoStatement->execute();
@@ -715,7 +712,7 @@ class Sql
 
     public function captureError(Throwable $e): void
     {
-        $this->errorCode = $e->getCode();
+        $this->errorCode = (int)$e->getCode();
         $this->errorMsg = $e->getMessage();
 
         if ($this->throwException) {
@@ -725,7 +722,7 @@ class Sql
 
     public function setFetchMode(int|string $fetchMode, array $fetchArgs = []): self
     {
-        if (is_integer($fetchMode)) {
+        if (is_int($fetchMode)) {
             $this->fetchMode = $fetchMode;
             $this->fetchClass = null;
         } else {

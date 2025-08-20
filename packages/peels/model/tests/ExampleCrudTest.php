@@ -20,7 +20,7 @@ final class ExampleCrudTest extends unitTestHelper
         require_once __DIR__ . '/support/ExampleCrud.php';
 
         // instance of Model Abstract Class
-        $this->instance = new ExampleCrud([], $this->pdo, new Validate([]));
+        $this->instance = ExampleCrud::getInstance([], $this->pdo, Validate::getInstance([]));
     }
 
     protected function tearDown(): void

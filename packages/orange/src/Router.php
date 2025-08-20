@@ -13,6 +13,7 @@ use orange\framework\exceptions\MissingRequired;
 use orange\framework\interfaces\RouterInterface;
 use orange\framework\exceptions\router\RouteNotFound;
 use orange\framework\exceptions\router\RouterNameNotFound;
+use orange\framework\exceptions\router\HttpMethodNotSupported;
 
 /**
  * Class Router
@@ -30,40 +31,47 @@ use orange\framework\exceptions\router\RouterNameNotFound;
  */
 class Router extends Singleton implements RouterInterface
 {
-    /** include ConfigurationTrait methods */
+    // include ConfigurationTrait methods
     use ConfigurationTrait;
 
-    /**
-     * Provides access to input-related utilities (e.g., HTTP method, request URI).
-     */
+    // Provides access to input-related utilities (e.g., HTTP method, request URI).
     protected InputInterface $input;
 
-    /**
-     * Base URL of the site, used for generating full URLs.
-     */
+    // Base URL of the site, used for generating full URLs.
     protected string $siteUrl = '';
 
-    /**
-     * List of all registered routes.
-     */
-    protected array $routes = [];
+    // Routes by HTTP method
+    protected array $routes = [
+        'CONNECT' => [],
+        'DELETE' => [],
+        'GET' => [],
+        'HEAD' => [],
+        'OPTIONS' => [],
+        'PATCH' => [],
+        'POST' => [],
+        'PUT' => [],
+        'TRACE' => [],
+    ];
 
-    /**
-     * Stores information about the last matched route.
-     */
+    // Stores information about the last matched route.
     protected array $matched = [];
 
-    /**
-     * Determines whether URL validation during generation can be skipped.
-     */
-    protected bool $skipCheckingType = false;
+    // Determines whether URL validation during generation can be skipped.
+    protected bool $skipParameterTypeChecking = false;
 
-    /**
-     * Array of routes sorted by the route name
-     */
+    // Array of routes sorted by the route name
     protected array $routesByName = [];
 
-    protected array $matchAll = [];
+    // On Match All routes use these methods
+    // e.g., ['GET', 'POST', 'PUT', 'DELETE']
+    protected array $onMatchAll = [];
+
+    // if cache passed this is an reference to it
+    protected ?CacheInterface $cache;
+    // the caching key for routes
+    protected string $cacheKey;
+    // to turn off caching of routes
+    protected bool $disableCaching = false;
 
     /**
      * Protected constructor to enforce Singleton usage.
@@ -78,33 +86,29 @@ class Router extends Singleton implements RouterInterface
         logMsg('INFO', __METHOD__);
 
         // load the default configs
-        $this->config = $this->mergeWith($config, false, 'routes');
+        $this->config = $this->mergeConfigWith($config, 'routes', false);
 
+        // Validate the configuration
         if (empty($this->config['site'])) {
             throw new MissingRequired('Route config "site" in routes.php can not be empty.');
         }
 
         $this->input = $input;
-
+        // Set the site URL
         $this->siteUrl = $this->config['site'];
-        $this->skipCheckingType = $this->config['skip checking type'];
-        $this->matchAll = $this->config['match all'];
+        // Set the skip parameter type checking flag
+        $this->skipParameterTypeChecking = $this->config['skip parameter type checking'];
+        // Set the on match all methods
+        $this->onMatchAll = $this->config['match all'];
 
-        // if cache is supplied then use it
-        if ($cache) {
-            if (!$routes = $cache->get(ENVIRONMENT . '\\' . __CLASS__)) {
-                // didn't find them so force a load and then set the cache
-                $this->loadRoutes();
-                $cache->set(ENVIRONMENT . '\\' . __CLASS__, ['routes' => $this->routes, 'routesByName' => $this->routesByName]);
-            } else {
-                // cache is valid so we can use it
-                $this->routes = $routes['routes'];
-                $this->routesByName = $routes['routesByName'];
-            }
-        } else {
-            // no cache being used so load the routes
-            $this->loadRoutes();
+        // Set the cache if provided
+        if ($this->cache = $cache) {
+            // Set the cache key
+            $this->cacheKey = ENVIRONMENT . '\\' . __CLASS__;
         }
+
+        // Load the routes
+        $this->loadRoutes();
 
         // setup the "empty" matched
         $this->matched = [
@@ -119,14 +123,6 @@ class Router extends Singleton implements RouterInterface
             'name' => null,
             'callback' => null,
         ];
-    }
-
-    protected function loadRoutes(): void
-    {
-        // add 404 first which makes it the last in the search
-        // add our default home - this could get overwritten by another home
-        // add the user supplied routes
-        $this->addRoute($this->config['404'])->addRoute($this->config['home'])->addRoutes($this->config['routes']);
     }
 
     /**
@@ -144,29 +140,32 @@ class Router extends Singleton implements RouterInterface
             // is this a http routable method?
             if (isset($options['method'])) {
                 // is this the wildcard all an array or a single value
-                $methods = $options['method'] == '*' ? $this->matchAll : (array)$options['method'];
+                $methods = $options['method'] == '*' ? $this->onMatchAll : (array)$options['method'];
 
                 // for each method add it to the appropriate array for quicker access
                 foreach ($methods as $method) {
-                    $methodUpper = mb_strtoupper($method);
+                    $upperMethod = strtoupper($method);
 
-                    // make the http method array if it doesn't already exist
-                    if (!isset($this->routes[$methodUpper])) {
-                        $this->routes[$methodUpper] = [];
+                    if (!isset($this->routes[$upperMethod])) {
+                        throw new HttpMethodNotSupported($method);
                     }
 
                     // FILO stack
-                    array_unshift($this->routes[$methodUpper], $options);
+                    array_unshift($this->routes[$upperMethod], $options);
                 }
             }
 
             // does this route have a name to use with get url?
             if (isset($options['name'])) {
                 // add it to the array by name
-                $this->routesByName[mb_strtolower($options['name'])] = $options['url'];
+                $this->routesByName[strtolower($options['name'])] = $options['url'];
             }
         }
 
+        // Save the route to cache
+        $this->saveCache();
+
+        // return $ instance for method chaining
         return $this;
     }
 
@@ -181,12 +180,20 @@ class Router extends Singleton implements RouterInterface
         logMsg('INFO', __METHOD__);
         logMsg('INFO', 'Routes ' . count($routes));
 
-        // put them in the array the same way they are in the config file
-        // top route tested first to the bottom tested last
+        // disable cache temporarily to avoid writing to cache while adding routes
+        $this->disableCaching = true;
+
+        // Add each route in reverse order
         foreach (array_reverse($routes) as $route) {
             $this->addRoute($route);
         }
+        // re-enable cache after adding routes
+        $this->disableCaching = false;
 
+        // save the routes to cache if available
+        $this->saveCache();
+
+        // return $ instance for method chaining
         return $this;
     }
 
@@ -202,12 +209,17 @@ class Router extends Singleton implements RouterInterface
     {
         logMsg('DEBUG', __METHOD__, compact('requestUri', 'requestMethod'));
 
+        // Normalize the request method
         $requestMethodUpper = mb_strtoupper($requestMethod);
 
+        // Check for matching routes
         foreach ($this->routes[$requestMethodUpper] ?? [] as $route) {
+            // Check if the route matches the request URI
             if (preg_match("@^" . $route['url'] . "$@D", '/' . trim($requestUri, '/'), $argv)) {
+                // Get the URL from the arguments
                 $url = array_shift($argv);
 
+                // Set the matched route information
                 $this->matched = [
                     'request method' => $requestMethodUpper,
                     'request uri' => $requestUri,
@@ -247,10 +259,12 @@ class Router extends Singleton implements RouterInterface
     {
         logMsg('DEBUG', __METHOD__, ['key' => $key]);
 
+        // Check if the key is valid
         if ($key != null && !\array_key_exists(strtolower($key), $this->matched)) {
             throw new InvalidValue('Unknown routing value "' . $key . '"');
         }
 
+        // Return the matched data
         return ($key) ? $this->matched[strtolower($key)] : $this->matched;
     }
 
@@ -262,13 +276,15 @@ class Router extends Singleton implements RouterInterface
      * @return string The generated URL.
      * @throws RouterNameNotFound If the route name is not found.
      */
-    public function getUrl(string $searchName, array $arguments = [], ?bool $skipCheckingType = null): string
+    public function getUrl(string $searchName, array $arguments = [], ?bool $skipParameterTypeChecking = null): string
     {
         logMsg('INFO', __METHOD__ . ' ' . $searchName);
-        logMsg('DEBUG', '', ['searchName' => $searchName, 'arguments' => $arguments, 'skipCheckingType' => $skipCheckingType]);
+        logMsg('DEBUG', '', ['searchName' => $searchName, 'arguments' => $arguments, 'skipParameterTypeChecking' => $skipParameterTypeChecking]);
 
+        // Normalize the search name
         $lowercaseSearchName = mb_strtolower($searchName);
 
+        // Check if the route exists
         if (!isset($this->routesByName[$lowercaseSearchName])) {
             throw new RouterNameNotFound($searchName);
         }
@@ -291,18 +307,19 @@ class Router extends Singleton implements RouterInterface
 
         // does this url have any arguments?
         if ($hasArgs) {
-            $skip = (is_bool($skipCheckingType)) ? $skipCheckingType : $this->skipCheckingType;
-
+            // Determine if we should skip parameter type checking
+            $skipParameterTypeChecking = is_bool($skipParameterTypeChecking) ? $skipParameterTypeChecking : $this->skipParameterTypeChecking;
+            // Get the URL matches
             foreach ($matches as $index => $match) {
                 // convert to a string
                 $value = (string)$arguments[$index];
 
-                // make sure the argument matches the regular expression for that segement
-                if (!$skip && !preg_match('@' . $match[0] . '@m', $value)) {
+                // make sure the argument matches the regular expression for that segment
+                if (!$skipParameterTypeChecking && !preg_match('@' . $match[0] . '@m', $value)) {
                     throw new InvalidValue('Parameter mismatch. Expecting ' . $match[1] . ' got ' . $value);
                 }
 
-                // replace the segement with the passed argument
+                // replace the segment with the passed argument
                 $matchedUrl = preg_replace('/' . preg_quote($match[0], '/') . '/', $value, $matchedUrl, 1);
             }
         }
@@ -333,12 +350,81 @@ class Router extends Singleton implements RouterInterface
      */
     public function siteUrl(bool|string $prefix = true): string
     {
+        // Determine the scheme
         if (is_string($prefix)) {
+            // Use the custom prefix
             $scheme = $prefix;
         } else {
+            // Auto determine the scheme based on the request
             $scheme = ($this->input->isHttpsRequest() ? 'https://' : 'http://');
         }
 
+        // Build the site URL
         return $prefix ? $scheme . $this->siteUrl : $this->siteUrl;
+    }
+
+    /**
+     * Saves the current routes to the cache if cache service provided.
+     * This method serializes the routes and routesByName arrays
+     *
+     * @return void
+     */
+    protected function saveCache()
+    {
+        // Check if the cache is available and caching is not disabled
+        if ($this->cache && !$this->disableCaching) {
+            // Cache the current routes
+            $this->cache->set($this->cacheKey, ['routes' => $this->routes, 'routesByName' => $this->routesByName]);
+        }
+    }
+
+    /**
+     * Loads routes from the cache or configuration.
+     * If the cache is not available or empty, it will load routes from the configuration.
+     * If the cache is available, it will check for cached routes and use them if valid.
+     * If no cached routes are found, it will load the configuration routes and cache them.
+     *
+     * @return void
+     * @throws MissingRequired
+     */
+    protected function loadRoutes(): void
+    {
+        // Check if the cache is available
+        if ($this->cache) {
+            // try to load the cached routes
+            $cachedRoutes = $this->cache->get($this->cacheKey);
+
+            // if we get "false" then it was a cache miss
+            if (!$cachedRoutes) {
+                // didn't find them so force a load and then set the cache
+                $this->addConfigRoutes();
+            } else {
+                // cache is valid so we can use it
+                $this->routes = $cachedRoutes['routes'];
+                $this->routesByName = $cachedRoutes['routesByName'];
+            }
+        } else {
+            // no cache being used so load the routes
+            $this->addConfigRoutes();
+        }
+    }
+
+    /**
+     * Adds routes from the configuration.
+     *
+     * @throws MissingRequired If the configuration does not contain the required routes.
+     *
+     * @return void
+     */
+    protected function addConfigRoutes(): void
+    {
+        // turn off caching for addRoute(...)
+        // addRoutes(...) will turn it back on and cache before exiting
+        $this->disableCaching = true;
+
+        // add 404 first which makes it the last in the search
+        // add our default home - this could get overwritten by another home
+        // add the user supplied routes
+        $this->addRoute($this->config['404'])->addRoute($this->config['home'])->addRoutes($this->config['routes']);
     }
 }

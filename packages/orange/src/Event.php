@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace orange\framework;
 
+use Closure;
 use orange\framework\base\Singleton;
 use orange\framework\exceptions\InvalidValue;
 use orange\framework\interfaces\EventInterface;
@@ -61,7 +62,7 @@ class Event extends Singleton implements EventInterface
         logMsg('INFO', __METHOD__);
 
         // Merge provided configuration with default configuration.
-        $this->config = $this->mergeWith($config);
+        $this->config = $this->mergeConfigWith($config);
 
         $this->disabled = $this->config['disabled'] ?? $this->disabled;
 
@@ -284,6 +285,16 @@ class Event extends Singleton implements EventInterface
         return $eventId;
     }
 
+    /**
+     * Register a closure event listener.
+     * This method generates a unique event ID based on the priority and current time.
+     * It stores the closure in the events array under the normalized trigger name.
+     *
+     * @param string $trigger
+     * @param Closure $callable
+     * @param int $priority
+     * @return int
+     */
     protected function registerClosureEvent(string $trigger, \Closure $callable, int $priority): int
     {
         $eventId = \intval((string)$priority . (string)\hrtime(true));

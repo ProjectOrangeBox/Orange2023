@@ -5,15 +5,9 @@ declare(strict_types=1);
 
 use peels\acl\Acl;
 use peels\acl\User;
-use \orange\framework\Application;
 use peels\validate\exceptions\ValidationFailed;
 
-define('__ROOT__', realpath(__DIR__ . '/../../../../'));
-
-require_once __ROOT__ . '/vendor/autoload.php';
-
-/* send config into application */
-$container = Application::cli(include __ROOT__ . '/config/config.php');
+$container = require __DIR__.'/../../../../bootstrapCli.php';
 
 $pdo = $container->pdo;
 
@@ -23,9 +17,9 @@ $pdo->query('TRUNCATE TABLE orange_roles');
 $pdo->query('TRUNCATE TABLE orange_user_role');
 $pdo->query('TRUNCATE TABLE orange_role_permission');
 
-$acl = new Acl([], container()->pdo, container()->validate);
+$acl = Acl::getInstance([], container()->pdo, container()->validate);
 
-$user = new User([], $acl, container()->session);
+$user = User::getInstance([], $acl, container()->session);
 
 try {
     // #1

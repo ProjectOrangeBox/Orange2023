@@ -47,7 +47,7 @@ class Flashmsg extends Singleton implements FlashMsgInterface
      */
     protected function __construct(array $config, SessionInterface $session, InputInterface $input, OutputInterface $output, ?DataInterface $data = null, ?EventInterface $event = null)
     {
-        $this->config = $this->mergeWith($config);
+        $this->config = $this->mergeConfigWith($config);
 
         $this->session = $session;
         $this->input = $input;

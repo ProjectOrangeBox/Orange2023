@@ -3,13 +3,15 @@
 
 declare(strict_types=1);
 
-require '../bootstrapCli.php';
+$container = require '../bootstrapCli.php';
 
 // start shellscript
 $console = $container->console;
 
-// turn on to level or all if nothing included
-$console->turnOnOutput();
+//$console->detectVerboseLevel();
+$console->verbose($console::EVERYTHING);
+
+var_dump($console->verbose());
 
 $console->line();
 

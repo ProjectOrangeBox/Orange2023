@@ -43,7 +43,7 @@ class UserModel extends Model implements UserModelInterface
 
     public function __construct(array $config, PDO $pdo, ValidateInterface $validateService)
     {
-        $this->mergeWith($config);
+        $this->config =$config;
 
         $this->entityClass = $this->config['UserEntityClass'] ?? \peels\acl\entities\UserEntity::class;
 
@@ -140,14 +140,14 @@ class UserModel extends Model implements UserModelInterface
 
         $this->userMetaModel->update($metaColumns);
 
-        return ($this->sql->rowCount() > 0);
+        return $this->sql->rowCount() > 0;
     }
 
     public function updatePassword(int $id, string $password): bool
     {
         $this->sql->update($this->tablename)->set(['password' => $this->passwordHash($password)])->where('id', '=', $id)->execute();
 
-        return ($this->sql->rowCount() > 0);
+        return $this->sql->rowCount() > 0;
     }
 
     public function delete(int $id): bool
@@ -157,7 +157,7 @@ class UserModel extends Model implements UserModelInterface
 
         $this->sql->update($this->tablename)->set(['is_deleted' => 0])->where('id', '=', $id)->execute();
 
-        return ($this->sql->rowCount() > 0);
+        return $this->sql->rowCount() > 0;
     }
 
     public function read(int $userId): UserEntityInterface
@@ -181,14 +181,14 @@ class UserModel extends Model implements UserModelInterface
     {
         $this->sql->update($this->tablename)->set(['is_active' => 0])->where('id', '=', $id)->execute();
 
-        return ($this->sql->rowCount() > 0);
+        return $this->sql->rowCount() > 0;
     }
 
     public function active(int $id): bool
     {
         $this->sql->update($this->tablename)->set(['is_active' => 1])->where('id', '=', $id)->execute();
 
-        return ($this->sql->rowCount() > 0);
+        return $this->sql->rowCount() > 0;
     }
 
     protected function passwordHash(string $password): string
@@ -216,7 +216,7 @@ class UserModel extends Model implements UserModelInterface
 
         $this->sql->insert()->into($this->tableJoin)->values(['role_id' => $roleId, 'user_id' => $userId])->execute();
 
-        return ($this->sql->rowCount() > 0);
+        return $this->sql->rowCount() > 0;
     }
 
     public function removeRole(int $userId, string|int|RoleEntityInterface $arg): bool
@@ -233,14 +233,14 @@ class UserModel extends Model implements UserModelInterface
 
         $this->sql->delete($this->tableJoin)->whereEqual('role_id', $roleId)->and()->where('user_id', '=', $userId)->execute();
 
-        return ($this->sql->rowCount() > 0);
+        return $this->sql->rowCount() > 0;
     }
 
     public function removeAllRoles(int $userId): bool
     {
         $this->sql->delete($this->tableJoin)->where('user_id', '=', $userId)->execute();
 
-        return ($this->sql->rowCount() > 0);
+        return $this->sql->rowCount() > 0;
     }
 
     public function relink(int $userId, array $roleIds): bool

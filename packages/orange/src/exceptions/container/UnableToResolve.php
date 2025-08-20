@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+namespace orange\framework\exceptions\container;
+
+use orange\framework\exceptions\container\AutoWire;
+
+class UnableToResolve extends AutoWire
+{
+}

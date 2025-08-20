@@ -88,21 +88,18 @@ abstract class ViewAbstract extends Singleton implements ViewInterface
      * @param DataInterface|null $data Optional data source for the view.
      * @throws IncorrectInterface|Directory
      */
-    protected function __construct(array $config, ?DataInterface $data = null)
+    protected function __construct(array $config, ?DataInterface $data = null, ?RouterInterface $router = null)
     {
         logMsg('INFO', __METHOD__);
 
-        $this->config = $this->mergeWith($config, false);
+        $this->config = $this->mergeConfigWith($config, false);
 
         if ($data) {
             $this->data = $data;
         }
 
-        if (isset($config['router'])) {
-            if (!$config['router'] instanceof RouterInterface) {
-                throw new IncorrectInterface('RouterInterface');
-            }
-            $this->router = $config['router'];
+        if ($router) {
+            $this->router = $router;
         }
 
         $this->debug = $this->config['debug'];

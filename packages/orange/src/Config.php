@@ -46,11 +46,11 @@ class Config extends SingletonArrayObject implements ConfigInterface
      * @param array $config Initial configuration array.
      * @throws DirectoryNotFound If the default configuration directory is invalid.
      */
-    protected function __construct(array $config, ?CacheInterface $cache = null)
+    protected function __construct(array $config = [], ?CacheInterface $cache = null)
     {
         logMsg('INFO', __METHOD__);
 
-        $this->searchDirectories = $config['search directories'] ?? [];
+        $this->searchDirectories = $config;
 
         if ($cache) {
             $this->loadCache($cache);
@@ -174,7 +174,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
      * Search for configuration files across all defined paths.
      *
      * @param string $filename Name of the configuration file.
-      * @return void 
+     * @return void
      */
     protected function findConfigFiles(string $filename): void
     {
@@ -196,38 +196,34 @@ class Config extends SingletonArrayObject implements ConfigInterface
 
     /**
      * Load configuration & configuration arrays from the arrays
-     * 
-     * @param CacheInterface $cache 
-     * @return void 
-     * @throws InvalidConfigurationValue 
+     *
+     * @param CacheInterface $cache
+     * @return void
+     * @throws InvalidConfigurationValue
      */
     protected function loadCache(CacheInterface $cache): void
     {
         logMsg('INFO', __METHOD__);
 
         // cache key
-        $key = hash('sha256', var_export($this->searchDirectories, true) . '::' . __METHOD__);
-
-        $cached = $cache->get($key);
+        $cacheKey = ENVIRONMENT . '\\' . __CLASS__;
 
         // has anything already been cached?
-        if (!$cached) {
-            // no
+        if (!$cached = $cache->get($cacheKey)) {
             // find all of the cache file names by reading all of the searchDirectories
             foreach ($this->searchDirectories as $searchDirectory) {
                 foreach (glob($searchDirectory . '/*.php') as $file) {
                     // trigger a read on all of them
                     $this->__get(basename($file, '.php'));
-
-                    // cache the results
-                    $cache->set($key, ['configuration' => $this->configuration, 'foundConfigFiles' => $this->foundConfigFiles]);
                 }
             }
+
+            // cache the results
+            $cache->set($cacheKey, ['configuration' => $this->configuration, 'foundConfigFiles' => $this->foundConfigFiles]);
         } else {
-            // yes
             // load it and setup the correct properties
             $this->configuration = $cached['configuration'];
-            $this->configuration = $cached['foundConfigFiles'];
+            $this->foundConfigFiles = $cached['foundConfigFiles'];
         }
     }
 }

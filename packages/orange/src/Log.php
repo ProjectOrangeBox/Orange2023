@@ -76,7 +76,7 @@ class Log extends Singleton implements LogInterface, LoggerInterface
      */
     protected function __construct(array $config)
     {
-        $this->config = $this->mergeWith($config);
+        $this->config = $this->mergeConfigWith($config);
 
         // default off
         $this->enabled = false;
@@ -258,6 +258,16 @@ class Log extends Singleton implements LogInterface, LoggerInterface
         return ($as == 'int') ? $this->psrLevels[strtoupper($method)] : $method;
     }
 
+    /**
+     * Checks if the log file is writable.
+     * This method ensures the directory exists and is writable,
+     * and creates it if necessary.
+     * Throws DirectoryNotWritable if the directory cannot be created or is not writable.
+     *
+     * @param string $file
+     * @return bool
+     * @throws DirectoryNotWritable
+     */
     protected function isFileWritable(string $file): bool
     {
         // check we can write in the directory

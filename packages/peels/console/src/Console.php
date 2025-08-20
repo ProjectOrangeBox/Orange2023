@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace peels\console;
 
 use Exception;
-use orange\framework\base\Singleton;
+use peels\console\BitWise;
 use peels\console\ConsoleInterface;
-use orange\framework\traits\ConfigurationTrait;
+use orange\framework\base\Singleton;
 use orange\framework\exceptions\InvalidValue;
 use orange\framework\interfaces\InputInterface;
+use orange\framework\traits\ConfigurationTrait;
 use orange\framework\exceptions\fatal\ExitException;
 
 class Console extends Singleton implements ConsoleInterface
@@ -81,14 +82,14 @@ class Console extends Singleton implements ConsoleInterface
     ];
 
     protected array $named = [
-        'primary'   => ['icon' => '', 'stream' => self::OUTPUT, 'color' => '<cyan>', 'stop' => false],
-        'secondary' => ['icon' => '', 'stream' => self::OUTPUT, 'color' => '<yellow>', 'stop' => false],
-        'success'   => ['icon' => '✔', 'stream' => self::OUTPUT, 'color' => '<green>', 'stop' => false],
-        'danger'    => ['icon' => '✘', 'stream' => self::ERRORS, 'color' => '<bright red>', 'stop' => false],
-        'warning'   => ['icon' => '❖', 'stream' => self::OUTPUT, 'color' => '<bright yellow>', 'stop' => false],
-        'info'      => ['icon' => '➜', 'stream' => self::OUTPUT, 'color' => '<bright blue>', 'stop' => false],
-        'stop'      => ['icon' => '✘', 'stream' => self::ERRORS, 'color' => '<bright red>', 'stop' => true],
-        'error'     => ['icon' => '✘', 'stream' => self::ERRORS, 'color' => '<bright red>', 'stop' => false],
+        'primary'   => ['icon' => '', 'stream' => \STDOUT, 'color' => '<cyan>', 'stop' => false],
+        'secondary' => ['icon' => '', 'stream' => \STDOUT, 'color' => '<yellow>', 'stop' => false],
+        'success'   => ['icon' => '✔', 'stream' => \STDOUT, 'color' => '<green>', 'stop' => false],
+        'danger'    => ['icon' => '✘', 'stream' => \STDERR, 'color' => '<bright red>', 'stop' => false],
+        'warning'   => ['icon' => '❖', 'stream' => \STDOUT, 'color' => '<bright yellow>', 'stop' => false],
+        'info'      => ['icon' => '➜', 'stream' => \STDOUT, 'color' => '<bright blue>', 'stop' => false],
+        'stop'      => ['icon' => '✘', 'stream' => \STDERR, 'color' => '<bright red>', 'stop' => true],
+        'error'     => ['icon' => '✘', 'stream' => \STDERR, 'color' => '<bright red>', 'stop' => false],
     ];
 
     protected string $listFormat = '<off>[<cyan>%key%<off>] %value%';
@@ -98,10 +99,11 @@ class Console extends Singleton implements ConsoleInterface
 
     protected array $argv = [];
     protected int $argc = 0;
-
-    // show nothing
-    // possible levels: 1 basic, 2 detailed, 3 debug
-    protected int $verboseLevel = 0;
+    protected BitWise $verbose;
+    protected string $verboseChar = 'v';
+    protected array $alreadyCaptured = [];
+    protected string $defaultVerbose = 'info';
+    protected string $defaultUpperCaseVerbose = 'everything';
 
     // unit testing storage
     protected bool $simulate = false;
@@ -112,7 +114,7 @@ class Console extends Singleton implements ConsoleInterface
 
     protected function __construct(array $config, InputInterface $input)
     {
-        $this->config = $this->mergeWith($config);
+        $this->config = $this->mergeConfigWith($config);
 
         $this->lf = $this->config['Linefeed Character'] ?? $this->lf;
 
@@ -128,6 +130,26 @@ class Console extends Singleton implements ConsoleInterface
 
         $this->named = $this->config['named'] ?? $this->named;
 
+        $this->verboseChar = $this->config['verbose char'] ?? $this->verboseChar;
+        // setup bitwise with our named values
+        $this->verbose = new BitWise([
+            'info' => self::INFO,
+            'notice' => self::NOTICE,
+            'warning' => self::WARNING,
+            'error' => self::ERROR,
+            'critical' => self::CRITICAL,
+            'alert' => self::ALERT,
+            'emergency' => self::EMERGENCY,
+            'debug' => self::DEBUG,
+            'none' => 0,
+            'everything' => 65535,
+            'always' => 0,
+        ]);
+
+        $this->verboseChar = $this->config['verbose char'] ?? $this->verboseChar;
+        $this->defaultVerbose = $this->config['default verbose'] ?? $this->defaultVerbose;
+        $this->defaultUpperCaseVerbose = $this->config['default uppercase verbose'] ?? $this->defaultUpperCaseVerbose;
+
         $this->argv = $input->server('argv', []);
         $this->argc = $input->server('argc', 0);
 
@@ -137,34 +159,43 @@ class Console extends Singleton implements ConsoleInterface
     /**
      * change verbose level
      */
-    public function verbose(int $level): int
+    public function verbose(?int $level = null): int
     {
-        $this->verboseLevel = $level;
+        if ($level !== null) {
+            $this->verbose->set($level);
+        }
 
-        return $this->verboseLevel;
-    }
-
-    /**
-     * Wrapper so verbose
-     */
-    public function turnOnOutput(int $level = self::ALL): int
-    {
-        return $this->verbose($level);
+        return $this->verbose->get();
     }
 
     /**
      * auto detect the verbose level
-     * command.php -v
-     * command.php -vvvvvvvv
+     * command.php -v (info)
+     * command.php -vDebug (debug)
+     * command.php -vDebug -vInfo (debug & info)
+     * command.php -V (everything)
      */
-    public function readVerboseLevel(bool $set = true): int
+    public function detectVerboseLevel(bool $set = true, ?string $char = null): int
     {
         $level = 0;
 
-        for ($vlevel = 1; $vlevel <= 8; $vlevel++) {
-            if ($this->getArgumentExists('-' . str_repeat('v', $vlevel))) {
-                $level = $vlevel;
-                break;
+        $char = $char ?? $this->verboseChar;
+
+        foreach ($this->argv as $arg) {
+            if ($arg == '-' . strtoupper($char)) {
+                $level = $this->verbose->getFlag($this->defaultUpperCaseVerbose);
+                $this->alreadyCaptured[$this->defaultUpperCaseVerbose] = true;
+            } elseif ($arg == '-' . $char) {
+                $level = $this->verbose->getFlag($this->defaultVerbose);
+                $this->alreadyCaptured[$this->defaultVerbose] = true;
+            } elseif (substr($arg, 0, 2) == '-' . $char) {
+                $captured = substr($arg, 2);
+
+                if (!isset($this->alreadyCaptured[$captured])) {
+                    $this->alreadyCaptured[$captured] = true;
+
+                    $level = $level + $this->verbose->getFlag($captured);
+                }
             }
         }
 
@@ -178,13 +209,15 @@ class Console extends Singleton implements ConsoleInterface
     /**
      * send output to stream
      */
-    public function echo(string $string, int $level = self::BASIC, bool $linefeed = true, string $stream = self::OUTPUT, bool $stop = false): self
+    public function echo(string $string, ?int $level = null, bool $linefeed = true, $stream = \STDOUT, bool $stop = false): self
     {
+        $level = $level ?? BitWise::info();
+
         $this->write($level, $stream, $this->formatOutput($string, $linefeed));
 
         if ($stop) {
             if ($this->simulate) {
-                throw new ExitException('exit(1)');
+                throw new ExitException('exit - Terminate the current script with a status code 1');
             }
 
             exit(1);
@@ -193,54 +226,58 @@ class Console extends Singleton implements ConsoleInterface
         return $this;
     }
 
-    public function primary(string $string, int $level = self::BASIC, bool $linefeed = true): self
+    public function primary(string $string, ?int $level = null, bool $linefeed = true): self
     {
         return $this->named($level, 'primary', $string, $linefeed);
     }
 
-    public function secondary(string $string, int $level = self::BASIC, bool $linefeed = true): self
+    public function secondary(string $string, ?int $level = null, bool $linefeed = true): self
     {
         return $this->named($level, 'secondary', $string, $linefeed);
     }
 
-    public function success(string $string, int $level = self::BASIC, bool $linefeed = true): self
+    public function success(string $string, ?int $level = null, bool $linefeed = true): self
     {
         return $this->named($level, 'success', $string, $linefeed);
     }
 
-    public function danger(string $string, int $level = self::BASIC, bool $linefeed = true): self
+    public function danger(string $string, ?int $level = null, bool $linefeed = true): self
     {
         return $this->named($level, 'danger', $string, $linefeed);
     }
 
-    public function warning(string $string, int $level = self::BASIC, bool $linefeed = true): self
+    public function warning(string $string, ?int $level = null, bool $linefeed = true): self
     {
         return $this->named($level, 'warning', $string, $linefeed);
     }
 
-    public function info(string $string, int $level = self::BASIC, bool $linefeed = true): self
+    public function info(string $string, ?int $level = null, bool $linefeed = true): self
     {
         return $this->named($level, 'info', $string, $linefeed);
     }
 
-    public function stop(string $string, int $level = self::ALL, bool $linefeed = true): self
+    public function stop(string $string, ?int $level = null, bool $linefeed = true): self
     {
+        $level = $level ?? BitWise::always();
+
         return $this->named($level, 'stop', $string, $linefeed);
     }
 
-    public function error(string $string, int $level = self::ALL, bool $linefeed = true): self
+    public function error(string $string, ?int $level = null, bool $linefeed = true): self
     {
+        $level = $level ?? BitWise::always();
+
         return $this->named($level, 'error', $string, $linefeed);
     }
 
-    public function bell(int $times = 1, int $level = self::BASIC): self
+    public function bell(int $times = 1, ?int $level = null): self
     {
-        $this->write($level, self::OUTPUT, str_repeat($this->bell, $times));
+        $this->write($level, \STDOUT, str_repeat($this->bell, $times));
 
         return $this;
     }
 
-    public function line(?int $length = null, string $char = '-', int $level = self::BASIC): self
+    public function line(?int $length = null, string $char = '-', ?int $level = null): self
     {
         if ($length == null && $this->simulate) {
             // fixed amount in simulate mode
@@ -251,32 +288,30 @@ class Console extends Singleton implements ConsoleInterface
 
         $times = (int)floor($times / strlen($char));
 
-        $this->write($level, self::OUTPUT, str_repeat($char, $times) .  $this->lf);
+        $this->write($level, \STDOUT, str_repeat($char, $times) .  $this->lf);
 
         return $this;
     }
 
-    public function clear(int $level = self::BASIC): self
+    public function clear(?int $level = null): self
     {
         if ($this->simulate) {
             // if simulating "clear" the output
             $this->stderr = '';
             $this->stdout = '';
-        } else {
-            if ($level <= $this->verboseLevel && !$this->simulate) {
-                $this->system('clear');
-            }
+        } elseif ($this->verbose->isFlagSet($level)) {
+            $this->system('clear');
         }
 
         return $this;
     }
 
-    public function linefeed(int $times = 1, int $level = self::BASIC): self
+    public function linefeed(int $times = 1, ?int $level = null): self
     {
-        return $this->write($level, self::OUTPUT, str_repeat($this->lf, $times));
+        return $this->write($level, \STDOUT, str_repeat($this->lf, $times));
     }
 
-    public function table(array $table, int $level = self::BASIC): self
+    public function table(array $table, ?int $level = null): self
     {
         // get max column size
         $columnsMaxWidth = [];
@@ -333,7 +368,7 @@ class Console extends Singleton implements ConsoleInterface
         return $this;
     }
 
-    public function list(array $list, int $level = self::BASIC): self
+    public function list(array $list, ?int $level = null): self
     {
         foreach ($list as $key => $value) {
             $this->echo(str_replace(['%key%', '%value%'], [$key, $value], $this->listFormat), $level);
@@ -347,7 +382,7 @@ class Console extends Singleton implements ConsoleInterface
     public function getLine(?string $prompt = null): string
     {
         if ($prompt) {
-            $this->echo($prompt, self::ALL);
+            $this->echo($prompt, BitWise::always());
         }
 
         // if in simulate send back std in
@@ -372,7 +407,7 @@ class Console extends Singleton implements ConsoleInterface
     public function get(?string $prompt = null): string
     {
         if ($prompt) {
-            $this->echo($prompt, self::ALL);
+            $this->echo($prompt, BitWise::always());
         }
 
         // if in simulate send back stdin
@@ -399,7 +434,7 @@ class Console extends Singleton implements ConsoleInterface
             $success = $this->oneOf($input, $options);
         } while (!$success);
 
-        $this->linefeed(1, self::BASIC);
+        $this->linefeed(1, BitWise::info());
 
         return $input;
     }
@@ -436,9 +471,7 @@ class Console extends Singleton implements ConsoleInterface
 
     public function getArgument(int $num, ?string $error = null): string
     {
-        $argv = $this->argv;
-
-        if (!isset($argv[$num])) {
+        if (!isset($this->argv[$num])) {
             if (!$error) {
                 $error = 'Could not locate a Argument ' . $num;
             }
@@ -446,7 +479,7 @@ class Console extends Singleton implements ConsoleInterface
             $this->stop($error);
         }
 
-        return $argv[$num];
+        return $this->argv[$num];
     }
 
     public function getLastArgument(): string
@@ -454,9 +487,7 @@ class Console extends Singleton implements ConsoleInterface
         $last = '';
 
         if ($this->argc > 0) {
-            $argv = $this->argv;
-
-            $last = end($argv);
+            $last = end($this->argv);
         }
 
         return $last;
@@ -468,21 +499,21 @@ class Console extends Singleton implements ConsoleInterface
             $error = 'Could not locate a option for ' . $match;
         }
 
-        $argv = $this->argv;
-
-        foreach ($argv as $key => $value) {
+        foreach ($this->argv as $key => $value) {
             if ($value == $match) {
                 $next = $key + 1;
 
-                if (!isset($argv[$next])) {
+                if (!isset($this->argv[$next])) {
                     $this->stop($error);
                 }
 
-                return $argv[$next];
+                return $this->argv[$next];
             }
         }
 
         $this->stop($error);
+
+        return '';
     }
 
     /* protected */
@@ -513,9 +544,7 @@ class Console extends Singleton implements ConsoleInterface
             $turnOff = "\033[" . $this->ansiCodes['off'] . "m";
         }
 
-        $lf = ($linefeed) ? $this->lf : '';
-
-        return $string . $turnOff . $lf;
+        return $string . $turnOff . (($linefeed) ? $this->lf : '');
     }
 
     /**
@@ -548,7 +577,7 @@ class Console extends Singleton implements ConsoleInterface
 
             $this->linefeed(0);
 
-            $this->error($error, self::ALL);
+            $this->error($error, BitWise::always());
 
             $success = false;
         }
@@ -556,22 +585,18 @@ class Console extends Singleton implements ConsoleInterface
         return $success;
     }
 
-    protected function write(int $level, string $stream, string $string): self
+    protected function write(int $level, $stream, string $string): self
     {
-        if (!in_array($stream, [self::OUTPUT, self::ERRORS])) {
-            throw new Exception('Stream must be STDOUT or STDERR. "' . $stream . '" sent in.');
-        }
-
-        if ($stream == self::ERRORS) {
-            if ($level >= $this->verboseLevel && !$this->simulate) {
-                fwrite(\STDERR, $string);
+        if ($this->verbose->isFlagSet($level)) {
+            if ($this->simulate) {
+                if ($stream == \STDERR) {
+                    $this->stderr .= $string;
+                } else {
+                    $this->stdout .= $string;
+                }
+            } else {
+                fwrite($stream, $string);
             }
-            $this->stderr .= $string;
-        } else {
-            if ($level >= $this->verboseLevel && !$this->simulate) {
-                fwrite(\STDOUT, $string);
-            }
-            $this->stdout .= $string;
         }
 
         return $this;
@@ -602,23 +627,6 @@ class Console extends Singleton implements ConsoleInterface
         return $return;
     }
 
-    /* var_dump / debug */
-
-    public function __debugInfo(): array
-    {
-        return [
-            'simulate' => $this->simulate,
-            'config' => $this->config,
-            'ansicolors' => $this->ansiCodes,
-            'list format' => $this->listFormat,
-            'lf' => $this->lf,
-            'color' => $this->color,
-            'stderr' => $this->stderr,
-            'stdout' => $this->stdout,
-            'stdin' => $this->stdin,
-        ];
-    }
-
     protected function system(string $command): string
     {
         $resultCode = 0;
@@ -629,10 +637,12 @@ class Console extends Singleton implements ConsoleInterface
         return (empty($output)) ? '' : $output[0];
     }
 
-    protected function named(int $level, string $name, string $string, bool $linefeed): self
+    protected function named(?int $level, string $name, string $string, bool $linefeed): self
     {
+        $level = $level ?? BitWise::info();
+
         if (!isset($this->named[$name])) {
-            throw new InvalidValue('Unknown named method ' . $name);
+            throw new InvalidValue('Unknown "named" method ' . $name);
         }
 
         $icon = (empty($this->named[$name]['icon'])) ? '' : $this->named[$name]['icon'] . ' ';

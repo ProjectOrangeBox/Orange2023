@@ -9,7 +9,6 @@ use peels\acl\interfaces\RoleEntityInterface;
 
 interface UserEntityInterface
 {
-    public function lazyLoad(): void;
     public function update(): bool;
     public function deactive(): bool;
     public function active(): bool;

@@ -16,7 +16,6 @@ return [
     // getUrl(...)
     // siteUrl(...)
     'site' => 'orange.local',
-    'getUrlSkip' => false,
     // all of the routes need to be in this array
     'routes' => [
         /* home page */

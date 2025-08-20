@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use peels\validate\Validate;
-
 final class ExampleModelTest extends unitTestHelper
 {
     protected $instance;
@@ -20,7 +19,7 @@ final class ExampleModelTest extends unitTestHelper
         require_once __DIR__ . '/support/ExampleModel.php';
 
         // instance of Model Abstract Class
-        $this->instance = new ExampleModel([], $this->pdo, new Validate([]));
+        $this->instance = ExampleModel::getInstance([], $this->pdo, Validate::getInstance([]));
     }
 
     protected function tearDown(): void

@@ -82,14 +82,18 @@ trait ConfigurationTrait
      * @throws ConfigFileNotFound
      * @throws InvalidValue
      */
-    protected function mergeWith(array $config, bool $recursive = true, string $path = ''): array
+    protected function mergeConfigWith(array $config, mixed $path = null, bool $recursive = true): array
     {
         logMsg('INFO', __METHOD__);
         logMsg('DEBUG', __METHOD__, ['config' => $config, 'recursive' => $recursive, 'path' => $path]);
 
-        // if you didn't send in a absolute path we need to try and dynamically find it
-        if (!file_exists($path)) {
-            // if this path doesn't exist then let's try to dynamically figure out the path
+        // if they send in $recursive as $path
+        if (is_bool($path)) {
+            $recursive = $path;
+            $path = null;
+        }
+
+        if (empty($path) || !file_exists($path)) {
             $path = $this->determineConfigPath($path);
         }
 
@@ -108,14 +112,29 @@ trait ConfigurationTrait
         return ($recursive) ? array_replace_recursive(self::$alreadyIncludedFiles[$path], $config) : array_replace(self::$alreadyIncludedFiles[$path], $config);
     }
 
-    protected function determineConfigPath(string $arg): string
+    /**
+     * Wrapper for mergeWith with slightly different signature
+     *
+     * @param string $path
+     * @param array $currentArray
+     * @return array
+     * @throws ConfigFileNotFound
+     * @throws InvalidValue
+     */
+    protected function getConfigFile(?string $path = null, array $configArray = [], bool $recursive = true): array
+    {
+        return $this->mergeConfigWith($configArray, $path, $recursive);
+    }
+
+    protected function determineConfigPath(?string $arg): string
     {
         $reflection = new \ReflectionClass(get_class($this));
-        $shortName = ($arg == '') ? strtolower($reflection->getShortName()) : $arg;
+        $filename = $reflection->getFileName();
+        $shortName = empty($arg) ? strtolower($reflection->getShortName()) : $arg;
 
         $testPath = [
-            dirname($reflection->getFileName()) . '/config/' . $shortName . '.php',
-            dirname($reflection->getFileName()) . '/../config/' . $shortName . '.php',
+            dirname($filename) . '/config/' . $shortName . '.php',
+            dirname($filename) . '/../config/' . $shortName . '.php',
         ];
 
         $found = false;

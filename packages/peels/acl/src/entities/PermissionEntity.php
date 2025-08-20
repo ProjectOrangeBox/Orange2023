@@ -13,10 +13,15 @@ class PermissionEntity implements PermissionEntityInterface
     protected array $config = [];
 
     public readonly int $id;
+    // unique key identifying the permission
     public string $key;
+    // human readable description
     public string $description;
+    // grouping for the permission
     public string $group;
+    // migration which added the permission
     public readonly ?string $migration;
+    // if the permission is active or not
     public readonly string $is_active;
 
     public function __construct(array $config, PermissionModelInterface $permissionModel)
@@ -27,6 +32,7 @@ class PermissionEntity implements PermissionEntityInterface
 
     public function update(): bool
     {
+        // get the public columns from the entity
         $columns = get_object_vars(...)->__invoke($this);
 
         return $this->permissionModel->update($columns);

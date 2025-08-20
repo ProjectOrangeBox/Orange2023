@@ -38,7 +38,7 @@ class RoleModel extends Model implements RoleModelInterface
 
     public function __construct(array $config, PDO $pdo, ?ValidateInterface $validateService)
     {
-        $this->mergeWith($config);
+        $this->config = $config;
 
         $this->entityClass = $this->config['RoleEntityClass'] ?? \peels\acl\entities\RoleEntity::class;
 
@@ -78,7 +78,7 @@ class RoleModel extends Model implements RoleModelInterface
     public function delete(int $id): bool
     {
         // throws an exception
-        $this->validateFields('delete', $columns);
+        $this->validateFields('delete', ['id' => $id]);
 
         $this->sql->delete()->from($this->tablename)->where('id', '=', $id)->execute();
         $this->sql->delete()->from($this->tableJoin)->where('role_id', '=', $id)->execute();

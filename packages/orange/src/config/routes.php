@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 return [
-    // when they try to resolve a name to a url skip matching if the name contains
-    'skip checking type' => false,
+    // when resolving a name should we skip parameter type checking?
+    'skip parameter type checking' => false,
     'routes' => [],
     'match all' => ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     // 404 catch all

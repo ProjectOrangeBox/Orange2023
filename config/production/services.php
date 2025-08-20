@@ -13,6 +13,9 @@ return [
         return Router::getInstance($container->config->routes, $container->input, $container->phpcache);
     },
     'config' => function (ContainerInterface $container): ConfigInterface {
-        return Config::getInstance($container->get('$config'), $container->phpcache);
+        return Config::getInstance(['search directories' => [
+            $container->get('$configDirectory'),
+            $container->get('$configDirectory') . DIRECTORY_SEPARATOR . ENVIRONMENT,
+        ]], $container->phpcache);
     },
 ];

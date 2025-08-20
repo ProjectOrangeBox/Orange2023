@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+declare(strict_types=1);
+
 /**
  * This copy's assets from
  * bin, htdocs, support, var, config inside a package into the global equivalent
@@ -17,88 +19,68 @@
  * the contents in assets directory must then match the absolute path from the root directory of the matching directory or file
  */
 
-declare(strict_types=1);
-
 use peels\console\ConsoleInterface;
+use orange\framework\traits\ConfigurationTrait;
+use orange\framework\interfaces\ContainerInterface;
 
-/* bootstrap the cli system */
+$container = require __DIR__ . '/../../../../bootstrapCli.php';
 
-define('__ROOT__', realpath(__DIR__ . '/../../../../'));
-
-// merge our .env with the system env
-$_ENV = array_replace_recursive($_ENV, parse_ini_file(__ROOT__ . '/.env', true, INI_SCANNER_TYPED));
-
-$config = include __ROOT__ . '/config/config.php';
-
-// our own personal bootstraping file which can also modify $config if necessary
-require_once __ROOT__ . '/bootstrap.php';
-
-// composer auto loader
-require_once __ROOT__ . '/vendor/autoload.php';
-
-/* send config into application */
-$container = \orange\framework\Application::cli($config);
-
-// cli application is now set up so away we go!
-$console = $container->console;
-
-$console->minimumArguments(1, 'Please include the path to the assets you would like to add as your last argument.');
-
-$overwrite = $console->getArgumentExists('-o');
-
-if ($overwrite) {
-    $console->warning('Overwriting files');
-} else {
-    $console->info('Non-Overwriting');
-}
-
-$methods = new Methods(__ROOT__, $console->getLastArgument(), $overwrite, $console);
-
-// items in these directory are copied into the matching directory in __ROOT__
-$mergeDirectories = [
-    '/bin',
-    '/htdocs',
-    '/support',
-    '/var',
-    '/config',
-];
-
-foreach ($mergeDirectories as $directory) {
-    $methods->merge($directory);
-}
-
-// items in these directory can be merged with other files matching the same filename
-$fileMerge = [
-    '/config'
-];
-
-foreach ($fileMerge as $file) {
-    $methods->mergeConfig($file);
-}
-
+$app = new App($container);
+$app->mergeDirectories();
+$app->mergeFiles();
 exit(0);
 
-class Methods
+class App
 {
+    use ConfigurationTrait;
+
+    protected array $config = [];
     protected ConsoleInterface $console;
-    protected string $comment = '/* merged content below */';
-    protected string $mergePrefix = '@';
+    protected ContainerInterface $container;
     protected string $path = '';
     protected bool $overwrite = false;
     protected string $rootPath = '';
     protected string $fullPath = '';
 
-    public function __construct(string $rootPath, string $path, bool $overwrite, ConsoleInterface $console)
+    public function __construct(ContainerInterface $container)
     {
-        $this->rootPath = '/' . trim($rootPath, '/');
-        $this->path = trim($path, '/');
-        $this->overwrite = $overwrite;
-        $this->console = $console;
+        $this->container = $container;
+
+        $this->config = $this->getConfigFile();
+
+        // cli application is now set up so away we go!
+        $this->console = $container->console;
+
+        $this->console->minimumArguments(1, 'Please include the path to the assets you would like to add as your last argument.');
+
+        $this->overwrite = $this->console->getArgumentExists('-o');
+
+        if ($this->overwrite) {
+            $this->console->warning('Overwriting files');
+        } else {
+            $this->console->info('Non-Overwriting');
+        }
+
+        $this->path = trim($this->console->getLastArgument(), '/');
 
         $this->verifyPath();
     }
 
-    public function verifyPath(): void
+    public function mergeDirectories(): void
+    {
+        foreach ($this->config['valid directories'] as $directory) {
+            $this->merge($directory);
+        }
+    }
+
+    public function mergeFiles(): void
+    {
+        foreach ($this->config['valid files'] as $file) {
+            $this->mergeConfig($file);
+        }
+    }
+
+    protected function verifyPath(): void
     {
         // if path isn't found abs Path is false
         $fullPathTest = realpath(__ROOT__ . '/' . $this->path);
@@ -111,12 +93,12 @@ class Methods
         }
     }
 
-    public function mergeConfig(string $dest): void
+    protected function mergeConfig(string $dest): void
     {
         $this->merge($dest, true);
     }
 
-    public function merge(string $dest, bool $isConfigFile = false): void
+    protected function merge(string $dest, bool $isConfigFile = false): void
     {
         $dest = trim($dest, '/');
 
@@ -129,32 +111,32 @@ class Methods
         }
     }
 
-    public function doMerge(SplFileInfo $file, bool $isConfigFile)
+    protected function doMerge(SplFileInfo $file, bool $isConfigFile)
     {
         $from = $file->getPathname();
         $to = str_replace($this->fullPath, '', $from);
-        $to = str_replace('/' . $this->mergePrefix, '/', $to);
-        $to = $this->rootPath . $to;
+        $to = str_replace('/' . $this->config['merge prefix'], '/', $to);
+        $to = __ROOT__ . $to;
 
         // Create an empty config file if there isn't one already
         if (!file_exists($to) && $isConfigFile) {
-            file_put_contents($to, $this->emptyConfig());
+            file_put_contents($to, $this->emptyConfig($this->config['merge after']));
         }
 
         // if the first character is @ then merge with the file which has the matching name
-        if (substr($file->getFilename(), 0, strlen($this->mergePrefix)) == $this->mergePrefix) {
+        if (substr($file->getFilename(), 0, strlen($this->config['merge prefix'])) == $this->config['merge prefix']) {
             $this->mergeContents($from, $to);
         } else {
             $this->copy($from, $to);
         }
     }
 
-    public function mergeContents(string $from, string $to): void
+    protected function mergeContents(string $from, string $to): void
     {
         $this->console->info('Merge ' . str_replace(__ROOT__, '', $from) . ' into ' . str_replace(__ROOT__, '', $to));
 
-        if (!$this->hasString($to, $this->comment)) {
-            $this->console->warning('Could not locate "' . $this->comment . '" skipping file');
+        if (!$this->hasString($to, $this->config['merge after'])) {
+            $this->console->warning('Could not locate "' . $this->config['merge after'] . '" skipping file');
         } else {
             $mergeContent = file_get_contents($from);
             $toContent = file_get_contents($to);
@@ -162,17 +144,17 @@ class Methods
             if (strpos($this->normalizedString($toContent), $this->normalizedString($mergeContent)) !== false) {
                 $this->console->warning('Seems merged content may already be in destination file. Skipping');
             } else {
-                file_put_contents($to, $this->putAfter($to, $this->comment, $mergeContent), LOCK_EX);
+                file_put_contents($to, $this->putAfter($to, $this->config['merge after'], $mergeContent), LOCK_EX);
             }
         }
     }
 
-    public function normalizedString(string $input): string
+    protected function normalizedString(string $input): string
     {
         return preg_replace("/[^a-z0-9]/", '', strtolower($input));
     }
 
-    public function copy(string $source, string $dest): void
+    protected function copy(string $source, string $dest): void
     {
         $this->console->info('Copying "' . str_replace(__ROOT__, '', $source) . '" to "' . str_replace(__ROOT__, '', $dest) . '".');
 
@@ -196,7 +178,7 @@ class Methods
         }
     }
 
-    public function hasString(string $path, string $string): bool
+    protected function hasString(string $path, string $string): bool
     {
         $found = false;
         $lines = file($path);
@@ -212,7 +194,7 @@ class Methods
         return $found;
     }
 
-    public function putAfter(string $path, string $after, string $put): string
+    protected function putAfter(string $path, string $after, string $put): string
     {
         $success = false;
         $newFile = '';
@@ -233,22 +215,8 @@ class Methods
         return $newFile;
     }
 
-    public function emptyConfig()
+    protected function emptyConfig(string $content): string
     {
-        $configFile = <<<RAWPHP
-    <?php
-
-    declare(strict_types=1);
-
-    /* if a simple array you don't need the strict_types=1 because you can't declare type on arrays yet */
-
-    return [
-
-        **COMMENT**
-
-    ];
-    RAWPHP;
-
-        return str_replace('**COMMENT**', $this->comment, $configFile);
+        return str_replace($this->config['empty config file merge variable'], $content, $this->config['empty config file']);
     }
 }

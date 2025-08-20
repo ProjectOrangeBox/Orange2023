@@ -14,9 +14,13 @@ class RoleEntity implements RoleEntityInterface
     protected array $config = [];
 
     public readonly int $id;
+    // short name of role
     public string $name;
+    // description of role
     public string $description;
+    // migration which added the role
     public readonly ?string $migration;
+    // if the permission is active or not
     public readonly string $is_active;
 
     public function __construct(array $config, RoleModelInterface $roleModel)
@@ -27,6 +31,7 @@ class RoleEntity implements RoleEntityInterface
 
     public function update(): bool
     {
+        // get the public columns from the entity
         $columns = get_object_vars(...)->__invoke($this);
 
         return $this->roleModel->update($columns);

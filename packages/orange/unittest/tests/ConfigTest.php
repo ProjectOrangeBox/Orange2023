@@ -10,10 +10,10 @@ final class ConfigTest extends unitTestHelper
 
     protected function setUp(): void
     {
-        $this->instance = Config::getInstance(['directories' => [
+        $this->instance = Config::getInstance([
             WORKINGDIR . '/config',
             WORKINGDIR . '/config/testing',
-        ]]);
+        ]);
     }
 
     // Tests

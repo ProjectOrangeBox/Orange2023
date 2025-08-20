@@ -11,6 +11,9 @@ define('__ROOT__', realpath(__DIR__ . '/../'));
 // where is our public www directory?
 define('__WWW__', __ROOT__ . '/htdocs');
 
+// bootstrap before anything else
+require_once __ROOT__ . '/bootstrap.php';
+
 // load the standard composer autoloader
 require_once __ROOT__ . '/vendor/autoload.php';
 
