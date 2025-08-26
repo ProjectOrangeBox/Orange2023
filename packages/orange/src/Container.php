@@ -488,10 +488,18 @@ class Container extends Singleton implements ContainerInterface
                 // is there a fully named space class + argument match?
                 // Tester::class . '.foobar' => 'Johnny Appleseed',
                 $args[] = $this->get($fullyQualifiedName . '.' . $argument);
+            } elseif ($this->has('$' . $fullyQualifiedName . '.' . $argument)) {
+                // is there a $fully named space class + argument match?
+                // $Tester::class . '.foobar' => 'Johnny Appleseed',
+                $args[] = $this->get('$' . $fullyQualifiedName . '.' . $argument);
             } elseif ($this->has($serviceName . '.' . $argument)) {
                 // is there a service name + argument match?
                 // 'tester.man' => 14,
                 $args[] = $this->get($serviceName . '.' . $argument);
+            } elseif ($this->has('$' . $serviceName . '.' . $argument)) {
+                // is there a $service name + argument match?
+                // '$tester.man' => 14,
+                $args[] = $this->get('$' . $serviceName . '.' . $argument);
             } elseif ($this->has($argument)) {
                 // is there a service that matches the argument name?
                 // 'person' => 'Joey Myers'

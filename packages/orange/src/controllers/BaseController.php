@@ -114,7 +114,9 @@ abstract class BaseController
         $this->beforeMethodCalled();
     }
 
-    protected function beforeMethodCalled() {}
+    protected function beforeMethodCalled()
+    {
+    }
 
     /**
      * This method allows you to load services

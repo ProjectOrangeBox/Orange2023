@@ -2,5 +2,5 @@
 
 return [
     'h1' => 'Hello CLI Dev!',
-    'file' => __FILE__,
+    'this file' => __FILE__,
 ];
