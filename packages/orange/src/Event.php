@@ -100,6 +100,7 @@ use orange\framework\traits\ConfigurationTrait;
  *   ],
  * ];
  *
+ * @package orange\framework
  */
 class Event extends Singleton implements EventInterface
 {

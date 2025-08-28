@@ -85,7 +85,9 @@ use orange\framework\exceptions\container\ConstructorNotPublic;
  * ⸻
  *
  * In summary:
- * Container.php implements the dependency injection container for the Orange framework. It registers services (objects, values, closures, aliases), resolves dependencies automatically (including auto-wiring constructors), and manages lifecycle rules (like singletons). It’s the central piece that makes services accessible and reusable across the application.
+ * Container.php implements the dependency injection container for the Orange framework.
+ * It registers services (objects, values, closures, aliases), resolves dependencies automatically (including auto-wiring constructors),
+ * and manages lifecycle rules (like singletons). It’s the central piece that makes services accessible and reusable across the application.
  *
  * @package orange\framework
  */
