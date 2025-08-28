@@ -6,29 +6,71 @@ namespace orange\framework;
 
 use orange\framework\base\Singleton;
 use orange\framework\exceptions\InvalidValue;
-use orange\framework\exceptions\security\Security as SecurityException;
 use orange\framework\interfaces\SecurityInterface;
 use orange\framework\exceptions\config\ConfigNotFound;
 use orange\framework\exceptions\filesystem\FileNotFound;
 use orange\framework\exceptions\filesystem\FileAlreadyExists;
 use orange\framework\exceptions\filesystem\DirectoryNotWritable;
+use orange\framework\exceptions\security\Security as SecurityException;
 
 /**
- * Class Security
+ * Overview of Security.php
  *
- * This class provides a suite of cryptographic and security-related utilities,
- * including key pair generation, encryption, decryption, HMAC signature
- * generation and verification, password hashing, and input sanitization.
+ * This file defines the Security class in the orange\framework namespace.
+ * It is a singleton utility class that provides cryptographic and security-related operations to the framework.
+ * It implements the SecurityInterface to ensure a consistent contract for all security features.
  *
- * Key Features:
- * - Generate public/private key pairs.
- * - Encrypt and decrypt data securely.
- * - Generate and verify HMAC signatures.
- * - Sanitize filenames and remove invisible characters.
- * - Secure password hashing and verification.
+ * ⸻
  *
- * Implements Singleton and SecurityInterface patterns to ensure a single
- * instance and a consistent interface across the application.
+ * 1. Core Purpose
+ * 	•	Manage and generate cryptographic keys.
+ * 	•	Provide secure encryption and decryption of data.
+ * 	•	Create and verify HMAC signatures.
+ * 	•	Handle secure password hashing and verification.
+ * 	•	Offer input sanitation utilities (filenames, invisible characters).
+ *
+ * It centralizes all critical cryptographic and security operations in one place.
+ *
+ * ⸻
+ *
+ * 2. Key Features
+ * 	1.	Key Management (createKeys, getKeyFilePath)
+ * 	•	Generates X25519 public/private key pairs for encryption.
+ * 	•	Generates an authentication key for HMAC.
+ * 	•	Validates configuration, ensures directories are writable, and prevents overwriting existing keys.
+ * 	2.	Encryption & Decryption (encrypt, decrypt)
+ * 	•	encrypt() → Uses the public key and sodium_crypto_box_seal to encrypt data.
+ * 	•	decrypt() → Uses the private key and sodium_crypto_box_seal_open to decrypt.
+ * 	•	Handles conversion to/from hexadecimal securely.
+ * 	3.	Message Authentication (createSignature, verifySignature)
+ * 	•	createSignature() → Generates HMAC signatures using a secret auth key.
+ * 	•	verifySignature() → Verifies message signatures with constant-time checks.
+ * 	•	Protects against tampering.
+ * 	4.	Password Handling (encodePassword, verifyPassword)
+ * 	•	Uses Argon2 (via sodium_crypto_pwhash_str) to hash passwords.
+ * 	•	Verifies entered passwords against stored hashes.
+ * 	•	Protects against brute-force attacks.
+ * 	5.	Input Sanitization (removeInvisibleCharacters, cleanFilename)
+ * 	•	Removes non-printable characters from input.
+ * 	•	Cleans filenames by stripping dangerous characters and encodings (e.g., ../, <, ;, %).
+ * 	•	Reduces the risk of injection or traversal attacks.
+ *
+ * ⸻
+ *
+ * 3. Security Practices
+ * 	•	Uses Libsodium for modern cryptography.
+ * 	•	Always overwrites sensitive data in memory (sodium_memzero).
+ * 	•	Validates all inputs (hex checks, config paths).
+ * 	•	Throws descriptive exceptions for misconfiguration or invalid data.
+ *
+ * ⸻
+ *
+ * 4. Big Picture
+ *
+ * Security.php acts as the security backbone of the Orange framework.
+ * It provides consistent, modern, and safe handling of cryptographic operations, authentication,
+ * password storage, and input cleaning — ensuring that developers don’t have to reimplement these delicate tasks incorrectly.
+ *
  *
  * @package orange\framework
  */
@@ -128,8 +170,6 @@ class Security extends Singleton implements SecurityInterface
      */
     public function decrypt(string $data): string
     {
-        $key = file_get_contents($this->getKeyFilePath('private'));
-
         // Check for character(s) representing a hexadecimal digit
         if (!ctype_xdigit($data)) {
             throw new SecurityException('decrypt data argument invalid');
@@ -138,12 +178,15 @@ class Security extends Singleton implements SecurityInterface
         // Convert from hex without side-channels
         $data = sodium_hex2bin($data);
 
+        // Get the private key
+        $key = file_get_contents($this->getKeyFilePath('private'));
+
         // Anonymous public-key encryption (decrypt)
         $decrypt = sodium_crypto_box_seal_open($data, $key);
 
         // Overwrite a string with NUL characters
-        sodium_memzero($key);
         sodium_memzero($data);
+        sodium_memzero($key);
 
         return $decrypt;
     }

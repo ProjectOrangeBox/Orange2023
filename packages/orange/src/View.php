@@ -8,8 +8,7 @@ use orange\framework\abstract\ViewAbstract;
 use orange\framework\interfaces\ViewInterface;
 
 /**
- * The ViewAbstract properties and methods
- * is the bases of all View services
+ * See abstract/ViewAbstract.php
  */
 class View extends ViewAbstract implements ViewInterface
 {

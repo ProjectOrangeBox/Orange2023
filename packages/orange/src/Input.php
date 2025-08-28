@@ -10,10 +10,78 @@ use orange\framework\interfaces\InputInterface;
 use orange\framework\traits\ConfigurationTrait;
 
 /**
- * Class Input
+ * Overview of Input.php
  *
- * Handles input data and manages HTTP requests using a singleton pattern.
- * Use Singleton::getInstance() to obtain an instance.
+ * This file defines the Input class in the orange\framework namespace.
+ * It is responsible for capturing, normalizing, and managing all incoming request data (HTTP or CLI).
+ * It follows the singleton pattern, ensuring only one instance exists and can be accessed globally.
+ *
+ * ⸻
+ *
+ * 1. Core Purpose
+ * 	•	Acts as the central request handler for the framework.
+ * 	•	Collects data from GET, POST, FILES, COOKIE, REQUEST, SERVER, and raw request body.
+ * 	•	Normalizes keys for consistency.
+ * 	•	Detects the request method, type (HTML, AJAX, CLI), and whether it is HTTPS.
+ * 	•	Provides developers with an easy API to extract input safely.
+ *
+ * ⸻
+ *
+ * 2. Key Properties
+ * 	•	$input → normalized request data (GET, POST, etc.).
+ * 	•	$internal → raw values such as the original server array and raw body.
+ * 	•	$requestType → type of request (html, ajax, cli).
+ * 	•	$requestMethod → HTTP method (get, post, put, etc., or cli).
+ * 	•	$isHttps → whether the request is HTTPS.
+ * 	•	$remapKeys → allows remapping of input keys for normalization.
+ *
+ * ⸻
+ *
+ * 3. Initialization
+ * 	•	The constructor takes a configuration array, merges it with defaults, and builds the input structure.
+ * 	•	build():
+ * 	•	Validates server configuration.
+ * 	•	Populates $input and $internal.
+ * 	•	Determines request type, method, and HTTPS status.
+ *
+ * ⸻
+ *
+ * 4. Data Access Methods
+ * 	•	replace($replace) → updates config with new values (with key restrictions).
+ * 	•	copy() → returns a full snapshot of the request (including raw body & server).
+ * 	•	requestUri() / uriSegment($n) → retrieves request URI and path segments.
+ * 	•	getUrl($component) → extracts parsed parts of the URL.
+ * 	•	requestMethod() / requestType() → retrieves normalized method and type.
+ * 	•	isAjaxRequest() / isCliRequest() / isHttpsRequest() → checks request conditions.
+ * 	•	rawGet() / rawBody() → provides raw GET query and raw body.
+ * 	•	has($name, $key) → check if input key exists.
+ * 	•	Magic access:
+ * 	•	__call() → dynamically fetch values ($input->post('id')).
+ * 	•	__get() → allows property-style access ($input->post).
+ *
+ * ⸻
+ *
+ * 5. Internal Processing
+ * 	•	extract($type, $key, $default) → safely fetches values from normalized input.
+ * 	•	getRequestType() → detects HTML, AJAX, or CLI request.
+ * 	•	getMethod() → resolves HTTP method (with overrides like _method).
+ * 	•	getHttps() → detects HTTPS from server variables.
+ * 	•	detectBody() → auto-converts raw body into JSON array or parsed query string if possible.
+ * 	•	parseStr() → helper to parse query strings into arrays.
+ *
+ * ⸻
+ *
+ * 6. Error Handling
+ * 	•	If invalid keys or input types are accessed, it throws InvalidValue exceptions.
+ * 	•	Protects against direct reliance on untrusted superglobals by funneling all input through controlled APIs.
+ *
+ * ⸻
+ *
+ * Big Picture
+ *
+ * Input.php is the request abstraction layer for the Orange framework.
+ * It standardizes how requests are read, parsed, and validated, ensuring consistent behavior across HTTP and CLI.
+ * This helps keep controller code clean, secure, and environment-agnostic.
  *
  * @package orange\framework
  */

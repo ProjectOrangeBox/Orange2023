@@ -11,10 +11,74 @@ use orange\framework\interfaces\EventInterface;
 use orange\framework\traits\ConfigurationTrait;
 
 /**
- * Event Manager Class
+ * Overview of Event.php
  *
- * This class manages event registration, triggering, and unregistration.
- * It supports priority-based listeners and can handle both closures and class methods.
+ * This file defines the Event class in the orange\framework namespace.
+ * It is the framework’s event manager, responsible for registering, managing, and triggering events across the system.
+ * It follows the Singleton pattern (so only one instance is active) and implements the EventInterface.
+ * It also uses the ConfigurationTrait to handle event configuration.
+ *
+ * ⸻
+ *
+ * 1. Core Purpose
+ * 	•	Acts as a publish–subscribe system: components can register listeners for named triggers, and those listeners will run when the trigger is fired.
+ * 	•	Provides priority-based execution so some listeners can run before others.
+ * 	•	Supports both closures (inline functions) and class–method pairs as event handlers.
+ * 	•	Centralizes event handling, so code stays loosely coupled and extensible.
+ *
+ * ⸻
+ *
+ * 2. Initialization
+ * 	•	The constructor is protected (Singleton enforced).
+ * 	•	Accepts a configuration array of event mappings.
+ * 	•	Uses mergeConfigWith() (from ConfigurationTrait) to combine defaults with provided configuration.
+ * 	•	Initializes the $events store by looping through config and registering each event.
+ * 	•	Supports a special disabled flag to globally turn events off.
+ *
+ * Example configuration format:
+ *
+ * return [
+ *   'before.router' => [
+ *       [\app\libraries\OutputCors::class . '::handleCrossOriginResourceSharing', Event::PRIORITY_HIGHEST],
+ *       [\app\libraries\Middleware::class . '::beforeRouter'],
+ *   ],
+ *   'after.controller' => [
+ *       [\app\libraries\Middleware::class . '::afterController'],
+ *   ],
+ * ];
+ *
+ * 3. Key Features
+ * 	1.	Enable/Disable
+ * 	•	disable() → stops all events from firing.
+ * 	•	enable() → re-enables them.
+ * 	2.	Registration
+ * 	•	register($trigger, $callable, $priority) → adds a single event listener.
+ * 	•	registerMultiple($events, $priority) → adds several at once.
+ * 	•	Internally uses registerEvent() and registerClosureEvent() to store listeners.
+ * 	3.	Triggering
+ * 	•	trigger($trigger, &...$arguments) → fires all listeners for a given trigger, passing arguments by reference.
+ * 	•	Listeners can stop propagation by returning false.
+ * 	4.	Management
+ * 	•	has($trigger) → checks if listeners exist for a trigger.
+ * 	•	triggers() → lists all registered triggers.
+ * 	•	unregister($eventId) → removes a specific listener.
+ * 	•	unregisterAll($trigger = null) → clears all listeners, or just for one trigger.
+ * 	5.	Listener Execution
+ * 	•	Listeners are sorted by priority (highest first).
+ * 	•	Supports closures directly, or array form [ClassName::class, 'method'] which will be wrapped into a closure that instantiates the class and calls the method.
+ *
+ * ⸻
+ *
+ * 4. Error Handling
+ * 	•	Throws InvalidValue exception if a bad callable is registered.
+ * 	•	Logs debug information (logMsg) at various points to aid troubleshooting.
+ *
+ * ⸻
+ *
+ * 5. Big Picture
+ * 	•	Event.php provides the hook system for the Orange framework.
+ * 	•	It allows developers to plug into the lifecycle (like before.router, after.output, etc.) without modifying core code.
+ * 	•	By centralizing event registration and dispatch, it keeps the system flexible, extensible, and testable.
  *
  * Example Configuration:
  * return [

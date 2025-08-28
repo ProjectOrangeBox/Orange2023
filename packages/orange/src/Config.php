@@ -7,21 +7,88 @@ namespace orange\framework;
 use orange\framework\base\SingletonArrayObject;
 use orange\framework\interfaces\CacheInterface;
 use orange\framework\interfaces\ConfigInterface;
+use orange\framework\exceptions\config\ConfigNotFound;
 use orange\framework\exceptions\filesystem\DirectoryNotFound;
 use orange\framework\exceptions\config\InvalidConfigurationValue;
+use orange\framework\exceptions\config\ConfigFileDidNotReturnAnArray;
 
 /**
- * Class Config
+ * Overview of Config.php
  *
- * Manages configuration files in a structured and hierarchical manner.
- * Implements the Singleton pattern to ensure a single instance manages configurations.
- * Supports configuration merging across multiple environments and directories.
+ * This file defines the Config class in the orange\framework namespace.
+ * It is the central configuration manager for the framework, responsible for loading,
+ * merging, and serving configuration files in a structured way.
+ * It follows the Singleton pattern, ensuring there is only one configuration instance shared across the application.
  *
- * Features:
- * - Dynamic configuration loading
- * - Environment-specific configurations
- * - Support for array-based access via ArrayObject
- * - Configuration caching for efficiency
+ * ⸻
+ *
+ * 1. Core Purpose
+ * 	•	Provides a unified way to load configuration files.
+ * 	•	Supports multiple directories (with priority order).
+ * 	•	Allows environment-specific overrides.
+ * 	•	Implements caching of config metadata for performance.
+ * 	•	Gives developers array-style access (via ArrayObject) as well as method access.
+ *
+ * ⸻
+ *
+ * 2. Key Properties
+ * 	•	$configuration → stores loaded configurations indexed by filename.
+ * 	•	$searchDirectories → list of directories where configuration files will be searched.
+ * 	•	$foundDirectoriesByName → map of config file names to their discovered file paths across directories.
+ *
+ * ⸻
+ *
+ * 3. Initialization
+ * 	•	Constructor is protected (Singleton enforced).
+ * 	•	Accepts:
+ * 	•	$config → array of directories to search.
+ * 	•	$cacheService → optional cache service implementing CacheInterface.
+ * 	•	If caching is enabled:
+ * 	•	Tries to load cached map of config files.
+ * 	•	If cache is missing, builds the map and stores it.
+ * 	•	If no cache service, always builds the map fresh.
+ *
+ * ⸻
+ *
+ * 4. Configuration Loading
+ * 	•	load($filename)
+ * 	•	Finds all files with that name (e.g., database.php) across directories.
+ * 	•	Includes them, ensuring each returns an array.
+ * 	•	Merges them using array_replace_recursive() (later directories override earlier ones).
+ * 	•	Stores result in $configuration[$filename].
+ * 	•	Error handling
+ * 	•	Throws ConfigFileDidNotReturnAnArray if included file does not return an array.
+ *
+ * ⸻
+ *
+ * 5. Access Methods
+ * 	•	Magic getter (__get) → $config->database fetches the whole database.php array.
+ * 	•	offsetExists() → array-style access to checks if a config file exists.
+ * 	•	offsetGet() → array-style access to config file ($config['database']).
+ * 	•	get($filename, $key = null, $default = null)
+ * 	•	Fetches entire config file (if $key is null).
+ * 	•	Fetches specific key with fallback default.
+ *
+ * ⸻
+ *
+ * 6. Support Methods
+ * 	•	buildArray() → scans all search directories for *.php config files and builds an index.
+ * 	•	Uses glob() to find files.
+ * 	•	Returns array like:
+ * 	     [
+ *       'database' => ['/path/to/config/database.php', '/path/to/env/database.php'],
+ *       'app' => ['/path/to/config/app.php']
+ * 	     ]
+ *
+ * 7. Big Picture
+ * 	•	Config.php is the backbone for configuration management in the framework.
+ * 	•	It ensures configs are:
+ * 	•	Centralized
+ * 	•	Overridable by environment
+ * 	•	Efficiently merged and cached
+ * 	•	Provides flexible access ($config->file, $config['file'], $config->get('file','key')).
+ *
+ * @package orange\framework
  */
 class Config extends SingletonArrayObject implements ConfigInterface
 {
@@ -35,10 +102,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
      */
     protected array $searchDirectories = [];
 
-    /**
-     * Maps configuration filenames to their absolute file paths.
-     */
-    protected array $foundConfigFiles = [];
+    protected array $foundDirectoriesByName = [];
 
     /**
      * Protected constructor to enforce Singleton usage.
@@ -46,14 +110,23 @@ class Config extends SingletonArrayObject implements ConfigInterface
      * @param array $config Initial configuration array.
      * @throws DirectoryNotFound If the default configuration directory is invalid.
      */
-    protected function __construct(array $config = [], ?CacheInterface $cache = null)
+    protected function __construct(array $config = [], ?CacheInterface $cacheService = null)
     {
         logMsg('INFO', __METHOD__);
 
         $this->searchDirectories = $config;
 
-        if ($cache) {
-            $this->loadCache($cache);
+        if ($cacheService) {
+            // cache key
+            $cacheKey = ENVIRONMENT . '\\' . __CLASS__;
+
+            if ($cached = $cacheService->get($cacheKey)) {
+                $this->foundDirectoriesByName = $cached;
+            } else {
+                $cacheService->set($cacheKey, $this->foundDirectoriesByName = $this->buildArray());
+            }
+        } else {
+            $this->foundDirectoriesByName = $this->buildArray();
         }
     }
 
@@ -78,7 +151,7 @@ class Config extends SingletonArrayObject implements ConfigInterface
     {
         logMsg('INFO', __METHOD__ . ' ' . $filename);
 
-        $this->findConfigFiles($filename);
+        $this->load($filename);
 
         return count($this->foundConfigFiles[$filename]) > 0;
     }
@@ -110,10 +183,10 @@ class Config extends SingletonArrayObject implements ConfigInterface
         logMsg('INFO', __METHOD__ . ' ' . $filename . '.' . ($key ?? '*'));
 
         // Load the configuration file
-        $value = $this->load($filename);
+        $completeConfig = $this->load($filename);
 
         // Return the entire array if no key is specified
-        return $key !== null ? ($value[$key] ?? $defaultValue) : $value;
+        return $key !== null ? ($completeConfig[$key] ?? $defaultValue) : $completeConfig;
     }
 
     /**
@@ -125,105 +198,56 @@ class Config extends SingletonArrayObject implements ConfigInterface
      */
     protected function load(string $filename): array
     {
-        // Check if configuration has already been loaded
-        if (!isset($this->configuration[$filename])) {
-            // it has not so let's start with an empty configuration array
-            $this->configuration[$filename] = [];
+        $config = [];
 
-            // find all the config files matching this filename
-            $this->findConfigFiles($filename);
+        // Check if the configuration file exists in the found directories
+        if (isset($this->foundDirectoriesByName[$filename])) {
+            // Check if configuration has already been loaded
+            if (!isset($this->configuration[$filename])) {
+                $foundConfigs = [];
 
-            // merge configurations from multiple found files
-            foreach ($this->foundConfigFiles[$filename] as $absolutePath) {
-                $this->configuration[$filename] = array_replace_recursive(
-                    $this->configuration[$filename],
-                    $this->include($absolutePath)
-                );
+                foreach ($this->foundDirectoriesByName[$filename] as $configFile) {
+                    if (!is_array($includedConfig = include $configFile)) {
+                        throw new ConfigFileDidNotReturnAnArray('"' . $configFile . '" did not return an array.');
+                    }
+
+                    $foundConfigs[] = $includedConfig;
+                }
+
+                // now let's do the merge all at once.
+                $this->configuration[$filename] = array_replace_recursive(...$foundConfigs);
             }
+
+            $config = $this->configuration[$filename];
         }
 
         // and now configuration has the configuration array
-        return $this->configuration[$filename];
+        return $config;
     }
 
     /**
-     * Include and parse a configuration file.
+     * Find configuration files by name across search directories.
+     * In production this can be cached.
      *
-     * @param string $absolutePath Absolute path to the configuration file.
-     * @return array Parsed configuration array.
-     * @throws InvalidConfigurationValue If the included file does not return an array.
+     * @return array
      */
-    protected function include(string $absolutePath): array
+    protected function buildArray(): array
     {
-        logMsg('INFO', __METHOD__);
+        $found = [];
 
-        if (!isset($this->foundConfigFiles[$absolutePath])) {
-            logMsg('INFO', 'Include File: "' . $absolutePath . '"');
+        // find all of the cache file names by reading all of the searchDirectories
+        foreach ($this->searchDirectories as $searchDirectory) {
+            foreach (glob($searchDirectory . DIRECTORY_SEPARATOR . '*.php') as $file) {
+                $name = basename($file, '.php');
 
-            $this->foundConfigFiles[$absolutePath] = include $absolutePath;
-
-            if (!is_array($this->foundConfigFiles[$absolutePath])) {
-                throw new InvalidConfigurationValue('"' . str_replace(__ROOT__, '', $absolutePath) . '" did not return an array.');
-            }
-        }
-
-        return $this->foundConfigFiles[$absolutePath];
-    }
-
-    /**
-     * Search for configuration files across all defined paths.
-     *
-     * @param string $filename Name of the configuration file.
-     * @return void
-     */
-    protected function findConfigFiles(string $filename): void
-    {
-        logMsg('INFO', __METHOD__ . ' ' . $filename);
-
-        // did we do a search for this config filename
-        if (!isset($this->foundConfigFiles[$filename])) {
-            // nope so we need to start with an empty configuration array
-            $this->foundConfigFiles[$filename] = [];
-
-            // Search through each directory for the configuration file
-            foreach ($this->searchDirectories as $searchDirectory) {
-                if ($absolutePath = realpath($searchDirectory . DIRECTORY_SEPARATOR . $filename . '.php')) {
-                    $this->foundConfigFiles[$filename][] = $absolutePath;
+                if (!isset($found[$name])) {
+                    $found[$name] = [];
                 }
+
+                $found[$name][] = realpath($file);
             }
         }
-    }
 
-    /**
-     * Load configuration & configuration arrays from the arrays
-     *
-     * @param CacheInterface $cache
-     * @return void
-     * @throws InvalidConfigurationValue
-     */
-    protected function loadCache(CacheInterface $cache): void
-    {
-        logMsg('INFO', __METHOD__);
-
-        // cache key
-        $cacheKey = ENVIRONMENT . '\\' . __CLASS__;
-
-        // has anything already been cached?
-        if (!$cached = $cache->get($cacheKey)) {
-            // find all of the cache file names by reading all of the searchDirectories
-            foreach ($this->searchDirectories as $searchDirectory) {
-                foreach (glob($searchDirectory . '/*.php') as $file) {
-                    // trigger a read on all of them
-                    $this->__get(basename($file, '.php'));
-                }
-            }
-
-            // cache the results
-            $cache->set($cacheKey, ['configuration' => $this->configuration, 'foundConfigFiles' => $this->foundConfigFiles]);
-        } else {
-            // load it and setup the correct properties
-            $this->configuration = $cached['configuration'];
-            $this->foundConfigFiles = $cached['foundConfigFiles'];
-        }
+        return $found;
     }
 }

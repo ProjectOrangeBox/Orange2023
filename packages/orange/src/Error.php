@@ -15,11 +15,80 @@ use orange\framework\interfaces\OutputInterface;
 use orange\framework\interfaces\ContainerInterface;
 
 /**
- * Class Error
+ * Overview of Error.php
  *
- * Manages error handling, rendering error views, and sending appropriate outputs.
- * Implements the Singleton pattern for consistent usage across the application.
- * Use Singleton::getInstance() to obtain an instance.
+ * This file defines the Error class in the orange\framework namespace.
+ * It is a centralized error handler for the framework, designed to capture exceptions,
+ * render meaningful error responses, and send them back to the client in a format appropriate to
+ * the request type (HTML, JSON/AJAX, CLI). It extends Singleton, ensuring a single instance is used application-wide,
+ * and uses the ConfigurationTrait for flexible setup.
+ *
+ * ⸻
+ *
+ * 1. Core Purpose
+ * 	•	Capture exceptions or error codes.
+ * 	•	Load error details into a data service.
+ * 	•	Select an appropriate error view (based on environment, request type, or error code).
+ * 	•	Render the view or provide a raw fallback output.
+ * 	•	Send the response to the client with correct HTTP code, content type, and exit code.
+ *
+ * ⸻
+ *
+ * 2. Key Properties
+ * 	•	Service instances:
+ * 	•	$data → holds error data (message, code, trace, etc.).
+ * 	•	$input → provides request type information (HTML, AJAX, CLI).
+ * 	•	$view → used to render error templates.
+ * 	•	$output → sends headers, status codes, and content to the client.
+ * 	•	$container → dependency injection container for resolving services.
+ * 	•	Error context:
+ * 	•	$code (default 500) → application error code.
+ * 	•	$httpCode → optional HTTP status code from the exception.
+ * 	•	$requestType → request channel (cli, html, ajax).
+ * 	•	$errorViewDirectory, $envDirectory, $requestTypeDirectory → directories to search for error views.
+ * 	•	$viewFile, $outputContent → resolved error template file or rendered output.
+ *
+ * ⸻
+ *
+ * 3. Constructor Behavior
+ *
+ * When instantiated, the class:
+ * 	1.	Loads configuration and resolves dependencies (data, input, view, output).
+ * 	2.	Determines the environment (production, development, etc.) and request type.
+ * 	3.	If given a Throwable, extracts details (message, code, file, line, stack trace).
+ * 	4.	Supports custom exception methods (getHttpCode, getOutput, decorate) for enhanced control.
+ * 	5.	Attempts to resolve an error view file based on error/HTTP code.
+ * 	6.	If no template is found, falls back to raw output formatting (plain text, JSON, or HTML <pre>).
+ * 	7.	Immediately sends output to the client and terminates execution.
+ *
+ * ⸻
+ *
+ * 4. Key Methods
+ * 	•	show($code, $message, $options) → manually trigger and render an error with code and message.
+ * 	•	sendResponseCode() → sends appropriate HTTP status (defaults to 500).
+ * 	•	sendMimeType() → sets response type (html, json, or defaults).
+ * 	•	sendOutput($content, $exitCode) → flushes output buffer, writes content, sends headers, and exits.
+ * 	•	renderViewBasedOnCode($code, $httpCode) → looks for an error template by code or status.
+ * 	•	findView($view) → searches directories in a defined order (env + request type fallbacks).
+ * 	•	viewRaw() → fallback plain output if no template found (formats based on request type).
+ * 	•	getService($name, $arguments) → resolves dependencies from the container, falling back to Orange defaults.
+ *
+ * ⸻
+ *
+ * 5. Error Rendering Logic
+ * 	1.	Preferred → environment + request type-specific error view (e.g., errors/dev/html/404.php).
+ * 	2.	Fallbacks → environment-specific or general error views.
+ * 	3.	Last resort → raw inline response (JSON, HTML <pre>, or CLI print).
+ *
+ * ⸻
+ *
+ * 6. Big Picture
+ *
+ * Error.php is the last line of defense in the framework.
+ * It ensures that all errors and exceptions result in a consistent,
+ * informative, and environment-appropriate response.
+ * It combines dependency-injected services (Input, Output, View, Data) with configuration to control behavior,
+ * and it guarantees the response is always flushed and sent.
  *
  * @package orange\framework
  */

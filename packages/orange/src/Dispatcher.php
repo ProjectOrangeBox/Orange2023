@@ -12,11 +12,66 @@ use orange\framework\exceptions\dispatcher\MethodNotFound;
 use orange\framework\exceptions\dispatcher\ControllerClassNotFound;
 
 /**
- * Class Dispatcher
+ * Overview of Dispatcher.php
  *
- * A dispatcher responsible for handling route-matched callbacks and invoking
- * the appropriate controller methods. Implements the singleton pattern.
- * Use Singleton::getInstance() to obtain an instance.
+ * This file defines the Dispatcher class inside the orange\framework namespace.
+ * Its job is to take a route that has already been matched (via the routing system)
+ * and call the correct controller method with the right arguments.
+ * It follows the singleton pattern, meaning only one dispatcher instance exists at runtime.
+ *
+ * ⸻
+ *
+ * 1. Core Purpose
+ * 	•	Acts as the bridge between the router and controllers.
+ * 	•	Ensures the correct controller and method are executed after a route is matched.
+ * 	•	Passes along any arguments extracted from the URL.
+ * 	•	Enforces that controller methods return the correct type (a string).
+ *
+ * ⸻
+ *
+ * 2. Key Components
+ * 	1.	Singleton Pattern
+ * 	•	Inherits from Singleton.
+ * 	•	Constructor is protected → ensures it can only be instantiated via Singleton::getInstance().
+ * 	2.	Dependency Injection Container
+ * 	•	Holds a reference to a ContainerInterface.
+ * 	•	Provides controllers with common services (config, input, output).
+ * 	3.	Route Handling (call() method)
+ * 	•	Accepts a $routeMatched array containing details of the matched route:
+ * 	•	Controller class name.
+ * 	•	Method to invoke.
+ * 	•	URL arguments.
+ * 	•	Metadata (URI, name, etc.).
+ * 	•	Logs details of the matched route for debugging.
+ * 	•	Validates that:
+ * 	•	The controller class exists.
+ * 	•	The method exists on that class.
+ * 	4.	Controller Invocation
+ * 	•	Instantiates the controller with dependencies pulled from the container.
+ * 	•	Calls the specified method with decoded route arguments.
+ * 	•	Validates the return value: must be a string.
+ * 	•	If null → converted to empty string.
+ * 	•	If not string → throws InvalidValue exception.
+ *
+ * ⸻
+ *
+ * 3. Error Handling
+ *
+ * The dispatcher enforces correctness by throwing exceptions when something is wrong:
+ * 	•	ControllerClassNotFound → controller class missing.
+ * 	•	MethodNotFound → method missing on controller.
+ * 	•	InvalidValue → controller method returned something other than a string.
+ *
+ * This ensures failures are explicit and caught early.
+ *
+ * ⸻
+ *
+ * 4. Big Picture
+ * 	•	The router decides which controller and method should handle a request.
+ * 	•	The Dispatcher actually executes that controller method.
+ * 	•	It also injects dependencies and enforces strict return types.
+ *
+ * So, Dispatcher.php is the execution engine that turns a matched route into a controller call, while enforcing framework standards.
  *
  * @package orange\framework
  */

@@ -20,6 +20,17 @@ $path = __ROOT__ . DIRECTORY_SEPARATOR . trim(trim($argv[1]), '/');
 $main = new Main();
 $main->run($path);
 
+/**
+ * This will use the comment starting with # [route
+ * to auto generate the code for the method following
+ * format: method  (optional but comma still needed), url, name (optional)
+ *
+ * # [route(get, /people/delete/(\d+), peopleDeleteForm)]
+ * # [route(, /people/delete/(\d+), peopleDeleteForm)]
+ *
+ * @package
+ */
+
 class Main
 {
     protected string $mergeAbove = '/* merge above this line */';
@@ -150,7 +161,7 @@ class Main
                             $classname = $tokens[$index + 2][1];
                             break;
                         case 'T_COMMENT':
-                            // these ARE NOT real PHP 8 attrubutes they only "look" like them
+                            // these ARE NOT real PHP 8 attributes they only "look" like them
                             // comment must start with "# [route("
                             if (substr(strtolower(trim($token[1])), 0, 9) == '# [route(') {
                                 if (token_name($tokens[$index + 2][0]) == 'T_PUBLIC') {

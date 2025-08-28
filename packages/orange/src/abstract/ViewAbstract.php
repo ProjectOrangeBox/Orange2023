@@ -21,10 +21,80 @@ use orange\framework\exceptions\filesystem\DirectoryNotWritable;
 use orange\framework\exceptions\IncorrectInterface;
 
 /**
- * Abstract class for implementing view rendering engines.
+ * Overview of ViewAbstract.php
  *
- * This class serves as a base for various view engines like PHP views, Twig, Markdown, etc.
- * All engines must implement ViewInterface, ensuring uniformity across different rendering engines.
+ * This file defines the ViewAbstract class in the orange\framework\abstract namespace.
+ * It is the base class for all view rendering engines in the Orange framework.
+ * Concrete engines (like PHP views, Twig, Markdown, etc.)
+ * extend it to provide specific rendering behavior, while sharing the same core setup and utilities.
+ * It also enforces the Singleton pattern and implements the ViewInterface.
+ *
+ * ⸻
+ *
+ * 1. Core Purpose
+ * 	•	Provide a foundation for rendering views (templates) in different formats.
+ * 	•	Manage configuration, view paths, aliases, caching, and data injection.
+ * 	•	Allow support for dynamic view resolution based on routing.
+ * 	•	Handle file-based and string-based rendering consistently.
+ *
+ * ⸻
+ *
+ * 2. Key Properties
+ * 	•	$search → a DirectorySearch instance for locating view files.
+ * 	•	$data → a data source (implements DataInterface) passed into views.
+ * 	•	$router → optional router instance for resolving dynamic view names.
+ * 	•	$debug → toggles debug mode (forces re-rendering, no caching).
+ * 	•	$allowDynamicViews → enables placeholders like $c/$m in view paths.
+ * 	•	$tempDirectory → directory for temporary cached view files (string templates).
+ * 	•	$alias → maps view names to alternate paths.
+ * 	•	$subPathSize → determines subdirectory depth for hashing string templates.
+ * 	•	$changeableTypeCheck → defines which properties can be updated at runtime and their type checks.
+ *
+ * ⸻
+ *
+ * 3. Initialization
+ * 	•	Constructor merges config, sets debug/dynamic flags, validates the temp directory, loads aliases, and builds the DirectorySearch utility with configured view paths.
+ * 	•	Can also preload resources into the search utility.
+ *
+ * ⸻
+ *
+ * 4. Key Methods
+ * 	1.	Searching and Aliasing
+ * 	•	search() → returns the directory search utility.
+ * 	•	addAlias($view, $aliasView) → registers a view alias.
+ * 	•	resolveAlias($view) → replaces a view name with its alias.
+ * 	2.	Rendering Views
+ * 	•	render($view, $data, $options) → locates a view file and renders it with merged data.
+ * 	•	renderString($string, $data, $options) → renders directly from a string (compiled into a temp file).
+ * 	•	generate($__viewFilePath, $__dataArray) → internal method that executes the view file with provided data.
+ * 	3.	Dynamic View Resolution
+ * 	•	resolveDynamicView($view) → replaces placeholders like $c (controller), $m (method), $1, $2 (namespace segments) using the matched route.
+ * 	4.	Data Handling
+ * 	•	data($data) → merges new data with the view’s internal DataInterface.
+ * 	5.	Configuration
+ * 	•	change($name, $value) → safely update configurable properties (e.g., enable debug mode, change temp directory).
+ * 	6.	File Safety
+ * 	•	isFileWritable($file) → ensures the target file or directory is writable (creates directories if needed).
+ *
+ * ⸻
+ *
+ * 5. Error Handling
+ * 	•	Throws ViewNotFound if a view file cannot be located.
+ * 	•	Throws DirectoryNotWritable or FileNotWritable if caching directories are inaccessible.
+ * 	•	Throws InvalidValue for incorrect config changes.
+ * 	•	Wraps low-level errors into framework exceptions for consistency.
+ *
+ * ⸻
+ *
+ * 6. Big Picture
+ * 	•	ViewAbstract is the backbone of Orange’s view system.
+ * 	•	It standardizes how views are located, resolved, cached, and rendered, while allowing flexible engines to be built on top.
+ * 	•	By combining search, aliasing, dynamic resolution, and rendering, it ensures all view engines behave consistently across the framework.
+ *
+ * ⸻
+ *
+ * Recommendation: Treat ViewAbstract as the template engine foundation.
+ * All custom view renderers should extend it to inherit search, caching, and rendering logic.
  */
 abstract class ViewAbstract extends Singleton implements ViewInterface
 {

@@ -16,17 +16,88 @@ use orange\framework\exceptions\router\RouterNameNotFound;
 use orange\framework\exceptions\router\HttpMethodNotSupported;
 
 /**
- * Class Router
+ * Overview of Router.php
  *
- * Manages route definitions, matching requests to routes, and generating URLs from route names.
- * Implements Singleton and RouterInterface patterns.
+ * This file defines the Router class in the orange\framework namespace.
+ * It is a core component of the Orange framework responsible for managing application routes 
+ * — the mapping between URLs, HTTP methods, and their corresponding callbacks or controllers.
+ * It implements both the Singleton pattern and the RouterInterface.
  *
- * Key Responsibilities:
- * - Adding individual routes or groups of routes.
- * - Matching incoming HTTP requests to defined routes.
- * - Generating URLs based on route names and arguments.
- * - Handling configuration for routing rules and site URLs.
+ * ⸻
  *
+ * 1. Core Purpose
+ * 	•	Registers routes (individually or in bulk).
+ * 	•	Matches incoming requests (URI + HTTP method) to defined routes.
+ * 	•	Provides named route lookups to generate URLs.
+ * 	•	Manages route configuration and caching for performance.
+ * 	•	Enforces routing rules and validates parameters.
+ *
+ * ⸻
+ *
+ * 2. Key Properties
+ * 	•	$routes → holds routes grouped by HTTP method (GET, POST, PUT, DELETE, etc.).
+ * 	•	$routesByName → stores routes keyed by their names for quick URL generation.
+ * 	•	$matched → stores details of the last matched route (URI, method, arguments, name, callback).
+ * 	•	$inputService → reference to InputInterface, used for request details (method, URI, HTTPS).
+ * 	•	$siteUrl → base URL of the application.
+ * 	•	$cacheService / $cacheKey → optional caching mechanism to persist routes.
+ * 	•	$onMatchAll → defines methods used for wildcard route matching.
+ * 	•	$skipParameterTypeChecking → flag to bypass regex validation of route parameters.
+ *
+ * ⸻
+ *
+ * 3. Constructor
+ * 	•	Takes in config, input service, and optional cache service.
+ * 	•	Validates required configuration (site).
+ * 	•	Loads routes from cache (if available) or from configuration.
+ * 	•	Sets up default route placeholders like 404 and home.
+ *
+ * ⸻
+ *
+ * 4. Core Methods
+ * 	1.	addRoute(array $options)
+ * 	•	Registers a single route (URL, method, callback, name).
+ * 	•	Supports wildcard methods (*) by mapping to multiple HTTP verbs.
+ * 	•	Updates cache.
+ * 	2.	addRoutes(array $routes)
+ * 	•	Registers multiple routes at once (reverse order for precedence).
+ * 	3.	match(string $requestUri, string $requestMethod)
+ * 	•	Matches an incoming URI + method to a defined route using regex.
+ * 	•	Populates $matched with details (URL, argv, callback, etc.).
+ * 	•	Throws RouteNotFound if nothing matches.
+ * 	4.	getMatched(?string $key = null)
+ * 	•	Returns full matched route info or a specific value (like callback or url).
+ * 	5.	getUrl(string $searchName, array $arguments = [], ?bool $skipParameterTypeChecking = null)
+ * 	•	Generates a URL from a named route, inserting arguments into placeholders.
+ * 	•	Enforces regex validation on arguments unless skipped.
+ * 	•	Throws exceptions if arguments don’t match or route name isn’t found.
+ * 	6.	siteUrl(bool|string $prefix = true)
+ * 	•	Returns the application’s base URL with optional scheme (http://, https://, or custom).
+ * 	7.	updateCache() / getRoutes() / addConfigRoutes()
+ * 	•	Manage loading and caching of route definitions for performance.
+ *
+ * ⸻
+ *
+ * 5. Error Handling
+ * 	•	Throws MissingRequired if critical config (like site) is missing.
+ * 	•	Throws RouteNotFound when no route matches.
+ * 	•	Throws HttpMethodNotSupported if an invalid method is used.
+ * 	•	Throws RouterNameNotFound if generating a URL for an unknown route.
+ * 	•	Throws InvalidValue for mismatched argument counts or regex validation failures.
+ *
+ * ⸻
+ *
+ * 6. Big Picture
+ *
+ * Router.php is the routing engine of the framework:
+ * 	1.	Developers register routes with methods, URLs, and callbacks.
+ * 	2.	Incoming requests are matched against these routes.
+ * 	3.	The router hands off the matched route details to the dispatcher, which calls the appropriate controller.
+ * 	4.	Optionally, caching makes repeated lookups faster.
+ *
+ * It ensures that every HTTP request is routed consistently, securely, and with flexible options
+ * like named routes, parameter validation, and caching.
+ * 
  * @package orange\framework
  */
 class Router extends Singleton implements RouterInterface
@@ -35,10 +106,10 @@ class Router extends Singleton implements RouterInterface
     use ConfigurationTrait;
 
     // Provides access to input-related utilities (e.g., HTTP method, request URI).
-    protected InputInterface $input;
+    protected InputInterface $inputService;
 
     // Base URL of the site, used for generating full URLs.
-    protected string $siteUrl = '';
+    protected string $siteUrl;
 
     // Routes by HTTP method
     protected array $routes = [
@@ -67,7 +138,7 @@ class Router extends Singleton implements RouterInterface
     protected array $onMatchAll = [];
 
     // if cache passed this is an reference to it
-    protected ?CacheInterface $cache;
+    protected ?CacheInterface $cacheService = null;
     // the caching key for routes
     protected string $cacheKey;
     // to turn off caching of routes
@@ -88,27 +159,31 @@ class Router extends Singleton implements RouterInterface
         // load the default configs
         $this->config = $this->mergeConfigWith($config, 'routes', false);
 
+        // set the input service
+        $this->inputService = $input;
+
         // Validate the configuration
-        if (empty($this->config['site'])) {
+        if (!isset($this->config['site']) || empty($this->config['site'])) {
             throw new MissingRequired('Route config "site" in routes.php can not be empty.');
         }
 
-        $this->input = $input;
-        // Set the site URL
+        // Set the site URL - this is required and checked above
         $this->siteUrl = $this->config['site'];
+
         // Set the skip parameter type checking flag
-        $this->skipParameterTypeChecking = $this->config['skip parameter type checking'];
+        $this->skipParameterTypeChecking = $this->config['skip parameter type checking'] ?? false;
+
         // Set the on match all methods
-        $this->onMatchAll = $this->config['match all'];
+        $this->onMatchAll = $this->config['match all'] ?? ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
 
         // Set the cache if provided
-        if ($this->cache = $cache) {
+        if ($this->cacheService = $cache) {
             // Set the cache key
             $this->cacheKey = ENVIRONMENT . '\\' . __CLASS__;
         }
 
         // Load the routes
-        $this->loadRoutes();
+        $this->getRoutes();
 
         // setup the "empty" matched
         $this->matched = [
@@ -163,7 +238,7 @@ class Router extends Singleton implements RouterInterface
         }
 
         // Save the route to cache
-        $this->saveCache();
+        $this->updateCache();
 
         // return $ instance for method chaining
         return $this;
@@ -191,7 +266,7 @@ class Router extends Singleton implements RouterInterface
         $this->disableCaching = false;
 
         // save the routes to cache if available
-        $this->saveCache();
+        $this->updateCache();
 
         // return $ instance for method chaining
         return $this;
@@ -356,7 +431,7 @@ class Router extends Singleton implements RouterInterface
             $scheme = $prefix;
         } else {
             // Auto determine the scheme based on the request
-            $scheme = ($this->input->isHttpsRequest() ? 'https://' : 'http://');
+            $scheme = ($this->inputService->isHttpsRequest() ? 'https://' : 'http://');
         }
 
         // Build the site URL
@@ -369,12 +444,12 @@ class Router extends Singleton implements RouterInterface
      *
      * @return void
      */
-    protected function saveCache()
+    protected function updateCache()
     {
         // Check if the cache is available and caching is not disabled
-        if ($this->cache && !$this->disableCaching) {
+        if ($this->cacheService && !$this->disableCaching) {
             // Cache the current routes
-            $this->cache->set($this->cacheKey, ['routes' => $this->routes, 'routesByName' => $this->routesByName]);
+            $this->cacheService->set($this->cacheKey, ['routes' => $this->routes, 'routesByName' => $this->routesByName]);
         }
     }
 
@@ -387,19 +462,19 @@ class Router extends Singleton implements RouterInterface
      * @return void
      * @throws MissingRequired
      */
-    protected function loadRoutes(): void
+    protected function getRoutes(): void
     {
         // Check if the cache is available
-        if ($this->cache) {
+        if ($this->cacheService) {
             // try to load the cached routes
-            $cachedRoutes = $this->cache->get($this->cacheKey);
+            $cachedRoutes = $this->cacheService->get($this->cacheKey);
 
-            // if we get "false" then it was a cache miss
-            if (!$cachedRoutes) {
+            // if we get anything but a array we assume cache is invalid
+            if (!is_array($cachedRoutes) || !isset($cachedRoutes['routes']) || !isset($cachedRoutes['routesByName'])) {
                 // didn't find them so force a load and then set the cache
                 $this->addConfigRoutes();
             } else {
-                // cache is valid so we can use it
+                // cache is a array so we can assume it is valid
                 $this->routes = $cachedRoutes['routes'];
                 $this->routesByName = $cachedRoutes['routesByName'];
             }

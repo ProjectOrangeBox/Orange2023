@@ -14,11 +14,88 @@ use orange\framework\exceptions\IncorrectInterface;
 use orange\framework\exceptions\filesystem\DirectoryNotWritable;
 
 /**
- * Class Log
+ * Overview of Log.php
  *
- * Implements logging functionality, supports PSR-3 LoggerInterface,
- * and can utilize custom logging handlers.
- * Use Singleton::getInstance() to obtain an instance.
+ * This file defines the Log class in the orange\framework namespace.
+ * It implements both the framework’s LogInterface and the PSR-3 LoggerInterface,
+ * meaning it can be used as a standard logger in PHP applications while also supporting Orange’s internal requirements.
+ * It extends Singleton, so only one instance exists during runtime.
+ *
+ * ⸻
+ *
+ * 1. Core Purpose
+ * 	•	Provides a centralized logging system for the framework and applications.
+ * 	•	Supports PSR-3 compatibility so developers can use familiar logging methods (info(), error(), etc.).
+ * 	•	Allows either a custom logging handler (any PSR-3 logger) or its own file-based logger.
+ * 	•	Manages logging thresholds, so only messages at or above a certain severity are written.
+ *
+ * ⸻
+ *
+ * 2. Configuration & Setup
+ * 	•	Uses ConfigurationTrait to merge settings.
+ * 	•	Key configuration options:
+ * 	•	threshold → bitmask determining which log levels are active.
+ * 	•	handler → optional PSR-3 compatible logger.
+ * 	•	filepath → path to the log file (if no custom handler).
+ * 	•	timestamp format, line format, permissions → control log output formatting.
+ * 	•	During construction:
+ * 	•	Initializes thresholds and level mappings.
+ * 	•	If handler is provided, validates it implements LoggerInterface.
+ * 	•	Otherwise, defaults to file-based logging and ensures the log directory is writable.
+ *
+ * ⸻
+ *
+ * 3. Threshold & Enable/Disable
+ * 	•	changeThreshold($threshold) → adjusts logging threshold and enables/disables logging accordingly.
+ * 	•	getThreshold() / isEnabled() → retrieve current state.
+ * 	•	Logging only occurs if enabled = true and the given log level is within the threshold.
+ *
+ * ⸻
+ *
+ * 4. Logging Methods
+ *
+ * Implements all PSR-3 standard methods, which internally call log():
+ * 	•	emergency(), alert(), critical(), error(),
+ * 	•	warning(), notice(), info(), debug().
+ *
+ * Each delegates to log($level, $message, $context).
+ *
+ * ⸻
+ *
+ * 5. Logging Execution
+ * 	•	log():
+ * 	•	Checks if level is enabled.
+ * 	•	Converts level between string ↔ int (convert2()).
+ * 	•	If using a custom handler → forwards the log to it.
+ * 	•	If using the internal handler → writes the message to a file.
+ * 	•	write():
+ * 	•	Builds a log entry line using placeholders:
+ * 	•	%timestamp, %level, %message, %context.
+ * 	•	Appends to log file, creating it with correct permissions if missing.
+ *
+ * ⸻
+ *
+ * 6. Level Handling
+ * 	•	Maintains mappings between:
+ * 	•	String levels (DEBUG, ERROR, etc.).
+ * 	•	Integer constants (bitmask style).
+ * 	•	convert2() ensures valid conversion and throws InvalidValue for unknown levels.
+ *
+ * ⸻
+ *
+ * 7. File Safety
+ * 	•	isFileWritable():
+ * 	•	Ensures the directory for the log file exists (creates if needed).
+ * 	•	Confirms directory is writable.
+ * 	•	Throws DirectoryNotWritable if not possible.
+ *
+ * ⸻
+ *
+ * 8. Big Picture
+ * 	•	Log.php is the logging backbone of the Orange framework.
+ * 	•	It allows developers to log messages in a standard, PSR-3 compatible way.
+ * 	•	Provides flexibility: use Orange’s built-in file logging or inject a custom PSR-3 logger.
+ * 	•	Ensures log safety, configurability, and consistent formatting.
  *
  * @package orange\framework
  */

@@ -9,13 +9,6 @@ use orange\framework\interfaces\RouterInterface;
 use orange\framework\interfaces\ContainerInterface;
 
 return [
-    'router' => function (ContainerInterface $container): RouterInterface {
-        return Router::getInstance($container->config->routes, $container->input, $container->phpcache);
-    },
-    'config' => function (ContainerInterface $container): ConfigInterface {
-        return Config::getInstance(['search directories' => [
-            $container->get('$configDirectory'),
-            $container->get('$configDirectory') . DIRECTORY_SEPARATOR . ENVIRONMENT,
-        ]], $container->phpcache);
-    },
+    'router' => fn(ContainerInterface $container): RouterInterface => Router::getInstance($container->config->routes, $container->input, $container->phpcache),
+    'config' => fn(ContainerInterface $container): ConfigInterface => Config::getInstance($container->get('$application.config directories'), $container->phpcache),
 ];

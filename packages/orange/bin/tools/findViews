@@ -5,18 +5,15 @@ declare(strict_types=1);
 
 $container = require __DIR__ . '/../../../../bootstrapCli.php';
 
-/* send config into application */
-$container = \orange\framework\Application::cli($config);
-
 $argc = $_SERVER['argc'];
 $argv = $_SERVER['argv'];
 
 echo PHP_EOL;
 
 if ($argc != 2) {
-    die('Please provide view directory relative to ' . __ROOT__ . PHP_EOL . PHP_EOL);
+    echo 'Please provide controllers directory relative to ' . __ROOT__ . PHP_EOL . PHP_EOL;
+    exit(1);
 }
-
 
 $path = __ROOT__ . DIRECTORY_SEPARATOR . trim(trim($argv[1]), '/');
 

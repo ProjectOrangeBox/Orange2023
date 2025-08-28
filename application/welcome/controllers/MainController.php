@@ -46,4 +46,10 @@ class MainController extends BaseController
     {
         $this->output->redirect('/');
     }
+
+    public function opcache()
+    {
+        require __DIR__ . '/../views/opcache.php';
+        exit;
+    }
 }
