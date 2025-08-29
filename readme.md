@@ -1,7 +1,7 @@
 # Orange Framework #
 
-The Orange MVC framework does not replace the other first-rate PHP frameworks, and while it has powered several sites, it is now mainly to showcase my coding skills. 
-It started as a proof concept for a customer, running on just a few Raspberry Pis (model 3). Even the older model could efficiently serve over 1000 requests per second, winning me my first contract. 
+The Orange MVC framework is not intended to replace other first-rate PHP frameworks, and although it has powered several sites, it is now primarily used to showcase my coding skills. 
+It started as a proof-of-concept / dare from a customer. In which he challenged me to serve over 1,000 pages per second on a few Raspberry Pis. At the time, it was only running on Model 3s, but it could efficiently serve over 1,000 requests per second, which won me my first contract. 
 
 It has been continually updated ever since. While I also work with other PHP frameworks, I would love to hear from you if this is the quality of code you are looking for or if you would like to learn more about this framework.
 
@@ -27,7 +27,7 @@ The framework follows a classic MVC request lifecycle. HereFs the end-to-end flo
   - Sets PHP environment (errors, timezone, charset).
   - Initializes the DI Container (Container.php)
   - Loads service definitions (logger, input, output, router, dispatcher, etc.).
-  - Injects configuration into container.
+  - Injects configuration into the container.
   - Starts HTTP lifecycle
   - Triggers events (before.router, before.controller, etc.).
   - Delegates request flow to the Router.
@@ -217,8 +217,8 @@ Security.php
 
 ---
 
-index.php - All requests enter through front controller.
-Application.php - Bootstraps environment and container.
+index.php - All requests enter through the front controller.
+Application.php - Bootstraps the environment and container.
 Input.php - Captures request data.
 Router.php - Matches URI + method to a route (not shown above but critical).
 Dispatcher.php - Calls the controller action.
@@ -296,3 +296,4 @@ https://phinx.org/
 ![Orange PHP Framework - Ruquest Lifecycle Flow](lifecycle.png "Orange PHP Framework - Ruquest Lifecycle Flow")
 
 [Overview](overview.md)
+
