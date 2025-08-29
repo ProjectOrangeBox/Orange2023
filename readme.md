@@ -7,7 +7,7 @@ It has been continually updated ever since. While I also work with other PHP fra
 
 Overview: Web Page Generation Process (starting from index.php)
 
-The framework follows a classic MVC request lifecycle. HereFs the end-to-end flow:
+The framework follows a classic MVC request lifecycle. Here's the end-to-end flow:
 
 ---
 
@@ -41,12 +41,12 @@ The framework follows a classic MVC request lifecycle. HereFs the end-to-end flo
 
 ---
 
-4. Routing - Router.php (implied, not uploaded but referenced)
+1. Routing - Router.php
   - Matches the current request URI + HTTP method to a registered route.
   - Route specifies:
-  - Controller class.
-  - Method to call.
-  - URL parameters.
+    - Controller class.
+    - Method to call.
+    - URL parameters.
   - If no route matches - forwards to Error.php for 404 handling.
 
 ---
@@ -57,30 +57,30 @@ The framework follows a classic MVC request lifecycle. HereFs the end-to-end flo
   - Calls the specified method, passing in any arguments from the URL.
   - Expects a string response (usually HTML or JSON).
   - Throws exceptions if:
-  - Controller not found.
-  - Method not found.
-  - Invalid return type.
+    - Controller not found.
+    - Method not found.
+    - Invalid return type.
 
 ---
 
 6. Controller & Model Layer
-  - The controller method is the developerFs code. It:
-  - May load data from a model (database, business logic).
-  - Prepares variables for the view.
-  - Calls the view renderer (via View class extending ViewAbstract.php).
-  - Models are plain PHP classes handling data access, typically via repositories or ORM.
+  - The controller method is the developer's code. It:
+    - May load data from a model (database, business logic).
+    - Prepares variables for the view.
+    - Calls the view renderer (via View class extending ViewAbstract.php).
+    - Models if used are plain PHP classes handling data access.
 
 ---
 
-7. View Rendering - ViewAbstract.php
+1. View Rendering - Class Extending ViewAbstract.php
   - Locates a template file (views/ directory).
   - Injects data ($data container).
-  - Renders it into a string of HTML.
+  - Renders it into a string of HTML or other.
   - Supports aliases, dynamic view paths, and string rendering.
 
 ---
 
-8. Output Handling - Output.php (referenced earlier)
+1. Output Handling - Output.php (referenced earlier)
   - Collects the final content string.
   - Sets response headers (Content-Type, Charset).
   - Applies HTTP response code (200, 404, 500, etc.).
@@ -93,18 +93,18 @@ The framework follows a classic MVC request lifecycle. HereFs the end-to-end flo
   - If any uncaught exception occurs during the lifecycle:
   - Catches the exception.
   - Determines the correct error view (e.g., 500.php, 404.php).
-  - Falls back to raw output (JSON for AJAX, \<pre> for HTML, plain for CLI).
+  - Falls back to raw output (JSON for AJAX, Text for HTML, plain for CLI).
   - Sends the error response via Output.php.
 
 ---
 
-10. Logging & Events - Log.php / Event.php
+1.  Logging & Events - Log.php / Event.php
   - Log.php
-  - Records messages at various severity levels (error, info, debug).
-  - Supports file-based or PSR-3 compatible loggers.
+    - Records messages at various severity levels (error, info, debug).
+    - Supports file-based or PSR-3 compatible loggers.
   - Event.php
-  - Provides hooks like before.router, after.controller, etc.
-  - Allows adding middleware or cross-cutting concerns (auth, CORS, caching).
+    - Provides hooks like before.router, after.controller, etc.
+    - Allows adding middleware or cross-cutting concerns (auth, CORS, caching).
 
 ---
 
@@ -167,7 +167,7 @@ Data.php
     Used for storing request/response data and variables passed to views.
 
 Event.php
-    Implements the frameworkFs event system.
+    Implements the framework's event system.
     Allows registration of listeners for triggers like before.router, before.controller, before.output.
     Executes listeners with priority-based ordering.
     Enables extensibility without modifying core code.
